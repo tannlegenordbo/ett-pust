@@ -160,7 +160,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Utstyr og dykkerbutikken</h2>
     <ul>
-      <li>Du starter i badebukse med hawaiislynge, uten finner og uten bly.</li>
+      <li>Du starter i badebukse med hawaiislynge, uten finner og uten bly. Tareskogen begynner på rundt 3 meter og blir dypere utover, så i starten er det flatfisk og steinbit på grunna som er innen rekkevidde.</li>
       <li>Etter hver runde får du 1 krone for hvert femte poeng. Etter en blackout får du bare halvparten.</li>
       <li>I dykkerbutikken kan du mellom rundene kjøpe bedre våpen, finner, drakt, vekter og pustetrening.</li>
       <li>Hawaiislynga rekker kort, men kan lades under vann. Harpunene rekker lenger, men gir ett skudd per dykk.</li>
@@ -254,7 +254,8 @@ function bottom(x){
   if(level===4)return 2100;
   if(level===3)return M*(10.6+8*sst((x-950)/400)+7*sst((x-2250)/400))+Math.sin(x/53)*5;
   if(level===2){var mt=clamp((x-150)/(W-1000),0,1);return Math.min(MAXB,M*(5+8*Math.pow(mt,.85))+Math.abs(Math.sin(x/37))*10+Math.sin(x/83)*6)}
-  return Math.min(MAXB,M*(10.6+1.9*Math.sin(x/310)+.9*Math.sin(x/97+1)+.4*Math.sin(x/41)));
+  var t1=clamp((x-200)/(W-500),0,1);
+  return Math.min(MAXB,M*(3+10*Math.pow(t1,1.15)+(.25+.75*t1)*(Math.sin(x/310)+.5*Math.sin(x/97+1)+.25*Math.sin(x/41))));
 }
 var introT=0,introS=0,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false;
 var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet'];
@@ -309,6 +310,13 @@ function pickX(kind){
     return rnd(160,W-200);
   }
   if(level===3&&pipes.length){var pp=pipes[(Math.random()*pipes.length)|0];return rnd(pp.a-120,pp.b+120)}
+  if(level===1){
+    if(kind==='rodspette')return Math.random()<.6?rnd(150,1300):rnd(1300,W-120);
+    if(kind==='steinbit')return Math.random()<.65?rnd(250,1400):rnd(1400,W-120);
+    if(kind==='hummer'||kind==='orret')return rnd(150,W-120);
+    if(kind==='kveite')return rnd(W-900,W-160);
+    return rnd(650,W-120);
+  }
   return rnd(120,W-120);
 }
 function spawn(kind,far){
@@ -323,13 +331,13 @@ function spawn(kind,far){
 function reset(){
   fish=[];counts={};catches=[];score=0;air=100;timeLeft=ROUND;reload=0;spear=null;endReason='';carry=null;diveT=0;under=false;recRate=2;shotUsed=false;stillT=0;lying=false;boost=0;beltOff=false;belt=null;haul=null;gruntT=0;gruntCd=0;breathT=0;hbT=0;eerieT=5;stuck=null;hal=null;noGun=false;peak=0;boT=0;boEnd=0;bubbles=[];
   cam.snap=true;
-  diver={x:level===2?230:level===3?480:W/2,y:6,vx:0,vy:0,ang:.5,kick:0,spd:0};buoy.x=diver.x-30;
+  diver={x:level===2?230:level===3?480:level===1?300:W/2,y:6,vx:0,vy:0,ang:.5,kick:0,spd:0};buoy.x=diver.x-30;
   hooked=null;sharks=[];sharkT=0;landMul=1;flasher=null;flCd=0;buddyJob=null;
   var plan=level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
   for(var k in plan)for(var i=0;i<plan[k];i++)spawn(k,false);
   if(level<3){
     spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(135,190));hal.px=hal.cm*.9;
-    if(level===1&&Math.abs(hal.x-diver.x)<500)hal.x=diver.x+(hal.x<diver.x?-700:700);
+
   }
 }
 function buildWorld(){
@@ -338,7 +346,7 @@ function buildWorld(){
   for(var pi=0;pi<pipes.length;pi++)pipes[pi].y=bottom((pipes[pi].a+pipes[pi].b)/2)-22;
   for(var x=20;x<W;x+=rnd(14,34)){
     var grow=level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
-    if(grow)kelp.push({x:x,h:level!==1?rnd(60,170):rnd(90,330),ph:rnd(0,6.28),w:rnd(5,10),c:Math.random()<.5});
+    if(grow)kelp.push({x:x,h:level!==1?rnd(60,170):Math.max(40,Math.min(rnd(90,330),bottom(x)-45)),ph:rnd(0,6.28),w:rnd(5,10),c:Math.random()<.5});
   }
   if(level===2){
     for(var qx=10,qn=0;qx<W-830;qn++){
@@ -479,7 +487,7 @@ var S=(function(){
 })();
 /* ---------- utstyr og butikk ---------- */
 var GUN=[
-  {n:'Hawaiislynge',r:110,p:0,d:'Kort rekkevidde, men kan lades under vann.'},
+  {n:'Hawaiislynge',r:60,p:0,d:'Rekker bare rundt én meter, men kan lades under vann.'},
   {n:'Kort harpun 60 cm',r:140,p:1500,d:'Lengre rekkevidde. Ett skudd per dykk.'},
   {n:'Treharpun 90 cm',r:185,p:5000,d:'Lang rekkevidde og god treffsikkerhet.'},
   {n:'Blåvannsharpun 120 cm',r:250,p:15000,d:'Lengst rekkevidde, for stor og sky fisk.'}];
