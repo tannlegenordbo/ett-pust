@@ -178,6 +178,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Utstyr og dykkerbutikken</h2>
     <ul>
+      <li>Du må fylle kvoten på et nivå før neste nivå låses opp.</li>
       <li>Du starter i badebukse med hawaiislynge, uten finner og uten bly. Tareskogen begynner på rundt 3 meter og blir dypere utover, så i starten er det flatfisk og steinbit på grunna som er innen rekkevidde.</li>
       <li>Etter hver runde får du 1 krone for hvert femte poeng. Etter en blackout får du bare halvparten.</li>
       <li>I dykkerbutikken kan du mellom rundene kjøpe bedre våpen, finner, drakt, vekter og pustetrening.</li>
@@ -2133,12 +2134,13 @@ function finish(why){
     rows+='<tr'+(c.pts<0?' class="fredet"':'')+'><td>'+c.f.s.name+(c.note?' ('+c.note+')':'')+'</td><td class="n">'+c.f.cm+' cm</td><td class="n">'+(c.pts>0?'+':'')+fmt(c.pts).replace('-','−')+'</td></tr>';
   }
   $('overTable').innerHTML=rows;
-  if(!night&&why!=='blackout'&&level===maxLevel&&maxLevel<5){
+  if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<5)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
+  if(!night&&why==='kvote'&&level===maxLevel&&maxLevel<5){
     maxLevel++;try{localStorage.setItem('ettpust-lvl',String(maxLevel))}catch(_){}
     $('overLead').textContent+=' Nivå '+maxLevel+', '+LN[maxLevel]+', er åpnet.';
   }
   lockUi();
-  nextLv=(!night&&why!=='blackout'&&level<5)?level+1:level;
+  nextLv=(!night&&why==='kvote'&&level<5&&maxLevel>level)?level+1:level;
   $('again').textContent=nextLv>level?'Videre til nivå '+nextLv+': '+LN[nextLv]:'Dykk igjen';
   S.music(false);$('grunt').hidden=true;$('kick').hidden=true;$('flash').hidden=true;
   $('over').hidden=false;$('over').scrollTop=0;
