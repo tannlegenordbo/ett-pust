@@ -2316,14 +2316,17 @@ function beginPlay(){
   if(level===5){toast('Middelhavet: dentexen står ved stupet på 20–45 meter. Ligg i ro der nede og la den komme til deg');return}
   toast(level===4?'Blåvann: pila sitter i bøya. Skyt, pust, og hal fisken opp før haiene kommer':level===3?'Rørdykket: rørene ligger på 10, 18 og 25 meter':level===2?'Moloen: svøm utover, legg deg stille og vent på fisken':'Pust rolig, dykk når du er klar');
 }
+var testLv=0;
+function readTest(){var m=/^#niva([1-6])$/.exec(location.hash||'');testLv=m?+m[1]:0;if(typeof lockUi==='function')lockUi()}
 function lockUi(){
   $('shopBtn').textContent='Dykkerbutikken · '+fmt(G.kr)+' kr';
-  $('play').textContent=maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
+  $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]:maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
   $('restart').hidden=maxLevel<2;
   var nb=$('nightBtn');nb.disabled=G.lamp<1;nb.textContent=G.lamp<1?'Nattdykk (kjøp lykt i Havguden)':'Nattdykk i tareskogen';
 }
 lockUi();
-$('play').addEventListener('click',function(){start(maxLevel)});
+$('play').addEventListener('click',function(){start(testLv||maxLevel)});
+readTest();window.addEventListener('hashchange',readTest);
 $('restart').addEventListener('click',function(){start(1)});
 $('nightBtn').addEventListener('click',function(){if(G.lamp>0)start(1,true)});
 $('shopBtn').addEventListener('click',openShop);
