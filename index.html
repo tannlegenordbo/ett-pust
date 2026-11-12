@@ -152,8 +152,6 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
-    <div class="jump"><span>Test et nivå direkte</span><button type="button" data-lv="1">1</button><button type="button" data-lv="2">2</button><button type="button" data-lv="3">3</button><button type="button" data-lv="4">4</button><button type="button" data-lv="5">5</button></div>
-    <div class="jump" style="margin-top:8px"><span>Test: få penger til butikken</span><button type="button" id="testKr" style="width:auto;padding:0 12px">+50 000 kr</button></div>
   </div>
 </div>
 
@@ -2173,7 +2171,6 @@ $('shopBtn').addEventListener('click',openShop);
 $('shopBtn2').addEventListener('click',openShop);
 $('shopCv').addEventListener('click',function(){if(shopT<2.5){shopSkip=true;shopGreet()}});
 $('shopBack').addEventListener('click',function(){$('shop').hidden=true;$('menu').hidden=!shopFrom.menu;$('over').hidden=!shopFrom.over;lockUi()});
-$('testKr').addEventListener('click',function(){G.kr+=50000;saveG();lockUi()});
 $('shopList').addEventListener('click',function(e){
   var bt=e.target&&e.target.closest?e.target.closest('.buy'):null;if(!bt||bt.disabled)return;
   var k=bt.getAttribute('data-k'),j=+bt.getAttribute('data-i'),act=bt.getAttribute('data-act'),c=null;for(var i=0;i<SHOP.length;i++)if(SHOP[i].k===k)c=SHOP[i];
@@ -2183,7 +2180,6 @@ $('shopList').addEventListener('click',function(e){
   G.kr-=it.p;G.own[k]|=1<<j;G[k]=j;saveG();S.init();S.chime();renderShop();
   var ok=['Godt valg!','Den kommer til å sitte!','Nå blir det fisk!','Lykke til der ute!'];shopSay=ok[(Math.random()*ok.length)|0];shopSayT=2;shopSkip=true;
 });
-Array.prototype.forEach.call(document.querySelectorAll('.jump button[data-lv]'),function(jb){jb.addEventListener('click',function(){start(+jb.getAttribute('data-lv'))})});
 $('helpBtn').addEventListener('click',function(){$('help').hidden=false;$('help').scrollTop=0});
 Array.prototype.forEach.call(document.querySelectorAll('.helpBack'),function(hb){hb.addEventListener('click',function(){$('help').hidden=true})});
 $('again').addEventListener('click',function(){start(nextLv,night&&nextLv===level)});
