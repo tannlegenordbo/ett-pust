@@ -24,6 +24,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -188,7 +190,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11 · 5 kg-kvote og nytt utstyr</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11b · ny lyd i Middelhavet</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -671,12 +673,12 @@ var S=(function(){
     md.connect(mg);mg.connect(c.frequency);c.connect(g);g.connect(musicBus);env(g,t,.003,vol,0,len);c.start(t);md.start(t);c.stop(t+len+.1);md.stop(t+len+.1);
   }
   function pluck(t,m,vol){
-    var f=mtof(m),d=ac.createDelay(.1),fb=ac.createGain(),lp=ac.createBiquadFilter(),out=ac.createGain(),s=ac.createBufferSource(),bg=ac.createGain();
-    d.delayTime.value=1/f;fb.gain.value=.985;lp.type='lowpass';lp.frequency.value=Math.min(5000,f*6);
-    s.buffer=nb;bg.gain.setValueAtTime(vol,t);bg.gain.exponentialRampToValueAtTime(.0001,t+Math.min(.02,1/f*2));
-    s.connect(bg);bg.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(out);out.connect(musicBus);
-    out.gain.setValueAtTime(1,t);out.gain.exponentialRampToValueAtTime(.0001,t+1.6);s.start(t,Math.random());s.stop(t+.05);
-    setTimeout(function(){try{fb.disconnect();out.disconnect()}catch(e){}},(t-ac.currentTime+1.8)*1000);
+    /* gitarlignende klimpring uten tilbakekobling */
+    var f=mtof(m),lp=ac.createBiquadFilter(),g=ac.createGain();
+    lp.type='lowpass';lp.Q.value=1.2;lp.frequency.setValueAtTime(Math.min(6000,f*8),t);lp.frequency.exponentialRampToValueAtTime(Math.max(200,f*1.5),t+.5);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(vol*.35,t+.18);g.gain.exponentialRampToValueAtTime(.0001,t+1.4);
+    lp.connect(g);g.connect(musicBus);
+    [['sawtooth',1,.5],['triangle',1.003,1],['sine',2,.25]].forEach(function(o0){var o=ac.createOscillator(),og=ac.createGain();o.type=o0[0];o.frequency.value=f*o0[1];og.gain.value=o0[2];o.connect(og);og.connect(lp);o.start(t);o.stop(t+1.5)});
   }
   function bass(t,m,dur,vol){var f=mtof(m);osc('sine',f,t,dur,musicBus,vol,.02,dur*.6);osc('triangle',f*2,t,dur*.6,musicBus,vol*.18,.02,dur*.4)}
   function drum(t,vol){osc('sine',95,t,.35,musicBus,vol,.002,.32,42);nz(t,.04,musicBus,'lowpass',900,0,1,vol*.3)}
@@ -691,7 +693,7 @@ var S=(function(){
     L2:{bpm:66,prog:[[45,52,60,64],[41,48,57,60],[48,55,64,67],[43,50,59,62]],arp:'bell',arpP:.18,arpOct:24,bassP:.5,scale:[69,71,72,74,76,77,79]},
     L3:{bpm:60,prog:[[36,43,51,62],[37,44,53,60],[36,43,51,58],[34,41,49,56]],arp:'bell',arpP:.1,arpOct:24,bassP:1,sonar:true,scale:[60,62,63,67,68]},
     L4:{bpm:92,prog:[[52,59,63,66],[49,56,64,68],[45,52,61,64],[47,54,63,68]],arp:'marimba',arpP:.7,arpOct:24,bassP:.5,shaker:true,scale:[64,66,68,71,73,76,78,80]},
-    L5:{bpm:84,prog:[[45,52,57,60],[43,50,55,59],[41,48,53,57],[40,47,52,56]],arp:'pluck',arpP:.6,arpOct:12,bassP:.5,scale:[64,65,68,69,71,72,74,76]},
+    L5:{bpm:76,prog:[[45,52,57,60],[41,48,57,60],[43,50,55,59],[40,47,55,59]],arp:'pluck',arpP:0,arpOct:12,bassP:.6,pick:[0,2,1,2,3,2,1,2],scale:[64,67,69,71,72,74,76]},
     L6:{bpm:100,prog:[[38,45,53,57],[34,41,50,53],[41,48,57,60],[36,43,52,55]],arp:'bell',arpP:.12,arpOct:24,bassP:1,ostinato:true,scale:[62,64,65,67,69,70,72]},
     night:{bpm:56,prog:[[42,49,57,64],[38,45,54,61],[35,42,50,57],[37,44,51,59]],arp:'bell',arpP:.16,arpOct:24,bassP:0,scale:[66,68,69,71,73,74,76]}
   };
@@ -713,10 +715,11 @@ var S=(function(){
       if(sg.shaker){shaker(t+spb/2,.025);if(b%8===0)drum(t,.06)}
       if(tension>.1&&song==='L4'){cello(t,ch[0]-12+(b%2?1:0),spb,.05*tension)}
       if(sg.sonar&&b===0)sonar(t,.05);
+      if(sg.pick){for(var hp=0;hp<2;hp++){var pi=sg.pick[(beatN*2+hp)%sg.pick.length],pn=pi===0?ch[0]:ch[pi]+(pi===3?0:0);pluck(t+hp*spb/2,pn,hp?.05:.07)}if(b%8===6&&Math.random()<.5)pluck(t+spb*.75,sg.scale[(Math.random()*sg.scale.length)|0],.04)}
       for(var h=0;h<2;h++){
         if(Math.random()<sg.arpP*(h?.6:1)){
           var tt=t+h*spb/2,nt=Math.random()<.6?ch[1+((Math.random()*3)|0)]+sg.arpOct:sg.scale[(Math.random()*sg.scale.length)|0];
-          if(sg.arp==='kalimba')kalimba(tt,nt,.07);else if(sg.arp==='marimba')marimba(tt,nt,.07);else if(sg.arp==='pluck')pluck(tt,nt-12,.32);else bell(tt,nt,.035,song==='night'?4:3);
+          if(sg.arp==='kalimba')kalimba(tt,nt,.07);else if(sg.arp==='marimba')marimba(tt,nt,.07);else if(sg.arp==='pluck')pluck(tt,nt-12,.06);else bell(tt,nt,.035,song==='night'?4:3);
         }
       }
       nextT+=spb;beatN++;
@@ -732,7 +735,7 @@ var S=(function(){
     ambWave.g.gain.setTargetAtTime(play&&!uw?(.05+.05*Math.sin(t*.7)*Math.sin(t*.31)+.03):0,t,.5);
     var cmag=Math.min(1,Math.abs(inf.cur||0)/210);
     ambCur.g.gain.setTargetAtTime(play&&inf.level===6?cmag*(uw?.5:.25):0,t,.5);ambCur.f.frequency.setTargetAtTime(300+500*cmag,t,.5);
-    ambShrimp.g.gain.setTargetAtTime(play&&uw&&(inf.level===4||inf.level===5)?.012+.01*Math.random():0,t,.05);
+    ambShrimp.g.gain.setTargetAtTime(play&&uw&&(inf.level===4||inf.level===5)?(inf.level===5?.006:.012):0,t,.4);
     intensity+=(cmag-intensity)*Math.min(1,dt*.8);tension+=((inf.sharks>0?1:0)-tension)*Math.min(1,dt*.5);
     if(play&&inf.state==='play'){
       if(!uw&&!inf.night&&inf.level!==4&&inf.level!==5){nextGull-=dt;if(nextGull<=0){nextGull=6+Math.random()*12;gull()}}
