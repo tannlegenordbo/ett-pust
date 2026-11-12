@@ -203,7 +203,7 @@ td.n,th.n{text-align:right}
     <h2>Blåvannsjakt på nivå 4</h2>
     <ul>
       <li>Du jakter tunfisk, mahi-mahi, wahoo, spansk makrell, kjempetrevally og marlin i åpent, tropisk vann uten bunn.</li>
-      <li><b>FLASHER:</b> i overflaten kan du kaste ut en flasher. Den synker fritt og blinker, og fisken trekker mot den. Synk rolig ned ved siden av flasheren uten å kicke, så kommer fisken på skuddhold. Når skuddet har gått, svømmer makkeren ned og henter den.</li>
+      <li><b>FLASHER:</b> kjøpes i Havguden. I overflaten kan du kaste den ut. Den synker fritt og blinker, og fisken trekker mot den. Synk rolig ned ved siden av flasheren uten å kicke, så kommer fisken på skuddhold. Når skuddet har gått, svømmer makkeren ned og henter den.</li>
       <li><b>Pila er festet til bøya.</b> Fisken kjemper mot bøya, og du er fri til å gå opp og puste.</li>
       <li><b>Store fisker trenger flere skudd.</b> Et hodeskudd teller dobbelt. Tunfisk og trevally tåler to treff, marlin tre.</li>
       <li><b>Når fisken er død,</b> svømmer du til bøya og trykker HAL! raskt for å dra den opp.</li>
@@ -452,7 +452,7 @@ function grunt(){
 }
 $('grunt').addEventListener('pointerdown',function(e){e.preventDefault();grunt()});
 function throwFlasher(){
-  if(state!=='play'||level!==4||under||flasher||flCd>0)return;
+  if(state!=='play'||level!==4||under||flasher||flCd>0||G.flash<1)return;
   flasher={x:clamp(diver.x+Math.cos(diver.ang)*70,80,W-80),y:8,t:0};S.splash();
   toast('Flasheren synker. Synk rolig ned ved siden av den');
 }
@@ -674,6 +674,9 @@ var LUNG=[
   {n:'Pustetrening 3',b:26,p:8000,d:'+26 sekunder pust.'},
   {n:'Pustetrening 4',b:38,p:20000,d:'+38 sekunder pust.'},
   {n:'Dypdykkerkurs',b:52,p:35000,d:'+52 sekunder pust. Nødvendig for å jakte på 40 meter.'}];
+var FLASH=[
+  {n:'Ingen flasher',p:0,d:'Du må lokke fisken med å ligge i ro.'},
+  {n:'Flasher for blåvann',p:9000,d:'Blank sølvsylinder som kastes ut i overflaten og synker. Den lokker tunfisk og annen blåvannsfisk inn til deg på nivå 4.'}];
 var SLED=[
   {n:'Ingen synkelodd',p:0,d:'Du svømmer ned for egen maskin.'},
   {n:'Synkelodd 5 kg på line',p:6000,d:'Variabel vekt: ta tak i loddet ved bøya, så drar det deg raskt ned. Du slipper det på dypet og svømmer opp selv.'}];
@@ -682,8 +685,8 @@ var LAMP=[
   {n:'Billig lommelykt',p:700,sp:.17,R:150,a:.72,d:'Smal og svak stråle. Du ser bare fisk som kommer rett inn i lyset.'},
   {n:'Dykkerlykt 1000 lumen',p:2500,sp:.27,R:240,a:.9,d:'Bredere og sterkere stråle.'},
   {n:'Kanisterlykt 3000 lumen',p:7000,sp:.4,R:330,a:1,d:'Kraftig, bred stråle som når langt.'}];
-var SHOP=[{k:'gun',t:'Våpen',items:GUN},{k:'fin',t:'Finner',items:FIN},{k:'suit',t:'Drakt',items:SUIT},{k:'wt',t:'Vekter',items:WT},{k:'lung',t:'Pustetrening',items:LUNG},{k:'lamp',t:'Lykt',items:LAMP},{k:'sled',t:'Variabel vekt',items:SLED}];
-var G={kr:0,gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,own:{}};
+var SHOP=[{k:'gun',t:'Våpen',items:GUN},{k:'fin',t:'Finner',items:FIN},{k:'suit',t:'Drakt',items:SUIT},{k:'wt',t:'Vekter',items:WT},{k:'lung',t:'Pustetrening',items:LUNG},{k:'lamp',t:'Lykt',items:LAMP},{k:'sled',t:'Variabel vekt',items:SLED},{k:'flash',t:'Flasher',items:FLASH}];
+var G={kr:0,gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,own:{}};
 try{var gs=JSON.parse(localStorage.getItem('ettpust-gear')||'null');if(gs){for(var gk in G)if(typeof gs[gk]==='number')G[gk]=Math.max(0,Math.floor(gs[gk]));if(gs.own&&typeof gs.own==='object')for(var ok2 in gs.own)if(typeof gs.own[ok2]==='number')G.own[ok2]=gs.own[ok2]}}catch(_){}
 for(var si=0;si<SHOP.length;si++){var sk=SHOP[si].k;G[sk]=Math.min(G[sk],SHOP[si].items.length-1);if(typeof G.own[sk]!=='number')G.own[sk]=(1<<(G[sk]+1))-1;G.own[sk]|=1|(1<<G[sk])}
 function owns(k,i){return !!(G.own[k]&(1<<i))}
@@ -705,6 +708,14 @@ function gearIcon(kind,tier){
       curGear={gun:2,fin:0,suit:tier,wt:0};ctx.setTransform(2.3,0,0,2.3,0,0);drawDiver(37,21,0,0,0,2);
     }else if(kind==='wt'){
       curGear={gun:2,fin:0,suit:2,wt:tier};ctx.setTransform(2.7,0,0,2.7,0,0);drawDiver(36,18,0,0,0,2);
+    }else if(kind==='flash'){
+      ctx.setTransform(1,0,0,1,0,0);
+      if(tier){
+        var fg2=ctx.createLinearGradient(80,0,104,0);fg2.addColorStop(0,'#7f8c93');fg2.addColorStop(.5,'#ffffff');fg2.addColorStop(1,'#93a0a7');
+        ctx.fillStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.arc(92,46,34,0,6.283);ctx.fill();
+        ctx.fillStyle=fg2;ctx.fillRect(80,14,24,64);ctx.beginPath();ctx.ellipse(92,78,12,4,0,0,6.283);ctx.fill();ctx.beginPath();ctx.ellipse(92,14,12,4,0,0,6.283);ctx.fill();
+        ctx.fillStyle='rgba(60,72,80,.5)';ctx.fillRect(80,36,24,3);ctx.fillRect(80,56,24,3);
+      }else{ctx.strokeStyle='rgba(230,242,238,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(60,24);ctx.lineTo(124,70);ctx.stroke()}
     }else if(kind==='sled'){
       ctx.setTransform(1,0,0,1,0,0);
       ctx.strokeStyle='rgba(240,236,214,.7)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(92,0);ctx.lineTo(92,tier?40:30);ctx.stroke();
@@ -2118,7 +2129,7 @@ function hud(){
   $('quit').hidden=state!=='play';
   var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff&&!sledRide);
   var sb=$('sledBtn');sb.hidden=!(state==='play'&&G.sled>0&&(sledRide||(!under&&sled.state==='home'&&!carry&&!hooked&&!haul)));sb.className=sledRide?'on':'';sb.textContent=sledRide?'SLIPP':'SYNK';
-  $('flash').hidden=!(state==='play'&&level===4&&!under&&!flasher&&flCd<=0);
+  $('flash').hidden=!(state==='play'&&level===4&&G.flash>0&&!under&&!flasher&&flCd<=0);
   var gb=$('grunt');gb.hidden=!(state==='play'&&under&&!carry&&level<4);gb.className=gruntCd>0?'wait':'';
   var lb=$('lie');lb.hidden=!nearB;lb.className=lying?'on':'';lb.textContent=lying?'SVØM':'LEGG DEG';
   var fb=$('fire');var drag=carry&&carry.mode==='drag',cut=carry&&carry.mode!=='hang';var bd2=carry&&!cut&&under&&!beltOff&&G.wt>0;fb.className=(haul?under:(!cut&&!bd2&&(shotUsed||carry||noGun||(slingOut&&G.gun===0))))?'wait':'';var hb4=level===4&&hooked&&hooked.hp<=0&&!under;if(hb4)fb.className='';fb.textContent=hb4?'HAL!':haul?(under?'OPP OG HAL':'HAL!'):noGun?'HENT HARPUN':cut?'SLIPP HARPUN':bd2?'BELTE-DROPP':carry?'TIL BØYA':(shotUsed?'OPP OG LAD':(slingOut&&G.gun===0)?'HENT PILA':'SKYT');
