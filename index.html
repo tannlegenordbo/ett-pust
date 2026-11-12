@@ -1188,6 +1188,21 @@ function drawFish(f){
     var ch=f.px*.13;ctx.moveTo(cut,-ch);ctx.lineTo(cut-3,-ch*.4);ctx.lineTo(cut+2,0);ctx.lineTo(cut-3,ch*.5);ctx.lineTo(cut,ch);ctx.stroke();
     ctx.restore();
   }else drawFishBody(f);
+  if(f.dead){
+    var eL=f.px,ek=f.kind==='pale'?'sei':f.kind,pts,er;
+    if(ek==='hummer'){pts=[[.31,-.06]];er=2}
+    else if(ek==='rodspette'||ek==='kveite'){pts=[[.33,-.045],[.37,-.005]];er=eL*.022+1.2}
+    else if(ek==='steinbit'){pts=[[.4,-.045]];er=eL*.016+1.2}
+    else{var ec=RF[ek];pts=[[.37,-ec.top*.32]];er=Math.max(2,eL*ec.eye)}
+    ctx.save();ctx.translate(f.x,f.y);if(f.rot)ctx.rotate(f.rot);ctx.scale(f.dir,1);ctx.lineCap='round';
+    for(var ei=0;ei<pts.length;ei++){
+      var ex=pts[ei][0]*eL,ey=pts[ei][1]*eL;
+      ctx.fillStyle='#efe9cf';ctx.beginPath();ctx.arc(ex,ey,er+.6,0,6.283);ctx.fill();
+      ctx.strokeStyle='#0a0a0a';ctx.lineWidth=Math.max(1.1,er*.45);ctx.beginPath();
+      ctx.moveTo(ex-er*.7,ey-er*.7);ctx.lineTo(ex+er*.7,ey+er*.7);ctx.moveTo(ex+er*.7,ey-er*.7);ctx.lineTo(ex-er*.7,ey+er*.7);ctx.stroke();
+    }
+    ctx.restore();
+  }
   if(f.hitL!=null){
     var hx=f.hitL*f.px,hy=(f.hitY||0)*f.px,ha=f.hitA==null?1.9:f.hitA,hc=Math.cos(ha),hs=Math.sin(ha),pen=Math.max(8,f.px*.1);
     ctx.save();ctx.translate(f.x,f.y);if(f.rot)ctx.rotate(f.rot);ctx.scale(f.dir,1);ctx.lineCap='round';
