@@ -133,7 +133,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt helpBack" type="button" style="margin-top:12px">Tilbake</button>
     <h2>Slik jakter du</h2>
     <ul>
-      <li><b>Dra fingeren</b> for å svømme. Kort drag er rolig svømming, langt drag er fullt kick.</li>
+      <li><b>Dra fingeren</b> for å svømme. Et lite drag snur bare dykkeren forsiktig uten å skremme fisken stort. Lengre drag er rolig svømming, og langt drag er fullt kick.</li>
       <li><b>Trykk LEGG DEG nær bunnen.</b> Da ligger du stille og styrer bare harpunen, og lyren kommer ofte bort til deg. Svømmer du, skremmer selv små bevegelser fisken.</li>
       <li><b>Ett skudd per dykk.</b> Bom eller treff: du må opp til overflaten for å lade.</li>
       <li><b>Du er nøytral på 5 meter.</b> Grunnere enn det flyter du tydelig oppover. Dypere kan du slappe av og synke, men må jobbe mer for å komme opp.</li>
@@ -679,7 +679,7 @@ function update(dt){
     var kg=carry?carry.s.k*carry.cm*carry.cm*carry.cm/1000:0,load=carry&&carry.mode==='hang'&&!carry.s.fredet?clamp((kg-1.5)/5,0,1):0;
     if(load>.8)load=.8;if(beltOff)load=0;
     var th=carry&&!carry.dead&&carry.mode==='hang'?1:0;
-    var mx=lying?0:inp.x,my=lying?0:inp.y;
+    var gz=clamp((inp.m-.1)/.25,0,1),mx=lying?0:inp.x*gz,my=lying?0:inp.y*gz;
     diver.vx+=(mx*MAXS*(1-.3*load)-diver.vx)*Math.min(1,dt*2.9);
     diver.vy+=(my*MAXS*(my<0?1-(.35+.25*th)*load:1)-diver.vy)*Math.min(1,dt*2.9);
     if(load>0&&diver.y>16){diver.vy+=load*(60+70*th)*(1+(.5+.5*th)*Math.sin(tClock*(6+5*th)))*dt;if(th)diver.vx+=load*170*Math.sin(tClock*8.3)*dt}
@@ -693,7 +693,7 @@ function update(dt){
       haul.f.x=haul.x;haul.f.y=haul.y;
       if(haul.y<24){var hf2=haul.f;haul=null;beltOff=false;noGun=false;shotUsed=false;land(hf2)}
     }
-    diver.mov=!lying&&inp.m>=.06; /* svak oppdrift */
+    diver.mov=!lying&&inp.m>=.3;diver.gentle=!lying&&inp.m>=.06&&inp.m<.3; /* svak oppdrift */
     diver.x=clamp(diver.x+diver.vx*dt,60,W-60);
     diver.y+=diver.vy*dt;
     if(diver.y<4){diver.y=4;if(diver.vy<0)diver.vy=0}
@@ -701,11 +701,13 @@ function update(dt){
     diver.spd=Math.hypot(diver.vx,diver.vy)/MAXS;
     var effort=lying?0:Math.max(inp.m,diver.spd);
     diver.kick+=dt*(2+Math.max(diver.spd,effort*load,boost*1.6)*10);
-    if(!diver.mov)stillT+=dt;else stillT=0;
-    if(inp.m>.15){
+    if(diver.mov)stillT=0;else if(!diver.gentle)stillT+=dt;
+    var tav=0;
+    if(inp.m>.06){
       var ta=Math.atan2(inp.y,inp.x),da=Math.atan2(Math.sin(ta-diver.ang),Math.cos(ta-diver.ang));
-      diver.ang+=da*Math.min(1,dt*(lying?5:3+3*inp.m));
+      tav=clamp(da*(lying?3:1.7+2.3*inp.m),-2.6,2.6);
     }
+    diver.av=(diver.av||0)+(tav-(diver.av||0))*Math.min(1,dt*5);diver.ang+=diver.av*dt;
     if(!hooked)buoy.x+=(diver.x-30-buoy.x)*Math.min(1,dt*1.2);
     else updateHooked(dt);
     updateSharks(dt);
@@ -831,7 +833,7 @@ function update(dt){
   for(var j=0;j<fish.length;j++){
     var f=fish[j],s=f.s,dx=f.x-diver.x,dy=f.y-diver.y,d=Math.hypot(dx,dy)||1;
     if(f.hooked)continue;
-    var mov=!!diver.mov,fac=mov?(f.cur?1.5:(level===2||level===4?.95:.55)+1.1*diver.spd):.2;
+    var mov=!!diver.mov,fac=mov?(f.cur?1.5:(level===2||level===4?.95:.55)+1.1*diver.spd):(diver.gentle?.32:.2);
     if(state==='play'&&diver.y>12&&!f.stage&&!f.hide&&d<s.alert*fac){f.fleeT=Math.max(f.fleeT,rnd(1.2,2.2));f.cur=false}
     if(f.hole){
       var hl=f.curious&&state==='play'&&stillT>2&&diver.y>bottom(diver.x)-70&&d<650&&f.fleeT<=0,gx2,gy2,hv2;
