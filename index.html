@@ -16,6 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -249,7 +251,7 @@ td.n,th.n{text-align:right}
     <ul>
       <li>Klart, varmt vann med sjøgress på grunna, et steinrev på 15–20 meter, et stup ned mot 35 meter og en undervannsgrunne på rundt 27 meter.</li>
       <li><b>Dentexen</b> står ved stupet og grunna på 20–45 meter. Den er svært var. Ligger du helt i ro på bunnen, sirkler den ofte på avstand og kommer som regel ikke på skuddhold før langt ut i dykket, når kontraksjonene har begynt.</li>
-      <li>Dagskvoten er 5 kg fisk totalt. Én enkelt fisk over 5 kg er likevel lov. Cernia er fredet i spillet.</li>
+      <li>Dagskvoten er 5 kg per dykker. Fisken som tar deg over 5 kg får du beholde, men da er dagen over – også om det er én stor fisk. Cernia er fredet i spillet.</li>
       <li><b>Utstyr for dypet:</b> en tynn drakt mister lite oppdrift på dypet, og et lett belte gjør at du blir nøytral på rundt 11 meter. Da kommer du lettere opp. Med tykk drakt og tungt belte blir du dratt ned.</li>
       <li><b>Variabel vekt:</b> med synkelodd tar du tak i loddet ved bøya og blir dratt raskt ned uten å bruke krefter. Trykk SLIPP på ønsket dybde, og svøm opp selv.</li>
       <li>Utstyr du har kjøpt, kan du bytte mellom i Havguden før hver runde.</li>
@@ -348,7 +350,9 @@ var slingOut=false,slingSpear=null,noWeaponDraw=false;
 var NQ=['torsk','lyr','rodspette','steinbit'];
 var hooked=null,sharks=[],sharkT=0,landMul=1,flasher=null,flCd=0,buddyJob=null;
 var SCH={sei:6,makrell:7,pale:10,mahi:3,tuna:3,spmak:5,sarago:4,ricciola:3};
-var sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false;
+var sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false,fishKr=0,fishPts=0;
+var KRMUL={1:1,2:1.2,3:2,4:1.3,5:4,6:2.5};
+function krOf(kg){return Math.round((40+60*Math.pow(kg,.7))*KRMUL[level]*(night?1.5:1))}
 var LQ={6:['sei','torsk','steinbit'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
 try{maxLevel=Math.max(1,Math.min(6,+localStorage.getItem('ettpust-lvl')||(localStorage.getItem('ettpust-l2')==='1'?2:1)))}catch(_){}
 function sst(t){t=clamp(t,0,1);return t*t*(3-2*t)}
@@ -446,7 +450,7 @@ function reset(){
   slingOut=false;slingSpear=null;
   hooked=null;sharks=[];sharkT=0;landMul=1;flasher=null;flCd=0;buddyJob=null;
   holding=null;curDrift=0;
-  medKg=0;medBig=false;sledRide=false;sled={y:8,state:'home'};
+  medKg=0;medBig=false;fishKr=0;fishPts=0;sledRide=false;sled={y:8,state:'home'};
   var plan=level===6?{sei:4,torsk:8,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
   for(var k in plan)for(var i=0;i<plan[k];i++)spawn(k,false);
   if(level===6){
@@ -1441,7 +1445,7 @@ function renderTrophies(){
 }
 function saveRun(){
   if(state!=='play'&&state!=='intro')return;
-  var sv={v:1,level:level,night:night,timeLeft:timeLeft,score:score,peak:peak,counts:counts,medKg:medKg,medBig:medBig,
+  var sv={v:1,level:level,night:night,timeLeft:timeLeft,score:score,peak:peak,counts:counts,medKg:medKg,medBig:medBig,fishKr:fishKr,fishPts:fishPts,
     catches:catches.map(function(c){return{kind:c.f.kind,cm:c.f.cm,pts:c.pts,note:c.note}})};
   try{localStorage.setItem('ettpust-run',JSON.stringify(sv))}catch(_){}
 }
@@ -1450,7 +1454,7 @@ function clearRun(){try{localStorage.removeItem('ettpust-run')}catch(_){}}
 function resumeRun(){
   var sv=loadRun();if(!sv)return;
   start(sv.level,sv.night);
-  timeLeft=sv.timeLeft;score=sv.score||0;peak=sv.peak||0;counts=sv.counts||{};medKg=sv.medKg||0;medBig=!!sv.medBig;
+  timeLeft=sv.timeLeft;score=sv.score||0;peak=sv.peak||0;counts=sv.counts||{};medKg=sv.medKg||0;medBig=!!sv.medBig;fishKr=sv.fishKr||0;fishPts=sv.fishPts||0;
   catches=(sv.catches||[]).map(function(c){var f=makeFish(c.kind,0,0);f.cm=c.cm;f.px=c.cm*(c.kind==='kveite'?.9:SP[c.kind].hp?.8:1.1);f.dead=true;return{f:f,pts:c.pts,note:c.note}});
   if((counts.kveite||0)>0&&hal){var hi=fish.indexOf(hal);if(hi>=0)fish.splice(hi,1);hal=null}
   lastHud='';
@@ -1565,21 +1569,18 @@ function land(f){
   if(s.fredet){score-=1500;toast(s.name+' er ikke lov med harpun  −1500','bad');catches.push({f:f,pts:-1500,note:'ikke lov'});return}
   if(f.cm<s.min){var p=s.under||s.treff;score-=p;toast(s.name+' '+f.cm+' cm er under '+s.min+' cm  −'+p,'bad');catches.push({f:f,pts:-p,note:'under mål'});return}
   var fkg=s.k*f.cm*f.cm*f.cm/1000;
-  if(level===5&&!s.fredet&&f.cm>=s.min){
-    var big=fkg>5&&!medBig;
-    if(!big&&medKg+fkg>5){toast('Dagskvoten på 5 kg er full  0 poeng','bad');catches.push({f:f,pts:0,note:'over 5 kg'});return}
-    if(big)medBig=true;else medKg+=fkg;
-  }
   if(n>=s.quota){toast('Kvoten på '+s.name.toLowerCase()+' er full  0 poeng','bad');catches.push({f:f,pts:0,note:'over kvote'});return}
-  var pts=Math.round((s.treff+s.k*f.cm*f.cm*f.cm)*landMul);
+  if(level===5)medKg+=fkg;
+  var pts=Math.round((s.treff+s.k*f.cm*f.cm*f.cm)*landMul),kr=Math.round(krOf(fkg)*landMul);
+  fishPts+=pts;fishKr+=kr;
   var c0=Math.floor(cap());
   counts[f.kind]=n+1;score+=pts;catches.push({f:f,pts:pts,note:''});
   var newT=trophyCheck(f);
   peak=Math.max(peak,score);
   var gain=Math.floor(cap())-c0;
-  toast((newT?'Ny trofé! ':'')+s.name+' '+sizeTxt(f)+'  +'+pts+(gain>0?'  ·  +'+gain+' s pust':''),'good');
+  toast((newT?'Ny trofé! ':'')+s.name+' '+sizeTxt(f)+'  +'+fmt(kr)+' kr'+(gain>0?'  ·  +'+gain+' s pust':''),'good');
   var full=true,ql=night?NQ:LQ[level];for(var qk=0;qk<ql.length;qk++)if((counts[ql[qk]]||0)<SP[ql[qk]].quota)full=false;
-  if(level===5&&medKg>4.4&&medBig)full=true;
+  if(level===5&&medKg>=5){full=true;toast('Dagskvoten på 5 kg er nådd. '+s.name+' '+sizeTxt(f)+'  +'+fmt(kr)+' kr','good')}
   if(full)finish('kvote');
 }
 function spawnOne(kind){
@@ -2478,7 +2479,7 @@ function hud(){
   $('score').textContent=fmt(score);
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
-  if(level===5)qh='<span'+(medKg>4.4?' class="full"':'')+'>Dagskvote '+medKg.toFixed(1).replace('.',',')+'/5 kg</span>'+qh;
+  if(level===5)qh='<span'+(medKg>=5?' class="full"':'')+'>Dagskvote '+medKg.toFixed(1).replace('.',',')+'/5 kg</span>'+qh;
   $('quota').innerHTML=qh;
   $('quit').hidden=state!=='play';
   var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff&&!sledRide);
@@ -2497,7 +2498,7 @@ function finish(why){
   if(state!=='play'&&state!=='blackout')return;
   state='over';joy=null;endReason=why;carry=null;lying=false;$('lie').hidden=true;clearRun();
   var best=0;try{best=+localStorage.getItem('ettpust-best')||0}catch(_){}
-  var earn=Math.max(0,Math.round(score/5));if(why==='blackout')earn=Math.round(earn/2);
+  var earn=Math.max(0,Math.round(fishKr+(score-fishPts)/5));if(why==='blackout')earn=Math.round(earn/2);
   G.kr+=earn;saveG();
   $('overKr').textContent='Du tjente '+fmt(earn)+' kr'+(why==='blackout'?' (halvert etter blackout)':'')+'. Saldo: '+fmt(G.kr)+' kr.';
   var isBest=score>best;
@@ -2506,7 +2507,7 @@ function finish(why){
   $('overLead').textContent=why==='blackout'
     ?'Du gikk tom for luft. Makkeren din fikk deg opp til overflaten, og jakta er over for i dag. Derfor dykker ingen alene.'
     :why==='avslutt'?'Du avsluttet dykket med '+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen. Fangsten veies inn på brygga, og du kan bruke pengene i Havguden.'
-    :why==='kvote'?'Du har fylt kvoten på alle artene med '+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen på klokka. Fangsten veies inn på brygga.':'Fem minutter er gått. Fangsten veies inn på brygga.';
+    :why==='kvote'?(level===5?'Du har nådd dagskvoten på 5 kg med ':'Du har fylt kvoten på alle artene med ')+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen på klokka. Fangsten veies inn på brygga.':'Fem minutter er gått. Fangsten veies inn på brygga.';
   $('overScore').textContent=fmt(score)+' poeng';
   $('overBest').textContent=isBest&&score>0?'Ny personlig rekord.':(best?'Personlig rekord: '+fmt(best)+' poeng':'');
   var rows='<tr><th>Fisk</th><th class="n">Størrelse</th><th class="n">Poeng</th></tr>';
