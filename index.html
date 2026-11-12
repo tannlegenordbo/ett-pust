@@ -18,6 +18,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -244,7 +246,8 @@ td.n,th.n{text-align:right}
       <li>Tidevannet presser vannet gjennom sundet, og strømmen snur to ganger i løpet av runden. Ved hvert skifte er det et vindu på rundt 30 sekunder med stillstrøm. Det er da du kan komme deg dypt ned under broa, der de største fiskene står: kjempetorsk, storsei og en svær kveite.</li>
       <li>Strømmen er sterkest i overflaten midt i sundet og svakere langs bunnen og kantene. Når den er på sitt sterkeste, kommer du ikke mot den, og det kan dannes en malstrøm som drar deg ned.</li>
       <li><b>Ligg i le:</b> bak bropilarene og de store steinene er det nesten stille vann. Trykk HOLD FAST ved en pilar eller stein for å holde deg fast og hvile uten at strømmen tar deg.</li>
-      <li>Fisken står mot strømmen. Seien står i stim ute i strømkanten og beiter, mens torsken legger seg i le bak steinene og flytter seg til den andre siden når strømmen snur.</li>
+      <li><b>Steinbit er fredet i Saltstraumen.</b> Den ligger på bunnen, men skyter du den, får du −1500.</li>
+      <li>Fisken står mot strømmen. Seien står i stim ute i strømkanten og beiter, lyren jager langs kanten av strømmen, mens torsken legger seg i le bak steinene og flytter seg til den andre siden når strømmen snur.</li>
       <li>Panelet øverst til høyre viser strømmen der du er, og når den snur.</li>
     </ul>
     <h2>Middelhavet</h2>
@@ -333,6 +336,7 @@ var SP={
   orret:{name:'Sjøørret',fredet:1,len:[30,62],cruise:46,flee:205,alert:180,band:[.6,3]},
   hummer:{name:'Hummer',fredet:1,len:[22,32],cruise:3,flee:22,alert:28,bottom:1}
 };
+SB6=Object.assign({},SP.steinbit,{fredet:1});
 
 function bottom(x){
   if(level===4)return 2100;
@@ -347,13 +351,14 @@ var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,be
 var night=false;
 var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet','Middelhavet','Saltstraumen'];
 var slingOut=false,slingSpear=null,noWeaponDraw=false;
+var SB6;
 var NQ=['torsk','lyr','rodspette','steinbit'];
 var hooked=null,sharks=[],sharkT=0,landMul=1,flasher=null,flCd=0,buddyJob=null;
 var SCH={sei:6,makrell:7,pale:10,mahi:3,tuna:3,spmak:5,sarago:4,ricciola:3};
 var sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false,fishKr=0,fishPts=0;
 var KRMUL={1:1,2:1.2,3:2,4:1.3,5:4,6:2.5};
 function krOf(kg){return Math.round((40+60*Math.pow(kg,.7))*KRMUL[level]*(night?1.5:1))}
-var LQ={6:['sei','torsk','steinbit'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
+var LQ={6:['sei','torsk','lyr'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
 try{maxLevel=Math.max(1,Math.min(6,+localStorage.getItem('ettpust-lvl')||(localStorage.getItem('ettpust-l2')==='1'?2:1)))}catch(_){}
 function sst(t){t=clamp(t,0,1);return t*t*(3-2*t)}
 function rnd(a,b){return a+Math.random()*(b-a)}
@@ -385,7 +390,7 @@ function makeFish(kind,x,y,school){
   if(kind==='dentice')f.curious=Math.random()<.6;
   if(Math.random()<.5&&!s.fredet)f.cm=Math.round(rnd(s.len[0],(s.len[0]+s.len[1])/2+6));
   if(level===2&&kind==='torsk')f.cm=Math.round(rnd(68,100));
-  if(level===6){if(kind==='sei')f.cm=Math.round(rnd(55,110));if(kind==='torsk')f.cm=Math.round(rnd(60,115));if(kind==='steinbit')f.cm=Math.round(rnd(60,100));if(kind==='torsk'&&shelters.length)f.sh=(Math.random()*shelters.length)|0}
+  if(level===6){if(kind==='sei')f.cm=Math.round(rnd(55,110));if(kind==='torsk')f.cm=Math.round(rnd(60,115));if(kind==='steinbit'){f.cm=Math.round(rnd(60,100));f.s=SB6}if(kind==='lyr')f.cm=Math.round(rnd(55,90));if(kind==='torsk'&&shelters.length)f.sh=(Math.random()*shelters.length)|0}
   if(level===3&&kind==='torsk')f.cm=Math.round(rnd(95,125));
   if(level===3&&kind==='lyr')f.cm=Math.round(rnd(78,100));
   f.px=f.cm*(kind==='kveite'?.9:s.hp?.8:1.1);
@@ -413,6 +418,7 @@ function pickX(kind){
   if(level===6){
     if(kind==='sei')return rnd(850,2550);
     if(kind==='steinbit')return rnd(900,2500);
+    if(kind==='lyr')return rnd(700,2700);
     return rnd(500,2900);
   }
   if(level===5){
@@ -451,7 +457,7 @@ function reset(){
   hooked=null;sharks=[];sharkT=0;landMul=1;flasher=null;flCd=0;buddyJob=null;
   holding=null;curDrift=0;
   medKg=0;medBig=false;fishKr=0;fishPts=0;sledRide=false;sled={y:8,state:'home'};
-  var plan=level===6?{sei:4,torsk:8,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
+  var plan=level===6?{sei:4,torsk:8,lyr:4,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
   for(var k in plan)for(var i=0;i<plan[k];i++)spawn(k,false);
   if(level===6){
     var bigs=[];
