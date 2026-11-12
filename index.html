@@ -316,6 +316,9 @@ var LQ={5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wa
 try{maxLevel=Math.max(1,Math.min(5,+localStorage.getItem('ettpust-lvl')||(localStorage.getItem('ettpust-l2')==='1'?2:1)))}catch(_){}
 function sst(t){t=clamp(t,0,1);return t*t*(3-2*t)}
 function rnd(a,b){return a+Math.random()*(b-a)}
+function kgOf(f){return f.s.k?f.s.k*f.cm*f.cm*f.cm/1000:0}
+function kgTxt(f){var k=kgOf(f);if(!k)return '';return (k<10?k.toFixed(1):Math.round(k)+'').replace('.',',')+' kg'}
+function sizeTxt(f){var k=kgTxt(f);return f.cm+' cm'+(k?' · '+k:'')}
 function floorY(x){return bottom(x)-(level===2?26:16)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 
@@ -1009,7 +1012,7 @@ function blueHit(f,bl){
     setTimeout(function(){if(state==='play')spawnOne(f.kind)},rnd(6000,12000));
   }
   f.hp-=head?2:1;
-  var nm=s.name+' '+f.cm+' cm';
+  var nm=s.name+' '+sizeTxt(f);
   if(f.hp<=0){f.hp=0;toast((head?'Rent hodeskudd! ':'')+nm+' er død. Opp til bøya og hal den inn','good')}
   else toast(nm+' på lina! Den trenger '+(f.hp>1?f.hp+' skudd':'ett skudd')+' til. Opp og lad','bad');
 }
@@ -1198,7 +1201,7 @@ function hook(f,bl){
     if(f.stage===2){f.stage=3;f.dead=true;f.fleeT=0;toast('Skudd nummer to sitter! Opp og pust før du drar den opp','good');return}
     var hi=fish.indexOf(f);if(hi>=0)fish.splice(hi,1);
     carry=f;f.stage=1;f.mode='drag';f.dead=false;f.fleeT=999;f.rot=0;f.dragDir=f.x>=diver.x?1:-1;lying=false;
-    toast('Kjempekveite på '+f.cm+' cm! Den er for sterk – slipp harpunen og hent makkerens','bad');return;
+    toast('Kjempekveite på '+sizeTxt(f)+'! Den er for sterk – slipp harpunen og hent makkerens','bad');return;
   }
   f.hitL=bl;var g0=gunTip(40);f.rl=G.gun===0?42:clamp(Math.hypot(f.x-g0.x,f.y-g0.y),45,260);
   var head=bl>=.2,bad=bl<-.2,mob=f.kind!=='hummer';
@@ -1209,8 +1212,8 @@ function hook(f,bl){
   carry=f;f.dead=!!head;f.fleeT=head?0:999;f.vx=0;f.vy=0;
   setTimeout(function(){if(state==='play')spawnOne(f.kind)},rnd(5000,11000));
   var kg=f.s.fredet?0:f.s.k*f.cm*f.cm*f.cm/1000;
-  var nm=f.s.name+(f.s.fredet?'':' '+f.cm+' cm');
-  if(kg>3.5)toast(head?'Rent hodeskudd på stor '+f.s.name.toLowerCase()+', '+f.cm+' cm. Tung å få opp':'Stor '+f.s.name.toLowerCase()+' på '+f.cm+' cm spreller i lina! Kick hardt');
+  var nm=f.s.name+(f.s.fredet?'':' '+sizeTxt(f));
+  if(kg>3.5)toast(head?'Rent hodeskudd på stor '+f.s.name.toLowerCase()+', '+sizeTxt(f)+'. Tung å få opp':'Stor '+f.s.name.toLowerCase()+' på '+sizeTxt(f)+' spreller i lina! Kick hardt');
   else toast(head?'Rent hodeskudd: '+nm+' – opp til bøya':(bad?'Dårlig treff! ':'')+nm+' spreller på pila – opp til bøya');
   if(willRun)startRun();
 }
@@ -1232,7 +1235,7 @@ function land(f){
   counts[f.kind]=n+1;score+=pts;catches.push({f:f,pts:pts,note:''});
   peak=Math.max(peak,score);
   var gain=Math.floor(cap())-c0;
-  toast(s.name+' '+f.cm+' cm  +'+pts+(gain>0?'  ·  +'+gain+' s pust':''),'good');
+  toast(s.name+' '+sizeTxt(f)+'  +'+pts+(gain>0?'  ·  +'+gain+' s pust':''),'good');
   var full=true,ql=night?NQ:LQ[level];for(var qk=0;qk<ql.length;qk++)if((counts[ql[qk]]||0)<SP[ql[qk]].quota)full=false;
   if(level===5&&medKg>4.4&&medBig)full=true;
   if(full)finish('kvote');
@@ -2054,7 +2057,7 @@ function render(){
       f=fish[i];var d=Math.hypot(f.x-diver.x,f.y-diver.y);
       if(d<(f.stage>=2?520:210)&&lit(f.x,f.y)){
         ctx.globalAlpha=f.stage>=2?1:clamp((210-d)/60,0,1);
-        var txt=f.stage>=2?['','','Kveite – sett skudd nr. 2','Kveite – opp og pust først','Kveite – svøm bort og ta tak'][f.stage]:f.s.name+(f.s.fredet?'':' '+f.cm+' cm');
+        var txt=f.stage>=2?['','','Kveite – sett skudd nr. 2','Kveite – opp og pust først','Kveite – svøm bort og ta tak'][f.stage]:f.s.name+(f.s.fredet?'':' '+sizeTxt(f));
         ctx.lineWidth=3;ctx.strokeStyle='rgba(6,34,43,.85)';ctx.strokeText(txt,f.x,f.y-f.px*.25-9);
         ctx.fillStyle=f.s.fredet?'#ff6b6b':'#e6f2ee';ctx.fillText(txt,f.x,f.y-f.px*.25-9);
         ctx.globalAlpha=1;
@@ -2150,11 +2153,11 @@ function finish(why){
     :why==='kvote'?'Du har fylt kvoten på alle artene med '+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen på klokka. Fangsten veies inn på brygga.':'Fem minutter er gått. Fangsten veies inn på brygga.';
   $('overScore').textContent=fmt(score)+' poeng';
   $('overBest').textContent=isBest&&score>0?'Ny personlig rekord.':(best?'Personlig rekord: '+fmt(best)+' poeng':'');
-  var rows='<tr><th>Fisk</th><th class="n">Lengde</th><th class="n">Poeng</th></tr>';
+  var rows='<tr><th>Fisk</th><th class="n">Størrelse</th><th class="n">Poeng</th></tr>';
   if(!catches.length)rows+='<tr><td colspan="3">Ingen fisk i dag. Prøv å svømme roligere inn mot fisken.</td></tr>';
   for(var i=0;i<catches.length;i++){
     var c=catches[i];
-    rows+='<tr'+(c.pts<0?' class="fredet"':'')+'><td>'+c.f.s.name+(c.note?' ('+c.note+')':'')+'</td><td class="n">'+c.f.cm+' cm</td><td class="n">'+(c.pts>0?'+':'')+fmt(c.pts).replace('-','−')+'</td></tr>';
+    rows+='<tr'+(c.pts<0?' class="fredet"':'')+'><td>'+c.f.s.name+(c.note?' ('+c.note+')':'')+'</td><td class="n">'+sizeTxt(c.f)+'</td><td class="n">'+(c.pts>0?'+':'')+fmt(c.pts).replace('-','−')+'</td></tr>';
   }
   $('overTable').innerHTML=rows;
   if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<5)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
