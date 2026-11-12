@@ -680,7 +680,7 @@ function renderShop(){
   $('shopList').innerHTML=h;
 }
 /* ---------- Havguden: butikkscene ---------- */
-var shopCv=null,shopCx=null,shopT=0,shopSay='',shopSayT=0,shopSkip=false;
+var shopFrom={menu:true,over:false},shopGreetT=0,shopCv=null,shopCx=null,shopT=0,shopSay='',shopSayT=0,shopSkip=false;
 var SW=360,SH=230;
 function trident(x,y,h,col){
   ctx.save();ctx.translate(x,y);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineCap='round';ctx.lineJoin='round';
@@ -894,9 +894,11 @@ function shopGreet(){
   shopSay=g[(Math.random()*g.length)|0];shopSayT=2.2;
 }
 function openShop(){
+  shopFrom={menu:!$('menu').hidden,over:!$('over').hidden};
+  $('menu').hidden=true;$('over').hidden=true;
   renderShop();$('shop').hidden=false;$('shop').scrollTop=0;
-  shopCv=$('shopCv');shopCx=shopCv.getContext('2d');shopT=reduce?2.6:0;shopSkip=false;shopSay='';shopSayT=0;
-  setTimeout(function(){if(!$('shop').hidden)shopGreet()},reduce?100:2900);
+  shopCv=$('shopCv');shopCx=shopCv.getContext('2d');shopT=0;shopSkip=false;shopSay='';shopSayT=0;
+  clearTimeout(shopGreetT);shopGreetT=setTimeout(function(){if(!$('shop').hidden)shopGreet()},2900);
 }
 /* ---------- meldinger ---------- */
 var toastT=0;
@@ -2007,7 +2009,7 @@ $('nightBtn').addEventListener('click',function(){if(G.lamp>0)start(1,true)});
 $('shopBtn').addEventListener('click',openShop);
 $('shopBtn2').addEventListener('click',openShop);
 $('shopCv').addEventListener('click',function(){if(shopT<2.5){shopSkip=true;shopGreet()}});
-$('shopBack').addEventListener('click',function(){$('shop').hidden=true;lockUi()});
+$('shopBack').addEventListener('click',function(){$('shop').hidden=true;$('menu').hidden=!shopFrom.menu;$('over').hidden=!shopFrom.over;lockUi()});
 $('testKr').addEventListener('click',function(){G.kr+=50000;saveG();lockUi()});
 $('shopList').addEventListener('click',function(e){
   var bt=e.target&&e.target.closest?e.target.closest('.buy'):null;if(!bt||bt.disabled)return;
