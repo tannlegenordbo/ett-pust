@@ -54,7 +54,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #grunt[hidden],#kick[hidden],#flash[hidden]{display:none}
 #flash{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:rgba(6,34,43,.78);color:var(--foam);font-family:var(--display);font-weight:700;font-size:9.5px;touch-action:none;cursor:pointer}
 #flash:focus-visible{outline:3px solid var(--warn);outline-offset:3px}
-#kick{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:var(--warn);color:#1b1400;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer}
+#kick{position:fixed;right:122px;bottom:118px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:var(--warn);color:#1b1400;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer}
 #kick:active{transform:scale(.9)}
 #kick:focus-visible{outline:3px solid var(--foam);outline-offset:3px}
 #grunt.wait{opacity:.45}
@@ -158,7 +158,7 @@ td.n,th.n{text-align:right}
       <li><b>Trykk LEGG DEG nær bunnen.</b> Da ligger du stille og styrer bare harpunen, og lyren kommer ofte bort til deg. Svømmer du, skremmer selv små bevegelser fisken.</li>
       <li><b>Ett skudd per dykk.</b> Bom eller treff: du må opp til overflaten for å lade.</li>
       <li><b>Du er nøytral på 5 meter.</b> Grunnere enn det flyter du tydelig oppover. Dypere kan du slappe av og synke, men må jobbe mer for å komme opp.</li>
-      <li><b>KICK!:</b> når du sliter med en fisk, kan du hamre på KICK!-knappen. Jo fortere du trykker, jo fortere svømmer du, men det koster luft.</li>
+      <li><b>KICK!:</b> hamre på KICK!-knappen for å gi gass i den retningen du svømmer, opp eller ned. Jo fortere du trykker, jo fortere går det, men det koster luft og skremmer fisken.</li>
       <li><b>BELTE-DROPP:</b> rekker du ikke opp med fisken, kan du slippe blybeltet. Da fyker du til overflaten, mens beltet, harpunen og fisken blir liggende på bunnen. Det koster 10 000 poeng, og du må ligge i overflaten og trykke HAL! raskt for å dra alt opp med lina.</li>
       <li><b>Kom tett på</b> før du skyter. Harpunen rekker bare et par meter.</li>
       <li><b>Fisken dingler i lina.</b> Dra den med opp til bøya, der den henges på fiskelina og gir poeng. Stor fisk drar deg ned, så du må kicke hardt, og hardt kick bruker lufta fortere.</li>
@@ -407,7 +407,7 @@ function throwFlasher(){
   toast('Flasheren synker. Synk rolig ned ved siden av den');
 }
 $('flash').addEventListener('pointerdown',function(e){e.preventDefault();throwFlasher()});
-function kick(){if(state==='play'&&under&&carry&&carry.mode==='hang'){boost=Math.min(1,boost+.25);S.kick();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}}}
+function kick(){if(state==='play'&&!lying&&!beltOff){boost=Math.min(1,boost+.25);S.kick();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}}}
 $('kick').addEventListener('pointerdown',function(e){e.preventDefault();kick()});
 $('snd').addEventListener('click',function(){S.init();$('snd').textContent=S.mute()?'Lyd: av':'Lyd: på'});
 function toggleLie(){
@@ -1143,7 +1143,7 @@ function update(dt){
     if(load>0&&diver.y>16){diver.vy+=load*(60+70*th)*(1+(.5+.5*th)*Math.sin(tClock*(6+5*th)))*dt;if(th)diver.vx+=load*170*Math.sin(tClock*8.3)*dt}
     if(lying){diver.vx=0;diver.vy=0;diver.y+=(floorY(diver.x)-diver.y)*Math.min(1,dt*5)}
     if(!lying&&diver.y>16)diver.vy+=clamp(diver.y/M-WT[G.wt].nd,-4.5,4.5)*22*WT[G.wt].f*dt;
-    if(boost>0){if(diver.y>16)diver.vy-=boost*380*dt;boost=Math.max(0,boost-1.0*dt)}
+    if(boost>0){var ka=inp.m>.1?Math.atan2(inp.y,inp.x):diver.ang;diver.vx+=Math.cos(ka)*boost*380*dt;diver.vy+=Math.sin(ka)*boost*380*dt;boost=Math.max(0,boost-1.0*dt)}
     if(beltOff&&diver.y>16)diver.vy+=(-300-diver.vy)*Math.min(1,dt*4);
     if(haul){
       haul.y=Math.min(haul.y+(under?140:16)*dt,bottom(haul.x)-10);
@@ -1945,7 +1945,7 @@ function hud(){
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
   $('quota').innerHTML=qh;
-  var kb=$('kick');kb.hidden=!(state==='play'&&under&&carry&&carry.mode==='hang');
+  var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff);
   $('flash').hidden=!(state==='play'&&level===4&&!under&&!flasher&&flCd<=0);
   var gb=$('grunt');gb.hidden=!(state==='play'&&under&&!carry&&level!==4);gb.className=gruntCd>0?'wait':'';
   var lb=$('lie');lb.hidden=!nearB;lb.className=lying?'on':'';lb.textContent=lying?'SVØM':'LEGG DEG';
