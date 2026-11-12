@@ -89,6 +89,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .overlay{position:fixed;inset:0;background:rgba(6,34,43,.86);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:20px 16px 32px}
 .overlay[hidden]{display:none}
 #shop,#help{background:#06222b}
+#shopCv{position:static;inset:auto;height:auto;touch-action:auto;display:block;width:100%;aspect-ratio:360/230;border-radius:14px;margin-bottom:12px;background:#10262e;cursor:pointer}
+.shopHead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.shopHead h1{font-size:26px;margin:0}
+.shopHead .lead{margin:0}
 .card{width:100%;max-width:520px;margin:auto 0}
 .brand{display:flex;align-items:center;gap:14px;margin-bottom:8px}
 .brand h1{margin:0}
@@ -204,8 +208,8 @@ td.n,th.n{text-align:right}
 
 <div class="overlay" id="shop" hidden>
   <div class="card">
-    <h1 style="font-size:28px">Dykkerbutikken</h1>
-    <p class="lead">Saldo: <b id="shopKr">0 kr</b></p>
+    <canvas id="shopCv" aria-label="Dykkeren går inn i dykkerbutikken Havguden"></canvas>
+    <div class="shopHead"><h1>Havguden</h1><p class="lead">Saldo: <b id="shopKr">0 kr</b></p></div>
     <div id="shopList"></div>
     <button class="btn" id="shopBack" type="button">Tilbake</button>
   </div>
@@ -567,7 +571,225 @@ function renderShop(){
   }
   $('shopList').innerHTML=h;
 }
-function openShop(){renderShop();$('shop').hidden=false;$('shop').scrollTop=0}
+/* ---------- Havguden: butikkscene ---------- */
+var shopCv=null,shopCx=null,shopT=0,shopSay='',shopSayT=0,shopSkip=false;
+var SW=360,SH=230;
+function trident(x,y,h,col){
+  ctx.save();ctx.translate(x,y);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineCap='round';ctx.lineJoin='round';
+  var w=h*.36;
+  ctx.lineWidth=h*.07;ctx.beginPath();ctx.moveTo(0,h*.5);ctx.lineTo(0,-h*.18);ctx.stroke();
+  ctx.lineWidth=h*.06;ctx.beginPath();ctx.moveTo(-w,-h*.14);ctx.quadraticCurveTo(-w,h*.06,0,h*.06);ctx.quadraticCurveTo(w,h*.06,w,-h*.14);ctx.stroke();
+  ctx.lineWidth=h*.06;ctx.beginPath();ctx.moveTo(-w,-h*.14);ctx.lineTo(-w,-h*.34);ctx.moveTo(w,-h*.14);ctx.lineTo(w,-h*.34);ctx.moveTo(0,-h*.18);ctx.lineTo(0,-h*.42);ctx.stroke();
+  [[-w,-h*.34],[w,-h*.34],[0,-h*.42]].forEach(function(p){ctx.beginPath();ctx.moveTo(p[0]-h*.07,p[1]+h*.03);ctx.lineTo(p[0],p[1]-h*.11);ctx.lineTo(p[0]+h*.07,p[1]+h*.03);ctx.closePath();ctx.fill()});
+  ctx.fillRect(-h*.06,h*.2,h*.12,h*.05);
+  ctx.restore();
+}
+function walker(x,y,ph,face){
+  /* dykkeren til fots, sett fra siden, i utstyret sitt */
+  var su=G.suit,body=D_SUITS[su],arm=D_ARMS[su],far=D_FAR[su],sw=Math.sin(ph),bob=Math.abs(Math.cos(ph))*1.5;
+  ctx.save();ctx.translate(x,y-bob);ctx.scale(face,1);ctx.lineCap='round';ctx.lineJoin='round';
+  /* bakre bein og arm */
+  ctx.strokeStyle=far;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,-30);ctx.lineTo(-sw*7,-15);ctx.lineTo(-sw*10,0);ctx.stroke();
+  ctx.fillStyle='#d23b3b';ctx.beginPath();ctx.ellipse(-sw*10+3,1,6,3,0,0,6.283);ctx.fill();
+  ctx.strokeStyle=far;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(0,-56);ctx.lineTo(sw*7,-44);ctx.lineTo(sw*9,-33);ctx.stroke();
+  if(G.fin){ctx.fillStyle=G.fin===3?'#cf222c':G.fin===2?'#3b6ea5':'#182327';ctx.save();ctx.translate(sw*9,-31);ctx.rotate(.15);ctx.fillRect(-3,0,6,G.fin===1?16:26);ctx.restore()}
+  /* fremre bein */
+  ctx.strokeStyle=body;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,-30);ctx.lineTo(sw*7,-15);ctx.lineTo(sw*10,0);ctx.stroke();
+  ctx.fillStyle='#e04545';ctx.beginPath();ctx.ellipse(sw*10+3,1,6,3,0,0,6.283);ctx.fill();
+  /* kropp */
+  ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-7,-60);ctx.lineTo(8,-60);ctx.quadraticCurveTo(11,-44,7,-28);ctx.lineTo(-7,-28);ctx.quadraticCurveTo(-10,-44,-7,-60);ctx.fill();
+  if(su===0){ctx.fillStyle='#1f6fb0';ctx.fillRect(-8,-34,16,9)}
+  if(G.wt){ctx.fillStyle='#0c1213';ctx.fillRect(-8,-33,16,4)}
+  /* hode */
+  ctx.fillStyle=su?body:D_SKIN;ctx.beginPath();ctx.arc(1,-68,8,0,6.283);ctx.fill();
+  ctx.fillStyle=D_SKIN;ctx.beginPath();ctx.ellipse(5,-67,4.5,5.5,0,0,6.283);ctx.fill();
+  if(!su){ctx.fillStyle='#5b3d27';ctx.beginPath();ctx.arc(0,-71,7,3.1,6.1);ctx.fill()}
+  ctx.fillStyle='#5b3d27';ctx.beginPath();ctx.ellipse(5,-62.5,4,2.4,0,0,6.283);ctx.fill();
+  ctx.fillStyle='#07090a';ctx.fillRect(-2,-77,10,4);ctx.fillStyle='#7fe0dc';ctx.fillRect(3,-76.4,4,2.6);
+  ctx.fillStyle='#0a0a0a';ctx.beginPath();ctx.arc(7,-68.5,.9,0,6.283);ctx.fill();
+  /* fremre arm med våpen */
+  ctx.strokeStyle=arm;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(1,-56);ctx.lineTo(-sw*7,-44);ctx.lineTo(-sw*9+2,-34);ctx.stroke();
+  ctx.save();ctx.translate(-sw*9+2,-34);ctx.rotate(-1.2);
+  if(G.gun===0){ctx.strokeStyle='#dfe9e7';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(30,0);ctx.stroke()}
+  else{ctx.strokeStyle=G.gun===1?'#2b3438':'#a8743f';ctx.lineWidth=3.4;ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(G.gun===1?22:G.gun===2?30:38,0);ctx.stroke()}
+  ctx.restore();
+  ctx.fillStyle=su?'#07090a':D_SKIN;ctx.beginPath();ctx.arc(-sw*9+2,-34,3,0,6.283);ctx.fill();
+  ctx.restore();
+}
+function keeper(x,y,t){
+  /* ekspeditøren bak disken: vinrød drakt med svarte armer, hette og skjeggstubb */
+  var MAR='#7b2a2f',MAR2='#5c1d22',SK='#c99572',bob=Math.sin(t*1.6)*1;
+  ctx.save();ctx.translate(x,y+bob);ctx.lineCap='round';ctx.lineJoin='round';
+  /* skuldre og overkropp */
+  ctx.fillStyle=MAR;ctx.beginPath();ctx.moveTo(-30,0);ctx.quadraticCurveTo(-31,-34,-16,-40);ctx.lineTo(16,-40);ctx.quadraticCurveTo(31,-34,30,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle=MAR2;ctx.beginPath();ctx.ellipse(-22,-30,9,12,.3,0,6.283);ctx.fill();ctx.beginPath();ctx.ellipse(22,-30,9,12,-.3,0,6.283);ctx.fill();
+  /* sele */
+  ctx.strokeStyle='#16191b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-12,-40);ctx.lineTo(-9,0);ctx.moveTo(12,-40);ctx.lineTo(9,0);ctx.moveTo(-10,-20);ctx.lineTo(10,-20);ctx.stroke();
+  ctx.fillStyle='#3a4246';ctx.fillRect(-4,-23,8,6);
+  /* gullmerke på skulderen */
+  ctx.strokeStyle='#e2b864';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-27,-29);ctx.lineTo(-17,-35);ctx.moveTo(-26,-35);ctx.lineTo(-19,-28);ctx.moveTo(-21,-33);ctx.lineTo(-14,-33);ctx.stroke();
+  /* venstre arm hviler på disken, høyre vinker */
+  ctx.strokeStyle=MAR;ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(-26,-30);ctx.lineTo(-34,-10);ctx.stroke();
+  ctx.strokeStyle='#121518';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(-34,-10);ctx.lineTo(-20,2);ctx.stroke();
+  ctx.fillStyle=SK;ctx.beginPath();ctx.arc(-17,3,5,0,6.283);ctx.fill();
+  var wave=shopSayT>0?Math.sin(t*9)*.35:Math.sin(t*1.2)*.05;
+  ctx.save();ctx.translate(26,-30);ctx.rotate(.35+wave);
+  ctx.strokeStyle=MAR;ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(10,-16);ctx.stroke();
+  ctx.strokeStyle='#121518';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(10,-16);ctx.lineTo(14,-34);ctx.stroke();
+  ctx.fillStyle=SK;ctx.beginPath();ctx.ellipse(15,-40,5,6.5,.1,0,6.283);ctx.fill();
+  ctx.strokeStyle=SK;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(19,-41);ctx.lineTo(22,-38);ctx.stroke();
+  ctx.restore();
+  /* hals og hette */
+  ctx.fillStyle=MAR;ctx.fillRect(-8,-48,16,10);
+  ctx.beginPath();ctx.ellipse(0,-64,17,20,0,0,6.283);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.12)';ctx.beginPath();ctx.ellipse(-7,-76,6,4,-.5,0,6.283);ctx.fill();
+  /* ansiktsåpning med svart kant */
+  ctx.fillStyle='#16191b';ctx.beginPath();ctx.ellipse(0,-61,12.5,15,0,0,6.283);ctx.fill();
+  ctx.fillStyle=SK;ctx.beginPath();ctx.ellipse(0,-61,11,13.5,0,0,6.283);ctx.fill();
+  /* skjeggstubb */
+  ctx.fillStyle='rgba(60,40,30,.32)';ctx.beginPath();ctx.ellipse(0,-53,9.5,6.5,0,0,3.1416);ctx.fill();ctx.beginPath();ctx.ellipse(0,-56.5,5,1.8,0,0,6.283);ctx.fill();
+  /* bryn, øyne, nese, munn */
+  ctx.strokeStyle='#2a1c15';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-8,-68);ctx.quadraticCurveTo(-5,-71,-1.5,-68.5);ctx.moveTo(1.5,-69.5);ctx.quadraticCurveTo(5,-72.5,8,-69);ctx.stroke();
+  var blink=(t%4)<.12;
+  ctx.fillStyle='#2a1c15';
+  if(blink){ctx.fillRect(-6.5,-65,4,1.2);ctx.fillRect(2.5,-65,4,1.2)}
+  else{ctx.beginPath();ctx.arc(-4.5,-64.5,1.6,0,6.283);ctx.arc(4.5,-64.5,1.6,0,6.283);ctx.fill()}
+  ctx.strokeStyle='rgba(120,70,50,.6)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(.5,-63);ctx.lineTo(1.6,-58.5);ctx.lineTo(-.6,-58);ctx.stroke();
+  ctx.strokeStyle='#5a2e24';ctx.lineWidth=1.6;ctx.beginPath();
+  if(shopSayT>0){ctx.ellipse(.5,-53.5,3,2,0,0,6.283)}else{ctx.moveTo(-4,-54);ctx.quadraticCurveTo(0,-52,4,-54.5)}
+  ctx.stroke();
+  ctx.restore();
+}
+function wallGear(t){
+  var i,x;
+  /* harpuner på knagger */
+  var gl=[48,66,88,112];
+  for(i=0;i<4;i++){
+    var gy=34+i*19,gx=22,L=gl[i];
+    ctx.fillStyle='#4c3a28';ctx.fillRect(gx+6,gy+2,4,7);ctx.fillRect(gx+L-14,gy+2,4,7);
+    ctx.lineCap='round';
+    if(i===0){
+      ctx.strokeStyle='#15191b';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(gx+2,gy);ctx.quadraticCurveTo(gx-4,gy+5,gx+4,gy+6);ctx.stroke();
+      ctx.strokeStyle='#dfe9e7';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+L,gy);ctx.stroke();
+      ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(gx+L,gy);ctx.lineTo(gx+L-5,gy-3);ctx.moveTo(gx+L,gy);ctx.lineTo(gx+L-5,gy+3);ctx.stroke();
+    }else{
+      ctx.strokeStyle='#dfe9e7';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+L+8,gy);ctx.stroke();
+      ctx.strokeStyle=i===1?'#2b3438':i===3?'#7a4f2a':'#a8743f';ctx.lineWidth=4.5;ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+L,gy);ctx.stroke();
+      if(i>1){ctx.strokeStyle='#d9a868';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(gx+2,gy-1.4);ctx.lineTo(gx+L-2,gy-1.4);ctx.stroke()}
+      ctx.fillStyle=i===1?'#15191b':'#6e4725';ctx.fillRect(gx+12,gy+2,4,8);
+      ctx.strokeStyle=i===1?'#ff6a2b':'#15191b';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(gx+20,gy-3.2);ctx.lineTo(gx+L-3,gy-3.2);ctx.stroke();
+      ctx.fillStyle='#0a0f10';ctx.fillRect(gx+L-2,gy-3,3,6);
+    }
+    if(G.gun===i){ctx.fillStyle='#7ed49a';ctx.beginPath();ctx.arc(gx-9,gy,3,0,6.283);ctx.fill()}
+  }
+  /* drakter på henger */
+  var sc=[['#27475f','#335a78'],['#14191c','#232b2f'],['#5b6b45','#3c4a2e']];
+  for(i=0;i<3;i++){
+    x=152+i*30;var sy=30;
+    ctx.strokeStyle='#9aa5a8';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x,sy-6);ctx.quadraticCurveTo(x+4,sy-10,x,sy-12);ctx.moveTo(x-10,sy);ctx.lineTo(x,sy-6);ctx.lineTo(x+10,sy);ctx.stroke();
+    ctx.fillStyle=sc[i][0];ctx.beginPath();ctx.moveTo(x-10,sy);ctx.lineTo(x+10,sy);ctx.lineTo(x+12,sy+12);ctx.lineTo(x+7,sy+12);ctx.lineTo(x+7,sy+46);ctx.lineTo(x+1.5,sy+46);ctx.lineTo(x,sy+26);ctx.lineTo(x-1.5,sy+46);ctx.lineTo(x-7,sy+46);ctx.lineTo(x-7,sy+12);ctx.lineTo(x-12,sy+12);ctx.closePath();ctx.fill();
+    ctx.fillStyle=sc[i][1];ctx.fillRect(x-12,sy+4,4,8);ctx.fillRect(x+8,sy+4,4,8);
+    if(i===2){ctx.fillStyle='rgba(30,40,20,.5)';for(var c2=0;c2<7;c2++)ctx.beginPath(),ctx.ellipse(x-5+(c2*7)%12,sy+6+c2*5,3,2,c2,0,6.283),ctx.fill()}
+    if(G.suit===i+1){ctx.fillStyle='#7ed49a';ctx.beginPath();ctx.arc(x,sy+52,3,0,6.283);ctx.fill()}
+  }
+  /* finner som henger i par */
+  var fc=['#182327','#3b6ea5','#cf222c'],fl=[18,28,32];
+  for(i=0;i<3;i++){
+    x=250+i*30;var fy=24,sway=Math.sin(t*1.3+i)*.04;
+    ctx.save();ctx.translate(x,fy);ctx.rotate(sway);
+    ctx.fillStyle='#9aa5a8';ctx.beginPath();ctx.arc(0,0,2,0,6.283);ctx.fill();
+    for(var s2=-1;s2<=1;s2+=2){
+      ctx.fillStyle='#07090a';ctx.fillRect(s2*5-3.5,3,7,9);
+      ctx.fillStyle=fc[i];ctx.beginPath();ctx.moveTo(s2*5-3.5,12);ctx.lineTo(s2*5+3.5,12);ctx.lineTo(s2*5+5,12+fl[i]);ctx.lineTo(s2*5-5,12+fl[i]);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(s2*5,13);ctx.lineTo(s2*5,10+fl[i]);ctx.stroke();
+    }
+    ctx.restore();
+    if(G.fin===i+1){ctx.fillStyle='#7ed49a';ctx.beginPath();ctx.arc(x,fy+18+fl[i],3,0,6.283);ctx.fill()}
+  }
+  /* hylle med blybelter */
+  ctx.fillStyle='#6b4a2c';ctx.fillRect(250,136,92,4);
+  for(i=0;i<2;i++){
+    x=258+i*42;ctx.fillStyle='#0c1213';ctx.fillRect(x,129,30,6);
+    ctx.fillStyle='#9aa5a8';for(var w=0;w<(i?4:3);w++)ctx.fillRect(x+3+w*7,127,5,9);
+    if(G.wt===i+1){ctx.fillStyle='#7ed49a';ctx.beginPath();ctx.arc(x+15,145,3,0,6.283);ctx.fill()}
+  }
+}
+function drawShopScene(dt){
+  if(!shopCv)return;
+  var cw=shopCv.clientWidth||320,dp=Math.min(2,window.devicePixelRatio||1),k=cw/SW;
+  if(shopCv.width!==Math.round(cw*dp)){shopCv.width=Math.round(cw*dp);shopCv.height=Math.round(cw*SH/SW*dp)}
+  shopT+=dt;if(shopSayT>0)shopSayT-=dt;
+  var old=ctx,oldG=curGear;ctx=shopCx;
+  try{
+    ctx.setTransform(dp*k,0,0,dp*k,0,0);ctx.clearRect(0,0,SW,SH);
+    var T=shopSkip?99:shopT,inside=T>2.5;
+    if(!inside){
+      /* utsiden: rødt naust ved kaia */
+      var sky=ctx.createLinearGradient(0,0,0,SH);sky.addColorStop(0,'#b9c8cc');sky.addColorStop(1,'#dfe6e4');ctx.fillStyle=sky;ctx.fillRect(0,0,SW,SH);
+      ctx.fillStyle='#6f7f78';ctx.beginPath();ctx.moveTo(0,120);for(var hx=0;hx<=SW;hx+=30)ctx.lineTo(hx,104-Math.sin(hx/47)*10-Math.sin(hx/19)*4);ctx.lineTo(SW,140);ctx.lineTo(0,140);ctx.fill();
+      ctx.fillStyle='#8a2f2a';ctx.fillRect(130,40,230,160);
+      ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=1.2;for(var px=136;px<SW;px+=11){ctx.beginPath();ctx.moveTo(px,40);ctx.lineTo(px,200);ctx.stroke()}
+      ctx.fillStyle='#5b1f1c';ctx.beginPath();ctx.moveTo(120,44);ctx.lineTo(245,8);ctx.lineTo(370,44);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#f1ece0';ctx.fillRect(130,40,230,4);
+      /* skilt */
+      ctx.fillStyle='#10262e';ctx.fillRect(166,54,150,34);ctx.strokeStyle='#e2b864';ctx.lineWidth=2;ctx.strokeRect(168,56,146,30);
+      trident(186,71,26,'#e2b864');
+      ctx.fillStyle='#f1ece0';ctx.font='700 17px Unbounded, system-ui, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('HAVGUDEN',200,68);
+      ctx.font='600 7.5px Figtree, system-ui, sans-serif';ctx.fillStyle='#e2b864';ctx.fillText('DYKKERBUTIKK',201,80);
+      /* dør */
+      var dOpen=clamp((T-1.5)/.5,0,1);
+      ctx.fillStyle='#1d1410';ctx.fillRect(222,112,46,88);
+      ctx.fillStyle='#c9b48a';ctx.fillRect(222,112,46*(1-dOpen*.8),88);
+      ctx.strokeStyle='rgba(0,0,0,.25)';ctx.strokeRect(222,112,46*(1-dOpen*.8),88);
+      ctx.fillStyle='#4c3a28';ctx.beginPath();ctx.arc(222+46*(1-dOpen*.8)-6,158,2,0,6.283);ctx.fill();
+      ctx.fillStyle='#e9e2c6';ctx.fillRect(150,112,52,40);ctx.fillStyle='#9fb5b8';ctx.fillRect(153,115,46,34);
+      /* kai */
+      ctx.fillStyle='#8c8f8a';ctx.fillRect(0,200,SW,30);ctx.fillStyle='#6e716c';for(var kx=0;kx<SW;kx+=26)ctx.fillRect(kx,200,1.5,30);
+      /* dykkeren går mot døra */
+      var wx=Math.min(244,-20+T*150),walking=wx<244;
+      if(T<2.15)walker(wx,201,walking?T*11:0,1);
+      var fade=clamp((T-2.05)/.45,0,1);
+      if(fade>0){ctx.fillStyle='rgba(6,20,26,'+fade+')';ctx.fillRect(0,0,SW,SH)}
+    }else{
+      /* innsiden */
+      var wall=ctx.createLinearGradient(0,0,0,SH);wall.addColorStop(0,'#3b2a20');wall.addColorStop(1,'#2a1d16');ctx.fillStyle=wall;ctx.fillRect(0,0,SW,SH);
+      ctx.strokeStyle='rgba(0,0,0,.22)';ctx.lineWidth=1;for(var bx=0;bx<SW;bx+=24){ctx.beginPath();ctx.moveTo(bx,0);ctx.lineTo(bx,150);ctx.stroke()}
+      ctx.fillStyle='rgba(255,220,160,.07)';ctx.beginPath();ctx.ellipse(180,30,170,60,0,0,6.283);ctx.fill();
+      wallGear(T);
+      /* plakat med logo bak ekspeditøren */
+      ctx.fillStyle='#10262e';ctx.fillRect(34,116,62,44);ctx.strokeStyle='#e2b864';ctx.lineWidth=1.5;ctx.strokeRect(36,118,58,40);
+      trident(65,134,20,'#e2b864');ctx.fillStyle='#f1ece0';ctx.font='700 7px Unbounded, system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('HAVGUDEN',65,152);
+      /* ekspeditøren */
+      keeper(185,158,T);
+      /* disken */
+      ctx.fillStyle='#6b4a2c';ctx.fillRect(0,166,SW,8);
+      ctx.fillStyle='#4f3520';ctx.fillRect(0,174,SW,56);
+      ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;for(var cx2=0;cx2<SW;cx2+=36){ctx.beginPath();ctx.moveTo(cx2,174);ctx.lineTo(cx2,SH);ctx.stroke()}
+      ctx.fillStyle='#d9d4c7';ctx.fillRect(250,152,40,14);ctx.fillStyle='#202628';ctx.fillRect(254,148,32,6);ctx.fillStyle='#7ed49a';ctx.fillRect(258,155,18,5);
+      ctx.fillStyle='#e2b864';ctx.beginPath();ctx.ellipse(124,164,12,3,0,0,6.283);ctx.fill();ctx.fillStyle='#c79a3e';ctx.fillRect(112,159,24,5);
+      /* snakkeboble */
+      if(shopSay){
+        var bw=Math.min(150,shopSay.length*5.9+20),bx2=210,by2=86;
+        ctx.fillStyle='#f6f3ea';ctx.beginPath();
+        if(ctx.roundRect)ctx.roundRect(bx2,by2-15,bw,24,8);else ctx.rect(bx2,by2-15,bw,24);
+        ctx.fill();ctx.beginPath();ctx.moveTo(bx2+8,by2+8);ctx.lineTo(bx2-2,by2+16);ctx.lineTo(bx2+18,by2+8);ctx.fill();
+        ctx.fillStyle='#10262e';ctx.font='700 9.5px Figtree, system-ui, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(shopSay,bx2+10,by2-3);
+      }
+      var fi=clamp((T-2.5)/.45,0,1);
+      if(fi<1){ctx.fillStyle='rgba(6,20,26,'+(1-fi)+')';ctx.fillRect(0,0,SW,SH)}
+    }
+  }catch(e){}
+  ctx=old;curGear=oldG;
+}
+function shopGreet(){
+  var g=['Velkommen til Havguden!','Hei! Skal du ha noe nytt?','Bra fangst i dag?','Kom inn, kom inn!'];
+  shopSay=g[(Math.random()*g.length)|0];shopSayT=2.2;
+}
+function openShop(){
+  renderShop();$('shop').hidden=false;$('shop').scrollTop=0;
+  shopCv=$('shopCv');shopCx=shopCv.getContext('2d');shopT=reduce?2.6:0;shopSkip=false;shopSay='';shopSayT=0;
+  setTimeout(function(){if(!$('shop').hidden)shopGreet()},reduce?100:2900);
+}
 /* ---------- meldinger ---------- */
 var toastT=0;
 function toast(msg,cls){
@@ -1660,6 +1882,7 @@ $('play').addEventListener('click',function(){start(maxLevel)});
 $('restart').addEventListener('click',function(){start(1)});
 $('shopBtn').addEventListener('click',openShop);
 $('shopBtn2').addEventListener('click',openShop);
+$('shopCv').addEventListener('click',function(){if(shopT<2.5){shopSkip=true;shopGreet()}});
 $('shopBack').addEventListener('click',function(){$('shop').hidden=true;lockUi()});
 $('testKr').addEventListener('click',function(){G.kr+=50000;saveG();lockUi()});
 $('shopList').addEventListener('click',function(e){
@@ -1667,6 +1890,7 @@ $('shopList').addEventListener('click',function(e){
   var k=bt.getAttribute('data-k'),c=null;for(var i=0;i<SHOP.length;i++)if(SHOP[i].k===k)c=SHOP[i];
   var nx=c&&c.items[G[k]+1];if(!nx||G.kr<nx.p)return;
   G.kr-=nx.p;G[k]++;saveG();S.init();S.chime();renderShop();
+  var ok=['Godt valg!','Den kommer til å sitte!','Nå blir det fisk!','Lykke til der ute!'];shopSay=ok[(Math.random()*ok.length)|0];shopSayT=2;shopSkip=true;
 });
 Array.prototype.forEach.call(document.querySelectorAll('.jump button[data-lv]'),function(jb){jb.addEventListener('click',function(){start(+jb.getAttribute('data-lv'))})});
 $('helpBtn').addEventListener('click',function(){$('help').hidden=false;$('help').scrollTop=0});
@@ -1678,6 +1902,7 @@ var last=0;
 function frame(t){
   var dt=Math.min(.05,(t-last)/1000||0);last=t;
   update(dt);render();hud();
+  if(!$('shop').hidden)drawShopScene(dt);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
