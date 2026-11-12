@@ -61,6 +61,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #kick:active{transform:scale(.9)}
 #kick:focus-visible{outline:3px solid var(--foam);outline-offset:3px}
 #grunt.wait{opacity:.45}
+#quit{position:fixed;left:12px;bottom:56px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(6,34,43,.62);color:var(--foam);font-family:var(--body);font-weight:600;font-size:12px;cursor:pointer}
+#quit[hidden]{display:none}
+#quit.sure{background:var(--bad);color:#1b0606;border-color:var(--bad)}
+#quit:focus-visible{outline:3px solid var(--warn);outline-offset:3px}
 #snd{position:fixed;left:12px;bottom:12px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(6,34,43,.62);color:var(--foam);font-family:var(--body);font-weight:600;font-size:12px;cursor:pointer}
 #grunt:focus-visible,#snd:focus-visible{outline:3px solid var(--warn);outline-offset:3px}
 .btn[hidden]{display:none}
@@ -143,6 +147,7 @@ td.n,th.n{text-align:right}
 <button id="flash" type="button" hidden>FLASHER</button>
 <button id="sledBtn" type="button" hidden>SYNK</button>
 <button id="snd" type="button">Lyd: på</button>
+<button id="quit" type="button" hidden>Avslutt dykket</button>
 
 <div class="overlay" id="menu">
   <div class="card">
@@ -451,6 +456,13 @@ function throwFlasher(){
   flasher={x:clamp(diver.x+Math.cos(diver.ang)*70,80,W-80),y:8,t:0};S.splash();
   toast('Flasheren synker. Synk rolig ned ved siden av den');
 }
+var quitT=0;
+$('quit').addEventListener('click',function(){
+  if(state!=='play')return;
+  var q=$('quit');
+  if(q.className!=='sure'){q.className='sure';q.textContent='Trykk igjen for å avslutte';clearTimeout(quitT);quitT=setTimeout(function(){q.className='';q.textContent='Avslutt dykket'},3000);return}
+  clearTimeout(quitT);q.className='';q.textContent='Avslutt dykket';finish('avslutt');
+});
 $('sledBtn').addEventListener('pointerdown',function(e){e.preventDefault();sledPress()});
 $('flash').addEventListener('pointerdown',function(e){e.preventDefault();throwFlasher()});
 function kick(){if(state==='play'&&!lying&&!beltOff&&!sledRide){boost=Math.min(1,boost+.25);S.kick();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}}}
@@ -2103,6 +2115,7 @@ function hud(){
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
   if(level===5)qh='<span'+(medKg>4.4?' class="full"':'')+'>Dagskvote '+medKg.toFixed(1).replace('.',',')+'/5 kg</span>'+qh;
   $('quota').innerHTML=qh;
+  $('quit').hidden=state!=='play';
   var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff&&!sledRide);
   var sb=$('sledBtn');sb.hidden=!(state==='play'&&G.sled>0&&(sledRide||(!under&&sled.state==='home'&&!carry&&!hooked&&!haul)));sb.className=sledRide?'on':'';sb.textContent=sledRide?'SLIPP':'SYNK';
   $('flash').hidden=!(state==='play'&&level===4&&!under&&!flasher&&flCd<=0);
@@ -2119,9 +2132,10 @@ function finish(why){
   $('overKr').textContent='Du tjente '+fmt(earn)+' kr'+(why==='blackout'?' (halvert etter blackout)':'')+'. Saldo: '+fmt(G.kr)+' kr.';
   var isBest=score>best;
   if(isBest){try{localStorage.setItem('ettpust-best',String(score))}catch(_){}}
-  $('overTitle').textContent=why==='blackout'?'Blackout':why==='kvote'?'Kvoten er full':'Dagen er over';
+  $('overTitle').textContent=why==='blackout'?'Blackout':why==='kvote'?'Kvoten er full':why==='avslutt'?'Dykket er avsluttet':'Dagen er over';
   $('overLead').textContent=why==='blackout'
     ?'Du gikk tom for luft. Makkeren din fikk deg opp til overflaten, og jakta er over for i dag. Derfor dykker ingen alene.'
+    :why==='avslutt'?'Du avsluttet dykket med '+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen. Fangsten veies inn på brygga, og du kan bruke pengene i Havguden.'
     :why==='kvote'?'Du har fylt kvoten på alle artene med '+Math.floor(timeLeft/60)+':'+('0'+Math.floor(timeLeft%60)).slice(-2)+' igjen på klokka. Fangsten veies inn på brygga.':'Fem minutter er gått. Fangsten veies inn på brygga.';
   $('overScore').textContent=fmt(score)+' poeng';
   $('overBest').textContent=isBest&&score>0?'Ny personlig rekord.':(best?'Personlig rekord: '+fmt(best)+' poeng':'');
@@ -2140,7 +2154,7 @@ function finish(why){
   lockUi();
   nextLv=(!night&&why==='kvote'&&level<5&&maxLevel>level)?level+1:level;
   $('again').textContent=nextLv>level?'Videre til nivå '+nextLv+': '+LN[nextLv]:'Dykk igjen';
-  S.music(false);$('grunt').hidden=true;$('kick').hidden=true;$('flash').hidden=true;
+  S.music(false);$('grunt').hidden=true;$('kick').hidden=true;$('quit').hidden=true;$('flash').hidden=true;
   $('over').hidden=false;$('over').scrollTop=0;
 }
 function start(lv,nt){
