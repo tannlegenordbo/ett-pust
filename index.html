@@ -32,6 +32,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -199,7 +201,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11e · enklere å komme oppå kveita</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11f · rid på kveita</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -566,6 +568,53 @@ $('sledBtn').addEventListener('pointerdown',function(e){e.preventDefault();sledP
 $('flash').addEventListener('pointerdown',function(e){e.preventDefault();throwFlasher()});
 function kick(){if(state==='play'&&!lying&&!beltOff&&!sledRide){boost=Math.min(1,boost+.25);S.kick();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}}}
 $('kick').addEventListener('pointerdown',function(e){e.preventDefault();kick()});
+/* dykkeren rir på kjempekveita og stikker med kniven */
+function drawRider(h,part){
+  var d=h.dragDir||1,L=h.px,sx=h.x+d*L*.1,sy=h.y-L*.085,su=G.suit,body=D_SUITS[su],arm=D_ARMS[su],far=D_FAR[su];
+  if(G.scol&&su>0){body=SCOL[G.scol].c[0];arm=SCOL[G.scol].c[1];far=SCOL[G.scol].c[2]}
+  var finC=G.fin?(G.fcol?FCOL[G.fcol].c:[G.fin===3?'#cf222c':G.fin===2?'#3b6ea5':'#182327',G.fin===3?'#8f141c':G.fin===2?'#27507c':'#0b1214']):null;
+  var st=tClock-(h.stabAt||-9),aa=st<.11?st/.11:Math.max(0,1-(st-.11)/.45),buck=Math.sin(tClock*17)*2*(1-h.stabs/h.need);
+  ctx.save();ctx.translate(sx,sy+buck);ctx.scale(d*.95,.95);ctx.lineCap='round';ctx.lineJoin='round';
+  function leg(col,dx,dy,finCol){
+    ctx.strokeStyle=col;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(dx,dy);ctx.lineTo(dx+9,dy+7);ctx.lineTo(dx+1,dy+19);ctx.stroke();
+    if(finCol){ctx.fillStyle='#07090a';ctx.beginPath();ctx.ellipse(dx-1,dy+21,5,3.4,.4,0,6.283);ctx.fill();
+      ctx.fillStyle=finCol;ctx.beginPath();ctx.moveTo(dx-2,dy+19);ctx.lineTo(dx-2-(G.fin===1?18:30),dy+24+Math.sin(tClock*9)*3);ctx.lineTo(dx-2-(G.fin===1?16:27),dy+31+Math.sin(tClock*9)*3);ctx.lineTo(dx+2,dy+24);ctx.closePath();ctx.fill()}
+    else{ctx.fillStyle=su?'#07090a':D_SKIN;ctx.beginPath();ctx.ellipse(dx-1,dy+21,6,3.2,.3,0,6.283);ctx.fill()}
+  }
+  if(part==='far'){
+    /* arm som holder i kveita */
+    ctx.strokeStyle=far;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(6,-27);ctx.lineTo(18,-14);ctx.lineTo(28,-3);ctx.stroke();
+    ctx.fillStyle=su?'#07090a':D_SKIN;ctx.beginPath();ctx.arc(28,-3,3.2,0,6.283);ctx.fill();
+    ctx.restore();return;
+  }
+  /* bakre bein på andre siden av kveita, mørkere */
+  ctx.save();ctx.globalAlpha=.9;leg(far,-7,-4,finC?finC[1]:null);ctx.restore();
+  /* overkropp, lent fram */
+  ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-6,2);ctx.lineTo(7,2);ctx.quadraticCurveTo(15,-14,13,-30);ctx.lineTo(1,-32);ctx.quadraticCurveTo(-8,-16,-6,2);ctx.fill();
+  if(su===0){ctx.fillStyle='#1f6fb0';ctx.fillRect(-7,-4,15,8)}
+  if(G.wt&&!beltOff){ctx.fillStyle='#0c1213';ctx.save();ctx.translate(1,-3);ctx.rotate(-.15);ctx.fillRect(-8,-2,16,4);ctx.restore()}
+  if(su>0){ctx.strokeStyle=D_GOLD;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(2,-31);ctx.quadraticCurveTo(12,-16,7,1);ctx.stroke()}
+  leg(body,0,-1,finC?finC[0]:null);
+  /* hode med maske og skjegg */
+  ctx.save();ctx.translate(13,-39);ctx.rotate(.25);
+  ctx.fillStyle=su?body:D_SKIN;ctx.beginPath();ctx.arc(0,0,8,0,6.283);ctx.fill();
+  ctx.fillStyle=D_SKIN;ctx.beginPath();ctx.ellipse(4,1,4.5,5.5,0,0,6.283);ctx.fill();
+  if(!su){ctx.fillStyle='#5b3d27';ctx.beginPath();ctx.arc(-1,-3,7,3.1,6.1);ctx.fill()}
+  ctx.fillStyle='#5b3d27';ctx.beginPath();ctx.ellipse(4,5.5,4,2.4,0,0,6.283);ctx.fill();
+  ctx.fillStyle='#07090a';ctx.fillRect(-3,-9,10,4);ctx.fillStyle='#7fe0dc';ctx.fillRect(2,-8.4,4,2.6);
+  ctx.restore();
+  /* knivarmen: løftet → stikker ned i hodet på kveita */
+  var shx=9,shy=-27,hx=8+24*aa,hy=-52+48*aa,mx=(shx+hx)/2,my=(shy+hy)/2,nx=-(hy-shy),ny=hx-shx,nl=Math.hypot(nx,ny)||1,ex=mx-nx/nl*7,ey=my-ny/nl*7;
+  ctx.strokeStyle=arm;ctx.lineWidth=5.5;ctx.beginPath();ctx.moveTo(shx,shy);ctx.lineTo(ex,ey);ctx.lineTo(hx,hy);ctx.stroke();
+  var ka=-1.0+2.5*aa;
+  ctx.save();ctx.translate(hx,hy);ctx.rotate(ka);
+  ctx.fillStyle='#ff6a2b';ctx.fillRect(-5,-2.2,8,4.4);
+  ctx.fillStyle='#d9e1e3';ctx.beginPath();ctx.moveTo(3,-2.2);ctx.lineTo(17,-.6);ctx.lineTo(19,0);ctx.lineTo(3,2.2);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(4,-1.2);ctx.lineTo(16,-.4);ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle=su?'#07090a':D_SKIN;ctx.beginPath();ctx.arc(hx,hy,3.2,0,6.283);ctx.fill();
+  ctx.restore();
+}
 function canKnife(){return G.tool>=2&&state==='play'&&under&&carry&&carry.mode==='drag'}
 function knife(){
   if(!canKnife())return;
@@ -575,7 +624,7 @@ function knife(){
     h.pull=false;h.mount=true;h.stabs=0;h.need=Math.round(6+h.cm/30);lying=false;S.tick();
     toast('Du sitter oppå kveita! Trykk STIKK for å stikke den i hodet','bad');return;
   }
-  h.stabs++;air=Math.max(1,air-1.6);S.hit();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}
+  h.stabs++;h.stabAt=tClock+.0;air=Math.max(1,air-1.6);setTimeout(function(){S.hit();for(var bb=0;bb<5;bb++)bubbles.push({x:h.x+h.dragDir*h.px*.33+rnd(-8,8),y:h.y-h.px*.06,r:rnd(1.5,3.5),v:rnd(40,80),ph:rnd(0,6)})},110);try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}
   if(h.stabs>=h.need){
     h.mount=false;h.mode='hang';h.stage=5;h.dead=true;h.rl=95;h.fleeT=0;h.loose=0;h.runT=-1;h.vx=0;h.vy=0;h.hitL=.3;h.head=true;
     toast('Kveita er død! Kick deg opp med den','good');
@@ -2641,7 +2690,8 @@ function render(){
   if(carry){
     var c0=gunTip(56),hl0=(carry.hitL||0)*carry.px*carry.dir,cr=carry.rot||0,ax0=carry.x+Math.cos(cr)*hl0,ay0=carry.y+Math.sin(cr)*hl0;
     ctx.strokeStyle='rgba(230,242,238,.7)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(c0.x,c0.y);
-    ctx.quadraticCurveTo((c0.x+ax0)/2,(c0.y+ay0)/2+10,ax0,ay0);ctx.stroke();
+    if(!carry.mount)ctx.quadraticCurveTo((c0.x+ax0)/2,(c0.y+ay0)/2+10,ax0,ay0);ctx.stroke();
+    if(carry.mount)drawRider(carry,'far');
     drawFish(carry);
     if(carry.mode==='snag'){
       ctx.strokeStyle='rgba(255,210,63,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(carry.x,carry.y,34,0,6.283);ctx.stroke();
@@ -2679,7 +2729,8 @@ function render(){
     var cA=contrA*contrA,bang=lying?(Math.cos(diver.ang)>=0?0:Math.PI):diver.ang;
     if(cA>0){ctx.save();ctx.translate(diver.x,diver.y);ctx.rotate(bang);ctx.scale(1-.1*cA,1+.07*cA);ctx.rotate(-bang);ctx.translate(-diver.x,-diver.y)}
     for(var sti=0;sti<strung.length;sti++){var sfh=strung[sti],opx=sfh.px;sfh.x=diver.x-Math.cos(diver.ang)*10+sti*5;sfh.y=diver.y+14+sti*3;sfh.dir=1;sfh.rot=1.45+Math.sin(tClock*1.5+sti)*.12;sfh.dead=true;sfh.px=Math.min(opx,48);drawFishBody(sfh);sfh.px=opx}
-    drawDiver(diver.x,diver.y,bang,diver.kick,diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);
+    if(carry&&carry.mount)drawRider(carry,'near');
+    else drawDiver(diver.x,diver.y,bang,diver.kick,diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);
     if(cA>0)ctx.restore();
   }
   noBeltDraw=false;curGear=FULL;noWeaponDraw=false;
