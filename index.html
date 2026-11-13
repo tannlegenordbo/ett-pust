@@ -42,6 +42,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -224,7 +226,8 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11j · spots med nattdykk</p>
+    <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11k · varsler om ny versjon</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -3047,6 +3050,17 @@ $('spotList').addEventListener('click',function(e){
   var sp=SPOTS[+b.getAttribute('data-i')];$('spots').hidden=true;
   if(sp.night){if(G.lamp>0)start(1,true)}else if(sp.lv<=maxLevel)start(sp.lv);
 });
+/* ---------- se etter ny versjon ---------- */
+function checkUpdate(){
+  if(location.protocol.indexOf('http')!==0||!window.fetch)return;
+  var mine=($('ver').textContent.match(/Versjon (\S+)/)||[])[1];if(!mine)return;
+  fetch(location.pathname+'?sjekk='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){
+    var m=t.match(/Versjon ([^\s<]+)/);if(m&&m[1]!==mine)$('updBtn').hidden=false;
+  }).catch(function(){});
+}
+$('updBtn').addEventListener('click',function(){saveRun();location.replace(location.pathname+'?v='+Date.now())});
+setTimeout(checkUpdate,1500);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)checkUpdate()});
 $('helpBtn').addEventListener('click',function(){$('help').hidden=false;$('help').scrollTop=0});
 $('trophyBtn').addEventListener('click',function(){renderTrophies();$('trophy').hidden=false;$('trophy').scrollTop=0});
 $('trophyBack').addEventListener('click',function(){$('trophy').hidden=true});
