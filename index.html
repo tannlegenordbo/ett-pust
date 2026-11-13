@@ -38,6 +38,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -210,19 +212,19 @@ td.n,th.n{text-align:right}
     <div class="brand"><img class="logo" src="logo.jpg" alt="Logo med dykkermaske og kryssede harpuner"><h1>Ett <span>pust</span></h1></div>
     <button class="btn" id="resumeBtn" type="button" hidden>Fortsett dykket</button>
     <button class="btn" id="play" type="button">Spill</button>
+    <button class="btn alt" id="spotsBtn" type="button">Spots</button>
     <button class="btn alt" id="nightBtn" type="button">Nattdykk i tareskogen</button>
-    <button class="btn alt" id="spotsBtn" type="button" hidden>Dykkeplasser</button>
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11h · dykkeplasser</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11i · spots</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
 
 <div class="overlay" id="spots" hidden>
   <div class="card">
-    <h1 style="font-size:28px">Dykkeplasser</h1>
+    <h1 style="font-size:28px">Spots</h1>
     <p class="lead">Velg hvor du vil dykke. Nye plasser låses opp når du fyller kvoten.</p>
     <div id="spotList"></div>
     <button class="btn" id="spotsBack" type="button">Tilbake</button>
@@ -2918,7 +2920,6 @@ function lockUi(){
   $('play').className=sr?'btn alt':'btn';
   $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]:maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
   $('restart').hidden=maxLevel<2;
-  $('spotsBtn').hidden=maxLevel<2&&G.lamp<1;
   var nb=$('nightBtn');nb.disabled=G.lamp<1;nb.textContent=G.lamp<1?'Nattdykk (kjøp lykt i Havguden)':'Nattdykk i tareskogen';
 }
 lockUi();
