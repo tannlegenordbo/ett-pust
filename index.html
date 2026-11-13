@@ -36,6 +36,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -131,7 +133,16 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #fire:focus-visible,.btn:focus-visible{outline:3px solid var(--warn);outline-offset:3px}
 .overlay{position:fixed;inset:0;background:rgba(6,34,43,.86);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:20px 16px 32px}
 .overlay[hidden]{display:none}
-#shop,#help,#trophy{background:#06222b}
+#shop,#help,#trophy,#spots{background:#06222b}
+.spot{display:block;width:100%;margin-top:14px;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(230,242,238,.05);color:var(--foam);text-align:left;cursor:pointer;font:inherit}
+.spot img{display:block;width:100%;aspect-ratio:640/260;background:#14505a}
+.spot .sp{padding:10px 12px 12px}
+.spot b{display:block;font-family:var(--display);font-size:18px}
+.spot .where{display:block;font-size:12.5px;color:var(--warn);font-weight:700;margin-top:2px}
+.spot .what{display:block;font-size:13.5px;opacity:.8;margin-top:4px}
+.spot.locked{cursor:default;opacity:.55}
+.spot.locked img{filter:grayscale(.9) brightness(.6)}
+.spot:not(.locked):active{transform:scale(.99)}
 .trow{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px dashed var(--line)}
 .trow:first-child{border-top:0}
 .trow img{width:120px;height:48px;flex:none;border-radius:8px;background:linear-gradient(#2a7f86,#14505a)}
@@ -200,11 +211,21 @@ td.n,th.n{text-align:right}
     <button class="btn" id="resumeBtn" type="button" hidden>Fortsett dykket</button>
     <button class="btn" id="play" type="button">Spill</button>
     <button class="btn alt" id="nightBtn" type="button">Nattdykk i tareskogen</button>
+    <button class="btn alt" id="spotsBtn" type="button" hidden>Dykkeplasser</button>
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11g · grynt fra bunnen</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11h · dykkeplasser</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
+  </div>
+</div>
+
+<div class="overlay" id="spots" hidden>
+  <div class="card">
+    <h1 style="font-size:28px">Dykkeplasser</h1>
+    <p class="lead">Velg hvor du vil dykke. Nye plasser låses opp når du fyller kvoten.</p>
+    <div id="spotList"></div>
+    <button class="btn" id="spotsBack" type="button">Tilbake</button>
   </div>
 </div>
 
@@ -2897,6 +2918,7 @@ function lockUi(){
   $('play').className=sr?'btn alt':'btn';
   $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]:maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
   $('restart').hidden=maxLevel<2;
+  $('spotsBtn').hidden=maxLevel<2&&G.lamp<1;
   var nb=$('nightBtn');nb.disabled=G.lamp<1;nb.textContent=G.lamp<1?'Nattdykk (kjøp lykt i Havguden)':'Nattdykk i tareskogen';
 }
 lockUi();
@@ -2919,6 +2941,103 @@ $('shopList').addEventListener('click',function(e){
   var it=c.items[j];if(owns(k,j)||G.kr<it.p)return;
   G.kr-=it.p;G.own[k]|=1<<j;G[k]=j;saveG();S.init();S.chime();renderShop();
   var ok=['Godt valg!','Den kommer til å sitte!','Nå blir det fisk!','Lykke til der ute!'];shopSay=ok[(Math.random()*ok.length)|0];shopSayT=2;shopSkip=true;
+});
+/* ---------- dykkeplasser ---------- */
+var SPOTS=[
+  {lv:1,n:'Tareskogen',w:'Norskekysten · 3–15 m',d:'Grunn tareskog med torsk, lyr, sei og flatfisk. Kjempekveita ligger ytterst på sanden.'},
+  {lv:2,n:'Moloen',w:'Molo av runde steiner · 5–20 m',d:'Lyr og stor torsk mellom steinene, steinbit ytterst og kveite på sanden. Ligg i ro og la fisken komme.'},
+  {lv:3,n:'Rørdykket',w:'Oppdrettsanlegg · 10, 18 og 25 m',d:'Rørene under anlegget samler stimer av pale, stor lyr og kjempetorsk.'},
+  {lv:4,n:'Blåvannet',w:'Tropisk åpent hav',d:'Tunfisk, mahi-mahi, wahoo og marlin. Pila sitter i bøya – og haiene følger etter.'},
+  {lv:5,n:'Middelhavet',w:'Italiensk klippekyst · 20–45 m',d:'Dentex ved stupet, dorade og sarago på grunna. Dagskvote 5 kg.'},
+  {lv:6,n:'Saltstraumen',w:'Ved Bodø · en av verdens sterkeste tidevannsstrømmer',d:'Storsei og kjempetorsk under broa. Dykk i stillstrømmen, ligg i le bak pilarene.'},
+  {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
+var spotImg={};
+function spotPic(k){
+  if(spotImg[k])return spotImg[k];
+  var c=document.createElement('canvas');c.width=640;c.height=260;var old=ctx,url='';
+  try{
+    ctx=c.getContext('2d');var W0=640,H0=260,SY=78,i,x;
+    var sky=ctx.createLinearGradient(0,0,0,SY),sea=ctx.createLinearGradient(0,SY,0,H0);
+    var P={1:['#9fbcc2','#dbe6e0','#2f8f8c','#0b3440'],2:['#a9bfc4','#e0e8e3','#2a8784','#082c36'],3:['#93a9b0','#d3ddd8','#257a7a','#062430'],4:['#4fb2e6','#cdeefb','#2fb0d0','#04224a'],5:['#5fb0e0','#f3e7c9','#3cbcd4','#05305a'],6:['#7fa0b6','#e2eaee','#1f6f78','#04212b'],7:['#040914','#16263d','#123a45','#020c10']}[k];
+    sky.addColorStop(0,P[0]);sky.addColorStop(1,P[1]);sea.addColorStop(0,P[2]);sea.addColorStop(1,P[3]);
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W0,SY);ctx.fillStyle=sea;ctx.fillRect(0,SY,W0,H0-SY);
+    function fishAt(kind,x,y,px,dir){var f={kind:kind,s:SP[kind],cm:60,x:x,y:y,dir:dir||1,rot:0,ph:x,fleeT:0,dead:false,px:px};drawFishBody(f)}
+    function rays(a){ctx.fillStyle='rgba(255,255,255,'+a+')';for(i=0;i<5;i++){ctx.beginPath();ctx.moveTo(60+i*130,SY);ctx.lineTo(100+i*130,SY);ctx.lineTo(40+i*130,H0);ctx.lineTo(-20+i*130,H0);ctx.closePath();ctx.fill()}}
+    function hills(col,h){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,SY);for(x=0;x<=W0;x+=20)ctx.lineTo(x,SY-h-h*.6*Math.sin(x/90)-h*.3*Math.sin(x/37+1));ctx.lineTo(W0,SY);ctx.fill()}
+    function kelp(x0,top,col){ctx.strokeStyle=col;ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x0,H0);ctx.quadraticCurveTo(x0+12,(H0+top)/2,x0+4,top);ctx.stroke();ctx.fillStyle=col;for(var y=top+8;y<H0-10;y+=22){ctx.beginPath();ctx.ellipse(x0+12,y,16,5,-.5,0,6.283);ctx.fill();ctx.beginPath();ctx.ellipse(x0-6,y+10,14,4.5,.5,0,6.283);ctx.fill()}}
+    function surface(){ctx.strokeStyle='rgba(230,242,238,.75)';ctx.lineWidth=2;ctx.beginPath();for(x=0;x<=W0;x+=10)ctx.lineTo(x,SY+Math.sin(x/22)*2);ctx.stroke()}
+    function bottomFill(col,f){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,H0);for(x=0;x<=W0;x+=10)ctx.lineTo(x,f(x));ctx.lineTo(W0,H0);ctx.fill()}
+    function buoyAt(x){ctx.fillStyle='#ff6a2b';ctx.beginPath();ctx.ellipse(x,SY-2,16,7,0,0,6.283);ctx.fill();ctx.strokeStyle='#e6f2ee';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,SY-8);ctx.lineTo(x,SY-34);ctx.stroke();ctx.fillStyle='#d42a2a';ctx.fillRect(x,SY-34,18,12);ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(x,SY-34);ctx.lineTo(x+18,SY-22);ctx.stroke()}
+    if(k===1||k===7){
+      hills(k===7?'#0b1418':'#4f6a66',22);
+      if(k===7){ctx.fillStyle='rgba(240,236,214,.95)';ctx.beginPath();ctx.arc(540,26,13,0,6.283);ctx.fill();ctx.fillStyle='#0d192b';ctx.beginPath();ctx.arc(545,23,11,0,6.283);ctx.fill();ctx.fillStyle='#fff';for(i=0;i<25;i++)ctx.fillRect((i*97)%640,(i*37)%60,1.5,1.5)}
+      else rays(.05);
+      bottomFill(k===7?'#0a1a16':'#3a4a33',function(x){return 222+12*Math.sin(x/70)-x*.02});
+      var kc=k===7?'#2e3a1e':'#8a6a24';for(i=0;i<9;i++)kelp(30+i*70+(i%2)*14,110+(i*37)%60,kc);
+      if(k===7){var bm=ctx.createRadialGradient(220,170,0,220,170,240);bm.addColorStop(0,'rgba(255,245,210,.55)');bm.addColorStop(1,'rgba(255,245,210,0)');ctx.fillStyle=bm;ctx.beginPath();ctx.moveTo(220,170);ctx.arc(220,170,300,-.3,.3);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#15191b';ctx.fillRect(196,164,24,12);fishAt('torsk',380,176,90,-1);fishAt('rodspette',470,214,60,-1);
+        ctx.fillStyle='rgba(126,224,220,.8)';for(i=0;i<30;i++)ctx.fillRect((i*131)%640,90+(i*53)%150,2,2)}
+      else{fishAt('torsk',300,190,92,1);fishAt('lyr',470,140,80,-1);fishAt('rodspette',140,226,56,1);buoyAt(560)}
+    }else if(k===2){
+      hills('#4f6a66',14);
+      var stones=[];for(i=0;i<16;i++)stones.push([20+i*30+(i%3)*8,SY-6-(i%2)*10+(i>9?(i-9)*12:0),16+(i%3)*3]);
+      ctx.fillStyle='#5b6661';for(i=0;i<11;i++){ctx.beginPath();ctx.arc(i*34,SY-10-(i%2)*8,22,0,6.283);ctx.fill()}
+      bottomFill('#2a3a36',function(x){return 120+x*.18});
+      ctx.fillStyle='#d2c29a';ctx.beginPath();ctx.moveTo(440,H0);ctx.lineTo(440,232);for(x=440;x<=W0;x+=10)ctx.lineTo(x,232+Math.sin(x/30)*3);ctx.lineTo(W0,H0);ctx.fill();
+      var BC=['#14292b','#19353a','#10242a'];for(i=0;i<22;i++){var bx=(i*53)%460,by=110+bx*.18+((i*29)%50),br=18+(i*7)%14;ctx.fillStyle=BC[i%3];ctx.beginPath();ctx.arc(bx,by,br,0,6.283);ctx.fill()}
+      fishAt('lyr',300,150,78,1);fishAt('lyr',360,120,70,1);fishAt('torsk',200,200,80,-1);fishAt('kveite',540,236,110,-1);buoyAt(600)
+    }else if(k===3){
+      hills('#4f5f5c',12);
+      ctx.fillStyle='#7d8a8c';ctx.fillRect(30,SY-34,120,34);ctx.fillStyle='#5c686b';ctx.beginPath();ctx.moveTo(24,SY-34);ctx.lineTo(90,SY-48);ctx.lineTo(156,SY-34);ctx.fill();
+      for(i=0;i<3;i++){ctx.strokeStyle='#2b3438';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(260+i*130,SY,54,8,0,0,6.283);ctx.stroke();ctx.strokeStyle='rgba(200,210,210,.18)';ctx.lineWidth=1;for(var q=-3;q<=3;q++){ctx.beginPath();ctx.moveTo(260+i*130+q*15,SY+4);ctx.lineTo(260+i*130+q*12,SY+70);ctx.stroke()}}
+      bottomFill('#1d2b2b',function(x){return 240});
+      [[120,'#6f7a80'],[170,'#5c686b'],[215,'#4a5559']].forEach(function(pp,ix){ctx.fillStyle=pp[1];ctx.fillRect(0,pp[0],W0,10+ix*2);ctx.fillStyle='rgba(255,255,255,.15)';ctx.fillRect(0,pp[0],W0,2)});
+      for(i=0;i<9;i++)fishAt('sei',120+(i*47)%300,98+(i*13)%40,34,1);fishAt('torsk',470,196,110,-1)
+    }else if(k===4){
+      rays(.08);ctx.fillStyle='#4f9163';ctx.beginPath();ctx.moveTo(470,SY);ctx.quadraticCurveTo(540,SY-30,620,SY);ctx.fill();
+      ctx.fillStyle='#2f6b3a';ctx.beginPath();ctx.arc(560,SY-30,10,0,6.283);ctx.fill();ctx.strokeStyle='#6b4a2c';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(560,SY-8);ctx.lineTo(556,SY-30);ctx.stroke();
+      fishAt('tuna',260,150,150,1);fishAt('tuna',380,120,130,1);fishAt('mahi',140,110,90,-1);
+      ctx.fillStyle='rgba(20,40,60,.55)';ctx.beginPath();ctx.ellipse(500,220,70,13,0,0,6.283);ctx.fill();ctx.beginPath();ctx.moveTo(470,212);ctx.lineTo(490,186);ctx.lineTo(505,212);ctx.fill();ctx.beginPath();ctx.moveTo(568,220);ctx.lineTo(600,200);ctx.lineTo(596,236);ctx.fill();
+      buoyAt(80)
+    }else if(k===5){
+      ctx.fillStyle='#a39270';ctx.beginPath();ctx.moveTo(0,SY);ctx.lineTo(0,SY-40);ctx.quadraticCurveTo(110,SY-56,200,SY-24);ctx.lineTo(260,SY);ctx.fill();
+      ['#f4efe4','#e9dcc3','#f7f2ea','#e6c9a4'].forEach(function(col,ix){ctx.fillStyle=col;ctx.fillRect(30+ix*36,SY-58+ix*4,26,20);ctx.fillStyle='#b5523b';ctx.fillRect(28+ix*36,SY-62+ix*4,30,5)});
+      rays(.07);
+      bottomFill('#a8946b',function(x){return x<300?120+x*.12:x<360?156+(x-300)*1.6:H0+10});
+      ctx.fillStyle='#4d5a2c';for(i=0;i<14;i++){ctx.beginPath();ctx.ellipse(20+i*20,118+i*20*.12,4,14,(i%2?.2:-.2),0,6.283);ctx.fill()}
+      ctx.fillStyle='#6f6249';ctx.beginPath();ctx.moveTo(300,156);ctx.lineTo(330,160);ctx.lineTo(360,252);ctx.lineTo(340,H0);ctx.lineTo(300,H0);ctx.fill();
+      fishAt('dentice',450,200,110,-1);fishAt('orata',140,140,54,1);fishAt('sarago',220,150,44,-1);buoyAt(520)
+    }else if(k===6){
+      ctx.fillStyle='#e8eef0';[[60,46],[180,60],[320,40],[480,64],[600,44]].forEach(function(m){ctx.beginPath();ctx.moveTo(m[0]-70,SY-8);ctx.lineTo(m[0],SY-8-m[1]);ctx.lineTo(m[0]+70,SY-8);ctx.fill()});
+      ctx.fillStyle='#55625f';ctx.fillRect(0,SY-10,W0,10);
+      ctx.strokeStyle='#cfd6d8';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(-20,SY-14);ctx.quadraticCurveTo(320,SY-74,660,SY-14);ctx.stroke();
+      ctx.strokeStyle='#9aa5a8';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-20,SY-6);ctx.quadraticCurveTo(320,SY-66,660,SY-6);ctx.stroke();
+      ctx.fillStyle='#8a9496';[200,440].forEach(function(px0){ctx.fillRect(px0-12,SY-48,24,H0)});
+      bottomFill('#1a2a28',function(x){return 230+10*Math.sin(x/60)});
+      ctx.strokeStyle='rgba(230,242,238,.35)';ctx.lineWidth=2;for(i=0;i<9;i++){var ly=100+i*16;ctx.beginPath();ctx.moveTo((i*70)%200,ly);ctx.bezierCurveTo(100+(i*70)%200,ly-8,200+(i*70)%200,ly+8,320+(i*70)%200,ly);ctx.stroke()}
+      ctx.beginPath();ctx.arc(330,180,26,0,5);ctx.stroke();ctx.beginPath();ctx.arc(330,180,14,1,6);ctx.stroke();
+      for(i=0;i<7;i++)fishAt('sei',480+(i%3)*40,120+i*12,60,-1);fishAt('torsk',250,214,96,1)
+    }
+    if(k!==4&&k!==5&&k!==7)surface();else if(k!==7)surface();
+    url=c.toDataURL('image/jpeg',.85);
+  }catch(e){url=''}
+  ctx=old;spotImg[k]=url;return url;
+}
+function renderSpots(){
+  var h='';
+  for(var i=0;i<SPOTS.length;i++){
+    var sp=SPOTS[i],key=sp.night?7:sp.lv,open=sp.night?G.lamp>0:sp.lv<=maxLevel;
+    var lockTxt=sp.night?'Låst – kjøp en lykt i Havguden':'Låst – fyll kvoten på '+LN[sp.lv-1]+' for å låse opp';
+    h+='<button type="button" class="spot'+(open?'':' locked')+'" data-i="'+i+'"'+(open?'':' disabled')+'><img alt="" src="'+spotPic(key)+'"><div class="sp"><b>'+(sp.night?'':sp.lv+'. ')+sp.n+'</b><span class="where">'+sp.w+'</span><span class="what">'+(open?sp.d:lockTxt)+'</span></div></button>';
+  }
+  $('spotList').innerHTML=h;
+}
+$('spotsBtn').addEventListener('click',function(){renderSpots();$('spots').hidden=false;$('menu').hidden=true;$('spots').scrollTop=0});
+$('spotsBack').addEventListener('click',function(){$('spots').hidden=true;$('menu').hidden=false});
+$('spotList').addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('.spot'):null;if(!b||b.disabled)return;
+  var sp=SPOTS[+b.getAttribute('data-i')];$('spots').hidden=true;
+  if(sp.night){if(G.lamp>0)start(1,true)}else if(sp.lv<=maxLevel)start(sp.lv);
 });
 $('helpBtn').addEventListener('click',function(){$('help').hidden=false;$('help').scrollTop=0});
 $('trophyBtn').addEventListener('click',function(){renderTrophies();$('trophy').hidden=false;$('trophy').scrollTop=0});
