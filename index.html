@@ -28,6 +28,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -65,7 +67,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #quota span{background:rgba(6,34,43,.62);border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
 #quota span.full{background:var(--foam);color:#06222b;font-weight:700;border-color:var(--foam)}
 #grunt{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:rgba(6,34,43,.78);color:var(--foam);font-family:var(--display);font-weight:700;font-size:11px;touch-action:none;cursor:pointer}
-#grunt[hidden],#kick[hidden],#flash[hidden],#strBtn[hidden]{display:none}
+#grunt[hidden],#kick[hidden],#flash[hidden],#strBtn[hidden],#knifeBtn[hidden]{display:none}
+#knifeBtn{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:#d9dfe1;color:#06222b;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer}
+#knifeBtn:active{transform:scale(.9)}
 #strBtn{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:#7ed49a;color:#06222b;font-family:var(--display);font-weight:700;font-size:9.5px;touch-action:none;cursor:pointer}
 #flash{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:rgba(6,34,43,.78);color:var(--foam);font-family:var(--display);font-weight:700;font-size:9.5px;touch-action:none;cursor:pointer}
 #sledBtn{position:fixed;right:200px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:#5c6468;color:var(--foam);font-family:var(--display);font-weight:700;font-size:11px;touch-action:none;cursor:pointer}
@@ -177,6 +181,7 @@ td.n,th.n{text-align:right}
 <button id="kick" type="button" hidden>KICK!</button>
 <button id="flash" type="button" hidden>FLASHER</button>
 <button id="strBtn" type="button" hidden>STRINGER</button>
+<button id="knifeBtn" type="button" hidden>KNIV</button>
 <button id="sledBtn" type="button" hidden>SYNK</button>
 <button id="holdBtn" type="button" hidden>HOLD FAST</button>
 <div id="curInfo" hidden></div>
@@ -192,7 +197,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11c · styring på synkeloddet</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11d · dykkerkniv for kjempekveita</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -277,6 +282,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Kjempekveita</h2>
     <p>Et sted på bunnen ligger en kjempekveite. Den er for sterk for én harpun. Slipp harpunen, svøm opp til makkeren og hent hans, og sett skudd nummer to. Opp og pust, og dykk så ned igjen og dra den opp.</p>
+    <p>Har du kjøpt stor dykkerkniv, kan du i stedet svømme bort til kveita mens den drar deg, trykke KNIV for å sette deg oppå den og så STIKK mange ganger til den er død. Det tar mye luft, så gjør det tidlig i dykket.</p>
     <p class="small" style="margin-top:8px">Tastatur: piltaster eller WASD, Shift for rolig svømming, L for å legge deg, G for å grynte, F for flasher, T for stringer, K for å kicke, mellomrom for å skyte.</p>
 
     <h2>Minstemål og poeng</h2>
@@ -558,6 +564,22 @@ $('sledBtn').addEventListener('pointerdown',function(e){e.preventDefault();sledP
 $('flash').addEventListener('pointerdown',function(e){e.preventDefault();throwFlasher()});
 function kick(){if(state==='play'&&!lying&&!beltOff&&!sledRide){boost=Math.min(1,boost+.25);S.kick();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}}}
 $('kick').addEventListener('pointerdown',function(e){e.preventDefault();kick()});
+function canKnife(){return G.tool>=2&&state==='play'&&under&&carry&&carry.mode==='drag'}
+function knife(){
+  if(!canKnife())return;
+  var h=carry;
+  if(!h.mount){
+    if(Math.hypot(diver.x-(h.x+h.dragDir*h.px*.35),diver.y-h.y)>70){toast('Svøm fram til hodet på kveita først');return}
+    h.mount=true;h.stabs=0;h.need=Math.round(6+h.cm/30);lying=false;S.tick();
+    toast('Du sitter oppå kveita! Trykk STIKK for å stikke den i hodet','bad');return;
+  }
+  h.stabs++;air=Math.max(1,air-1.6);S.hit();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}
+  if(h.stabs>=h.need){
+    h.mount=false;h.mode='hang';h.stage=5;h.dead=true;h.rl=95;h.fleeT=0;h.loose=0;h.runT=-1;h.vx=0;h.vy=0;h.hitL=.3;h.head=true;
+    toast('Kveita er død! Kick deg opp med den','good');
+  }else if(h.stabs===1)toast('Stikk igjen og igjen – kveita kjemper','bad');
+}
+$('knifeBtn').addEventListener('pointerdown',function(e){e.preventDefault();knife()});
 function canString(){return G.str&&state==='play'&&under&&level!==4&&carry&&carry.mode==='hang'&&carry.dead&&carry.kind!=='kveite'&&!carry.s.fredet}
 function stringFish(){
   if(!canString())return;
@@ -580,6 +602,7 @@ window.addEventListener('keydown',function(e){
   if(e.code==='KeyL')toggleLie();
   if(e.code==='KeyG')grunt();
   if(e.code==='KeyT')stringFish();
+  if(e.code==='KeyN'&&!e.repeat)knife();
   if(e.code==='KeyH')holdPress();
   if(e.code==='KeyF')throwFlasher();
   if(e.code==='KeyK'&&!e.repeat)kick();
@@ -943,7 +966,8 @@ var COMP=[
   {n:'Dykkecomputer',p:2500,d:'Piper når det er på tide å gå opp, viser hvor lang tid du trenger til overflaten, og husker største dybde.'}];
 var TOOL=[
   {n:'Bare hender',p:0,d:'Det tar tid å løsne fisk som sitter fast.'},
-  {n:'Hanske og kniv',p:1500,d:'Du løsner fisk som sitter fast i tare eller under steiner over dobbelt så fort.'}];
+  {n:'Hanske og kniv',p:1500,d:'Du løsner fisk som sitter fast i tare eller under steiner over dobbelt så fort.'},
+  {n:'Stor dykkerkniv',p:4000,d:'Løsner fisk like fort, og når du har skutt kjempekveita kan du svømme bort, sette deg oppå den og stikke den i hodet til den er død. Det koster mye luft, så du må ha god tid.'}];
 var STR=[
   {n:'Ingen stringer',p:0,d:'Hver fisk må opp til bøya før du kan skyte igjen.'},
   {n:'Fiskestringer',p:1200,d:'Tred død fisk på stringeren i beltet, lad under vann og jakt videre i samme dykk. Fisken tynger deg, og du kan ikke bruke den på blått vann.'}];
@@ -1728,8 +1752,16 @@ function startRun(){
 }
 function carryExtra(dt){
   if(carry.mode==='drag'){
-    var h=carry;
-    h.x+=h.dragDir*135*dt;if(h.x<80||h.x>W-80){h.dragDir*=-1;h.x=clamp(h.x,80,W-80)}
+    var h=carry,hsp=h.mount?135*(1-.65*h.stabs/h.need):135;
+    if(h.mount){
+      h.x+=h.dragDir*hsp*dt;if(h.x<80||h.x>W-80){h.dragDir*=-1;h.x=clamp(h.x,80,W-80)}
+      h.y=bottom(h.x)-(h.px*.1+2)+Math.sin(tClock*17)*3*(1-h.stabs/h.need);h.dir=h.dragDir;
+      diver.x=h.x+h.dragDir*h.px*.18;diver.y=h.y-h.px*.12-10;diver.vx=h.dragDir*hsp;diver.vy=0;
+      diver.ang+=Math.atan2(Math.sin((h.dragDir>0?0:3.1416)+.5*h.dragDir-diver.ang),Math.cos((h.dragDir>0?0:3.1416)+.5*h.dragDir-diver.ang))*Math.min(1,dt*8);
+      air-=100/cap()*1.3*dt;
+      return;
+    }
+    h.x+=h.dragDir*hsp*dt;if(h.x<80||h.x>W-80){h.dragDir*=-1;h.x=clamp(h.x,80,W-80)}
     h.y=bottom(h.x)-(h.px*.1+2);h.dir=h.dragDir;
     var ux=diver.x-h.x,uy=diver.y-h.y,ul=Math.hypot(ux,uy)||1;
     if(ul>115){diver.x=h.x+ux/ul*115;diver.y=Math.min(h.y+uy/ul*115,floorY(diver.x));diver.vx=h.dragDir*135;diver.vy=0}
@@ -2717,7 +2749,7 @@ function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' '
 var lastHud='';
 function hud(){
   var nearB=state==='play'&&!sledRide&&(lying||(!carry&&diver.y>bottom(diver.x)-75));
-  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
+  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),!!canKnife(),carry&&carry.mount?carry.stabs:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
   if(key===lastHud)return;lastHud=key;
   $('airBar').style.width=air.toFixed(0)+'%';
   var low=air<25&&state==='play';
@@ -2735,7 +2767,7 @@ function hud(){
   var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff&&!sledRide);
   var sb=$('sledBtn');sb.hidden=!(state==='play'&&G.sled>0&&(sledRide||(!under&&sled.state==='home'&&!carry&&!hooked&&!haul)));sb.className=sledRide?'on':'';sb.textContent=sledRide?'SLIPP':'SYNK';
   $('flash').hidden=!(state==='play'&&level===4&&G.flash>0&&!under&&!flasher&&flCd<=0);
-  $('strBtn').hidden=!canString();
+  $('strBtn').hidden=!canString();var kbn=$('knifeBtn');kbn.hidden=!canKnife();if(!kbn.hidden)kbn.textContent=carry.mount?'STIKK '+carry.stabs+'/'+carry.need:'KNIV';
   var gb=$('grunt');gb.hidden=!(state==='play'&&under&&!carry&&level<4);gb.className=gruntCd>0?'wait':'';
   var hb=$('holdBtn'),canHold=state==='play'&&level===6&&(holding||(under&&!lying&&!carry&&!sledRide&&nearHold()));hb.hidden=!canHold;hb.className=holding?'on':'';hb.textContent=holding?'SLIPP TAKET':'HOLD FAST';
   var ci=$('curInfo');ci.hidden=!(level===6&&(state==='play'||state==='intro'));
@@ -2776,7 +2808,7 @@ function finish(why){
   lockUi();
   nextLv=(!night&&why==='kvote'&&level<6&&maxLevel>level)?level+1:level;
   $('again').textContent=nextLv>level?'Videre til nivå '+nextLv+': '+LN[nextLv]:'Dykk igjen';
-  S.music(true);$('grunt').hidden=true;$('kick').hidden=true;$('holdBtn').hidden=true;$('curInfo').hidden=true;$('quit').hidden=true;$('flash').hidden=true;$('strBtn').hidden=true;
+  S.music(true);$('grunt').hidden=true;$('kick').hidden=true;$('holdBtn').hidden=true;$('curInfo').hidden=true;$('quit').hidden=true;$('flash').hidden=true;$('strBtn').hidden=true;$('knifeBtn').hidden=true;
   $('over').hidden=false;$('over').scrollTop=0;
 }
 function start(lv,nt){
