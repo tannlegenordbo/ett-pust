@@ -26,6 +26,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -190,7 +192,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11b · ny lyd i Middelhavet</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11c · styring på synkeloddet</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -268,7 +270,7 @@ td.n,th.n{text-align:right}
       <li><b>Dentexen</b> står ved stupet og grunna på 20–45 meter. Den er svært var. Ligger du helt i ro på bunnen, sirkler den ofte på avstand og kommer som regel ikke på skuddhold før langt ut i dykket, når kontraksjonene har begynt.</li>
       <li>Dagskvoten er 5 kg per dykker. Fisken som tar deg over 5 kg får du beholde, men da er dagen over – også om det er én stor fisk. Cernia er fredet i spillet.</li>
       <li><b>Utstyr for dypet:</b> en tynn drakt mister lite oppdrift på dypet, og et lett belte gjør at du blir nøytral på rundt 11 meter. Da kommer du lettere opp. Med tykk drakt og tungt belte blir du dratt ned.</li>
-      <li><b>Variabel vekt:</b> med synkelodd tar du tak i loddet ved bøya og blir dratt raskt ned uten å bruke krefter. Trykk SLIPP på ønsket dybde, og svøm opp selv.</li>
+      <li><b>Variabel vekt:</b> med synkelodd tar du tak i loddet ved bøya og blir dratt raskt ned uten å bruke krefter. Styr litt til siden med joysticken på vei ned, så havner du der du vil. Trykk SLIPP på ønsket dybde, og svøm opp selv.</li>
       <li>Utstyr du har kjøpt, kan du bytte mellom i Havguden før hver runde.</li>
       <li><b>Fiskestringer:</b> har du kjøpt stringer, trykker du STRINGER når en død fisk henger på pila under vann. Da treres den på beltet, du lader på nytt og kan jakte videre i samme dykk. Fisken henges på bøya når du kommer opp.</li>
       <li><b>Kosthold og søvn</b> kjøpes per dag og gir ekstra pust neste runde.</li>
@@ -369,7 +371,7 @@ var SB6;
 var NQ=['torsk','lyr','rodspette','steinbit'];
 var hooked=null,sharks=[],sharkT=0,landMul=1,flasher=null,flCd=0,buddyJob=null;
 var SCH={sei:6,makrell:7,pale:10,mahi:3,tuna:3,spmak:5,sarago:4,ricciola:3};
-var sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false,fishKr=0,fishPts=0;
+var sledSteer=0,sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false,fishKr=0,fishPts=0;
 var KRMUL={1:1,2:1.2,3:2,4:1.3,5:4,6:2.5};
 function krOf(kg){return Math.round((40+60*Math.pow(kg,.7))*KRMUL[level]*(night?1.5:1))}
 var LQ={6:['sei','torsk','lyr'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
@@ -1499,6 +1501,7 @@ function sledPress(){
   if(state!=='play'||G.sled<1)return;
   if(sledRide){sledRelease();return}
   if(under||sled.state!=='home'||carry||hooked||haul)return;
+  sled.dx=0;sledSteer=0;
   if(Math.abs(diver.x-buoy.x)>150){toast('Svøm til bøya for å ta tak i synkeloddet');return}
   sledRide=true;S.sled(true);lying=false;diver.x=buoy.x+14;diver.y=18;diver.vx=0;diver.vy=0;diver.ang=1.57;S.splash();
   toast('Variabel vekt: loddet drar deg ned. Trykk SLIPP når du vil stoppe');
@@ -1510,17 +1513,22 @@ function sledRelease(){
 }
 function updateSled(dt){
   if(sledRide){
-    diver.vx=0;diver.vy=0;diver.x+=(buoy.x+14-diver.x)*Math.min(1,dt*6);diver.y+=230*dt;
-    diver.ang+=Math.atan2(Math.sin(1.57-diver.ang),Math.cos(1.57-diver.ang))*Math.min(1,dt*6);
+    var dm=diver.y/M,lim=Math.min(330,40+dm*M*.45);
+    sled.dx=clamp((sled.dx||0)+sledSteer*95*dt,-lim,lim);
+    diver.vx=0;diver.vy=0;diver.x=clamp(diver.x+(buoy.x+14+sled.dx-diver.x)*Math.min(1,dt*6),60,W-60);
+    var tilt=Math.atan2(sled.dx,Math.max(60,diver.y));
+    diver.y+=230*Math.cos(tilt)*dt;
+    var ta=1.57-tilt*.9-sledSteer*.25;
+    diver.ang+=Math.atan2(Math.sin(ta-diver.ang),Math.cos(ta-diver.ang))*Math.min(1,dt*6);
     sled.y=diver.y+44;
     if(diver.y>=floorY(diver.x)-40)sledRelease();
   }else if(sled.state==='haul'){
-    sled.y=Math.max(8,sled.y-170*dt);if(sled.y<=8)sled.state='home';
+    sled.y=Math.max(8,sled.y-170*dt);sled.dx=(sled.dx||0)*Math.max(0,1-dt*1.5);if(sled.y<=8){sled.state='home';sled.dx=0}
   }
 }
 function drawSled(){
   if(G.sled<1&&!sledRide)return;
-  var sx=sledRide?diver.x:buoy.x+14,sy=sled.y;
+  var sx=sledRide?diver.x:buoy.x+14+(sled.dx||0),sy=sled.y;
   ctx.strokeStyle='rgba(240,236,214,.55)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(buoy.x,2);ctx.lineTo(sx,sy-8);ctx.stroke();
   ctx.fillStyle='#5c6468';ctx.beginPath();ctx.moveTo(sx-7,sy-8);ctx.lineTo(sx+7,sy-8);ctx.lineTo(sx+10,sy+10);ctx.lineTo(sx-10,sy+10);ctx.closePath();ctx.fill();
   ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(sx-6,sy-6,3,14);
@@ -1813,7 +1821,7 @@ function update(dt){
   }
   if(state==='play'){
     var inp=inputVec(),MAXS=165*FIN[G.fin].v;
-    if(sledRide){inp={x:0,y:0,m:0};sIn.x=sIn.y=0}
+    if(sledRide){sledSteer=inp.m>.08?clamp(inp.x/Math.max(.3,inp.m)*Math.min(1,inp.m*1.6),-1,1):0;inp={x:0,y:0,m:0};sIn.x=sIn.y=0}
     sIn.x+=(inp.x-sIn.x)*Math.min(1,dt*11);sIn.y+=(inp.y-sIn.y)*Math.min(1,dt*11);
     inp.x=sIn.x;inp.y=sIn.y;inp.m=Math.min(1,Math.hypot(sIn.x,sIn.y));if(inp.m<.03){inp.m=0;inp.x=0;inp.y=0}
     var kg=carry?carry.s.k*carry.cm*carry.cm*carry.cm/1000:0,load=carry&&carry.mode==='hang'&&!carry.s.fredet?clamp((kg-1.5)/5,0,1):0;
