@@ -30,6 +30,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -197,7 +199,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11d · dykkerkniv for kjempekveita</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11e · enklere å komme oppå kveita</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -282,7 +284,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Kjempekveita</h2>
     <p>Et sted på bunnen ligger en kjempekveite. Den er for sterk for én harpun. Slipp harpunen, svøm opp til makkeren og hent hans, og sett skudd nummer to. Opp og pust, og dykk så ned igjen og dra den opp.</p>
-    <p>Har du kjøpt stor dykkerkniv, kan du i stedet svømme bort til kveita mens den drar deg, trykke KNIV for å sette deg oppå den og så STIKK mange ganger til den er død. Det tar mye luft, så gjør det tidlig i dykket.</p>
+    <p>Har du kjøpt stor dykkerkniv, kan du i stedet trykke KNIV mens kveita drar deg. Da drar du deg innover lina og setter deg oppå den. Trykk så STIKK mange ganger til den er død. Det tar mye luft, så gjør det tidlig i dykket.</p>
     <p class="small" style="margin-top:8px">Tastatur: piltaster eller WASD, Shift for rolig svømming, L for å legge deg, G for å grynte, F for flasher, T for stringer, K for å kicke, mellomrom for å skyte.</p>
 
     <h2>Minstemål og poeng</h2>
@@ -569,8 +571,8 @@ function knife(){
   if(!canKnife())return;
   var h=carry;
   if(!h.mount){
-    if(Math.hypot(diver.x-(h.x+h.dragDir*h.px*.35),diver.y-h.y)>70){toast('Svøm fram til hodet på kveita først');return}
-    h.mount=true;h.stabs=0;h.need=Math.round(6+h.cm/30);lying=false;S.tick();
+    if(Math.hypot(diver.x-(h.x+h.dragDir*h.px*.35),diver.y-h.y)>70){if(!h.pull){h.pull=true;S.tick();toast('Du drar deg innover lina mot kveita …')}return}
+    h.pull=false;h.mount=true;h.stabs=0;h.need=Math.round(6+h.cm/30);lying=false;S.tick();
     toast('Du sitter oppå kveita! Trykk STIKK for å stikke den i hodet','bad');return;
   }
   h.stabs++;air=Math.max(1,air-1.6);S.hit();try{if(navigator.vibrate)navigator.vibrate(18)}catch(_){}
@@ -1761,10 +1763,16 @@ function carryExtra(dt){
       air-=100/cap()*1.3*dt;
       return;
     }
+    if(h.pull)hsp*=.7;
     h.x+=h.dragDir*hsp*dt;if(h.x<80||h.x>W-80){h.dragDir*=-1;h.x=clamp(h.x,80,W-80)}
     h.y=bottom(h.x)-(h.px*.1+2);h.dir=h.dragDir;
     var ux=diver.x-h.x,uy=diver.y-h.y,ul=Math.hypot(ux,uy)||1;
     if(ul>115){diver.x=h.x+ux/ul*115;diver.y=Math.min(h.y+uy/ul*115,floorY(diver.x));diver.vx=h.dragDir*135;diver.vy=0}
+    if(h.pull){
+      var hx=h.x+h.dragDir*h.px*.35,hy=h.y-6,px2=hx-diver.x,py2=hy-diver.y,pd=Math.hypot(px2,py2)||1,st2=Math.min(pd,(hsp+170)*dt);
+      diver.x+=px2/pd*st2;diver.y+=py2/pd*st2;diver.vx=h.dragDir*hsp;diver.vy=0;air-=100/cap()*.8*dt;
+      if(pd<60)knife();
+    }
     return;
   }
   var f=carry,dx=f.sx-f.x,dy=f.sy-f.y,d=Math.hypot(dx,dy)||1,g=gunTip(40);
@@ -2749,7 +2757,7 @@ function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' '
 var lastHud='';
 function hud(){
   var nearB=state==='play'&&!sledRide&&(lying||(!carry&&diver.y>bottom(diver.x)-75));
-  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),!!canKnife(),carry&&carry.mount?carry.stabs:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
+  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
   if(key===lastHud)return;lastHud=key;
   $('airBar').style.width=air.toFixed(0)+'%';
   var low=air<25&&state==='play';
@@ -2767,7 +2775,7 @@ function hud(){
   var kb=$('kick');kb.hidden=!(state==='play'&&!lying&&!beltOff&&!sledRide);
   var sb=$('sledBtn');sb.hidden=!(state==='play'&&G.sled>0&&(sledRide||(!under&&sled.state==='home'&&!carry&&!hooked&&!haul)));sb.className=sledRide?'on':'';sb.textContent=sledRide?'SLIPP':'SYNK';
   $('flash').hidden=!(state==='play'&&level===4&&G.flash>0&&!under&&!flasher&&flCd<=0);
-  $('strBtn').hidden=!canString();var kbn=$('knifeBtn');kbn.hidden=!canKnife();if(!kbn.hidden)kbn.textContent=carry.mount?'STIKK '+carry.stabs+'/'+carry.need:'KNIV';
+  $('strBtn').hidden=!canString();var kbn=$('knifeBtn');kbn.hidden=!canKnife();if(!kbn.hidden)kbn.textContent=carry.mount?'STIKK '+carry.stabs+'/'+carry.need:carry.pull?'DRAR …':'KNIV';
   var gb=$('grunt');gb.hidden=!(state==='play'&&under&&!carry&&level<4);gb.className=gruntCd>0?'wait':'';
   var hb=$('holdBtn'),canHold=state==='play'&&level===6&&(holding||(under&&!lying&&!carry&&!sledRide&&nearHold()));hb.hidden=!canHold;hb.className=holding?'on':'';hb.textContent=holding?'SLIPP TAKET':'HOLD FAST';
   var ci=$('curInfo');ci.hidden=!(level===6&&(state==='play'||state==='intro'));
