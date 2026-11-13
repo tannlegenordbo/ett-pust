@@ -44,6 +44,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -227,7 +229,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11k · varsler om ny versjon</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11l · Crabmountain</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -319,6 +321,12 @@ td.n,th.n{text-align:right}
       <li><b>Fiskestringer:</b> har du kjøpt stringer, trykker du STRINGER når en død fisk henger på pila under vann. Da treres den på beltet, du lader på nytt og kan jakte videre i samme dykk. Fisken henges på bøya når du kommer opp.</li>
       <li><b>Kosthold og søvn</b> kjøpes per dag og gir ekstra pust neste runde.</li>
     </ul>
+    <h2>Crabmountain</h2>
+    <ul>
+      <li>Ved en krabbefabrikk har et rør i årevis sluppet ut knust krabbeskall som daler ned og danner fjell på bunnen. Når røret flyttes, begynner et nytt fjell å vokse. Toppen av fjellene ligger på rundt 10 meter, bunnen rundt 25.</li>
+      <li>Rundt fjellet der det dumpes nå, er vannet fullt av pale – det er som å dykke midt i en baitball. Stor lyr jager i stimen.</li>
+      <li>Nede på bunnen mellom fjellene ligger det av og til kjempetorsk som kommer for å spise palen, og breiflabb som ligger kamuflert og venter.</li>
+    </ul>
     <h2>Kjempekveita</h2>
     <p>Et sted på bunnen ligger en kjempekveite. Den er for sterk for én harpun. Slipp harpunen, svøm opp til makkeren og hent hans, og sett skudd nummer to. Opp og pust, og dykk så ned igjen og dra den opp.</p>
     <p>Har du kjøpt stor dykkerkniv, kan du i stedet trykke KNIV mens kveita drar deg. Da drar du deg innover lina og setter deg oppå den. Trykk så STIKK mange ganger til den er død. Det tar mye luft, så gjør det tidlig i dykket.</p>
@@ -393,13 +401,22 @@ var SP={
   spigola:{name:'Havabbor',min:25,treff:1000,quota:2,k:.009,len:[25,80],cruise:30,flee:200,alert:150,band:[1,6]},
   ricciola:{name:'Ricciola',min:0,treff:1000,quota:1,k:.011,len:[60,140],cruise:60,flee:240,alert:200,band:[10,28]},
   cernia:{name:'Cernia',fredet:1,len:[50,110],cruise:3,flee:60,alert:60,hug:1},
+  breiflabb:{name:'Breiflabb',min:0,treff:1000,quota:1,k:.017,len:[80,150],cruise:0,flee:35,alert:22,bottom:1},
   pale:{name:'Pale',min:45,treff:1000,k:.009,len:[16,28],cruise:45,flee:190,alert:150,band:[2,7.5]},
   orret:{name:'Sjøørret',fredet:1,len:[30,62],cruise:46,flee:205,alert:180,band:[.6,3]},
   hummer:{name:'Hummer',fredet:1,len:[22,32],cruise:3,flee:22,alert:28,bottom:1}
 };
 SB6=Object.assign({},SP.steinbit,{fredet:1});
 
+var CRAB=[],crabAct=2,crabF=[],crabBall=[],crabEmit=0;
+function crabDepth(x){
+  var d=25,lim=9.8;for(var i=0;i<CRAB.length;i++){var u=(x-CRAB[i].c)/CRAB[i].w,e=Math.exp(-u*u);d-=(25-CRAB[i].pk)*e;if(e>.6)lim=Math.max(lim,CRAB[i].pk-.3)}
+  d=Math.max(d,lim);
+  d=Math.min(d,3+22*sst(x/520));
+  return d+.35*Math.sin(x/23)+.25*Math.sin(x/9);
+}
 function bottom(x){
+  if(level===7)return Math.min(MAXB,M*crabDepth(x));
   if(level===4)return 2100;
   if(level===6)return Math.min(MAXB,M*(2.5+9.5*sst(x/650)+12*sst((x-650)/450)-10*sst((x-2550)/350)-9.5*sst((x-3000)/300)+1.2*Math.sin(x/57)+.8*Math.sin(x/19)));
   if(level===5){var g5=(x-2650)/160;return Math.min(MAXB,M*(2+4*Math.min(1,Math.max(0,x)/350)+7*sst((x-350)/550)+6*sst((x-900)/850)+16*sst((x-1750)/300)+10*clamp((x-2050)/1250,0,1)-13*Math.exp(-g5*g5)+(x>900?1.4*Math.sin(x/63)+.8*Math.sin(x/23):.3*Math.sin(x/40))))}
@@ -410,17 +427,17 @@ function bottom(x){
 }
 var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false;
 var night=false;
-var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet','Middelhavet','Saltstraumen'];
+var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet','Middelhavet','Saltstraumen','Crabmountain'];
 var slingOut=false,slingSpear=null,noWeaponDraw=false;
 var SB6;
 var NQ=['torsk','lyr','rodspette','steinbit'];
 var hooked=null,sharks=[],sharkT=0,landMul=1,flasher=null,flCd=0,buddyJob=null;
 var SCH={sei:6,makrell:7,pale:10,mahi:3,tuna:3,spmak:5,sarago:4,ricciola:3};
 var sledSteer=0,sledRide=false,sled={y:8,state:'home'},medKg=0,medBig=false,fishKr=0,fishPts=0;
-var KRMUL={1:1,2:1.2,3:2,4:1.3,5:4,6:2.5};
+var KRMUL={1:1,2:1.2,3:2,4:1.3,5:4,6:2.5,7:2.2};
 function krOf(kg){return Math.round((40+60*Math.pow(kg,.7))*KRMUL[level]*(night?1.5:1))}
-var LQ={6:['sei','torsk','lyr'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
-try{maxLevel=Math.max(1,Math.min(6,+localStorage.getItem('ettpust-lvl')||(localStorage.getItem('ettpust-l2')==='1'?2:1)))}catch(_){}
+var LQ={7:['torsk','lyr','breiflabb'],6:['sei','torsk','lyr'],5:['dentice','orata','sarago','spigola','ricciola'],4:['tuna','mahi','wahoo','spmak','gt','marlin'],1:['torsk','lyr','sei','makrell','rodspette','steinbit','kveite'],2:['lyr','torsk','steinbit','rodspette','kveite'],3:['torsk','lyr']};
+try{maxLevel=Math.max(1,Math.min(7,+localStorage.getItem('ettpust-lvl')||(localStorage.getItem('ettpust-l2')==='1'?2:1)))}catch(_){}
 function sst(t){t=clamp(t,0,1);return t*t*(3-2*t)}
 function rnd(a,b){return a+Math.random()*(b-a)}
 function kgOf(f){return f.s.k?f.s.k*f.cm*f.cm*f.cm/1000:0}
@@ -453,6 +470,8 @@ function makeFish(kind,x,y,school){
   if(level===2&&kind==='torsk')f.cm=Math.round(rnd(68,100));
   if(level===6){if(kind==='sei')f.cm=Math.round(rnd(55,110));if(kind==='torsk')f.cm=Math.round(rnd(60,115));if(kind==='steinbit'){f.cm=Math.round(rnd(60,100));f.s=SB6}if(kind==='lyr')f.cm=Math.round(rnd(55,90));if(kind==='torsk'&&shelters.length)f.sh=(Math.random()*shelters.length)|0}
   if(level===3&&kind==='torsk')f.cm=Math.round(rnd(95,125));
+  if(level===7&&kind==='lyr')f.cm=Math.round(rnd(78,100));
+  if(level===7&&kind==='torsk')f.cm=Math.round(rnd(62,98));
   if(level===3&&kind==='lyr')f.cm=Math.round(rnd(78,100));
   f.px=f.cm*(kind==='kveite'?.9:s.hp?.8:1.1);
   if(s.bottom)f.y=bottom(x)-(f.px*.1+2);
@@ -468,6 +487,7 @@ function bandY(s,x){
   if(s.hugR)return clamp(rnd(b-s.hugR[1],b-s.hugR[0]),20,b-20);
   if(s.hug)return rnd(b-105,b-20);
   if(level===3)return clamp(b-rnd(40,240),20,b-25);
+  if(level===7)return clamp(b-rnd(40,330),M*4,b-25);
   return clamp(rnd(s.band[0],s.band[1])*M,20,b-25);
 }
 function pickX(kind){
@@ -481,6 +501,12 @@ function pickX(kind){
     if(kind==='steinbit')return rnd(900,2500);
     if(kind==='lyr')return rnd(700,2700);
     return rnd(500,2900);
+  }
+  if(level===7&&CRAB.length){
+    var ac7=CRAB[crabAct];
+    if(kind==='pale')return rnd(ac7.c-380,ac7.c+380);
+    if(kind==='lyr')return rnd(ac7.c-600,ac7.c+600);
+    return rnd(600,W-150);
   }
   if(level===5){
     if(kind==='dentice')return rnd(1720,3250);
@@ -513,12 +539,12 @@ function spawn(kind,far){
 function reset(){
   fish=[];counts={};catches=[];score=0;air=100;timeLeft=ROUND;reload=0;spear=null;endReason='';carry=null;diveT=0;under=false;recRate=2;shotUsed=false;stillT=0;lying=false;contrT=0;contrA=0;contrTold=false;boost=0;beltOff=false;belt=null;haul=null;gruntT=0;gruntCd=0;breathT=0;hbT=0;eerieT=5;stuck=null;hal=null;noGun=false;peak=0;boT=0;boEnd=0;bubbles=[];
   cam.snap=true;
-  diver={x:level===2?230:level===3?480:level===1?300:level===5?200:level===6?470:W/2,y:6,vx:0,vy:0,ang:.5,kick:0,spd:0};buoy.x=diver.x-30;
+  diver={x:level===7&&CRAB.length?CRAB[crabAct].c-520:level===2?230:level===3?480:level===1?300:level===5?200:level===6?470:W/2,y:6,vx:0,vy:0,ang:.5,kick:0,spd:0};buoy.x=diver.x-30;
   slingOut=false;slingSpear=null;
   hooked=null;sharks=[];sharkT=0;landMul=1;flasher=null;flCd=0;buddyJob=null;
   holding=null;curDrift=0;
   medKg=0;medBig=false;fishKr=0;fishPts=0;strung=[];maxD=0;compWarn=false;sledRide=false;sled={y:8,state:'home'};
-  var plan=level===6?{sei:4,torsk:8,lyr:4,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
+  var plan=level===7?{pale:7,torsk:3,lyr:4,breiflabb:2}:level===6?{sei:4,torsk:8,lyr:4,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
   for(var k in plan)for(var i=0;i<plan[k];i++)spawn(k,false);
   if(level===6){
     var bigs=[];
@@ -527,17 +553,81 @@ function reset(){
     for(var gj=0;gj<5;gj++){var bsf=makeFish('sei',bsx+rnd(-50,50),bsc.y+rnd(-25,25),bsc);bsf.cm=Math.round(rnd(100,122));bsf.px=bsf.cm*1.1;fish.push(bsf)}
     var kx=rnd(1450,1950);spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(150,200));hal.px=hal.cm*.9;hal.x=kx;hal.y=bottom(kx)-(hal.px*.1+2);
   }
+  if(level===7){
+    for(var g7=0;g7<3;g7++){var gx7=CRAB[(crabAct+g7)%CRAB.length].c+rnd(-260,260);gx7=clamp(gx7,600,W-150);var gf7=makeFish('torsk',gx7,bottom(gx7)-28);gf7.cm=Math.round(rnd(110,138));gf7.px=gf7.cm*1.1;gf7.big=1;fish.push(gf7)}
+    crabF=[];crabEmit=0;
+  }
   if(level<3&&!night){
     spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(135,190));hal.px=hal.cm*.9;
 
   }
 }
+/* ---------- Crabmountain: krabbeskall som daler ned ---------- */
+function crabPipe(){var a=CRAB[crabAct];return{x0:-20,y0:M*1.5,x1:a.c-24,y1:M*8.4}}
+function updateCrab(dt){
+  if(!CRAB.length)return;
+  var p=crabPipe();crabEmit+=dt*30;
+  while(crabEmit>1&&crabF.length<240){crabEmit-=1;crabF.push({x:p.x1+rnd(-6,6),y:p.y1+rnd(-4,4),vx:rnd(8,40),vy:rnd(18,40),r:rnd(1.4,3.6),rot:rnd(0,6.28),vr:rnd(-3,3),c:(Math.random()*4)|0})}
+  if(crabEmit>1)crabEmit=1;
+  for(var i=crabF.length-1;i>=0;i--){var q=crabF[i];q.vx*=Math.max(0,1-dt*.9);q.x+=(q.vx+Math.sin(tClock*1.3+q.rot)*6)*dt;q.y+=q.vy*dt;q.rot+=q.vr*dt;if(q.y>=bottom(q.x)-1)crabF.splice(i,1)}
+}
+var CRABC=['#e07a4f','#f0a27a','#c95a3a','#f4e2cf'];
+function drawCrabBall(x0,x1){
+  if(!CRAB.length)return;
+  /* baitball: et hav av pale rundt fjellet */
+  var a=CRAB[crabAct],cx=a.c+40,cy=M*10.5,rx=430,ry=200;
+  if(cx+rx>x0&&cx-rx<x1){
+    for(var n=0;n<crabBall.length;n++){var b=crabBall[n],th=b.a+tClock*b.sp*(1.2-b.r*.6),rr=.25+.75*b.r,fx=cx+Math.cos(th)*rx*rr,fy=cy+Math.sin(th)*ry*rr*.85+Math.sin(tClock*2+b.ph)*6;
+      if(fx<x0||fx>x1)continue;
+      var ang=th+1.5708,dx=Math.cos(ang),dy=Math.sin(ang)*.85;
+      ctx.save();ctx.translate(fx,fy);ctx.rotate(Math.atan2(dy,dx));ctx.fillStyle=n%3?'rgba(178,196,200,.62)':'rgba(120,140,148,.6)';
+      ctx.beginPath();ctx.ellipse(0,0,7,2.1,0,0,6.283);ctx.fill();ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-10,-2.4);ctx.lineTo(-10,2.4);ctx.fill();ctx.restore();
+    }
+  }
+}
+function drawCrab(x0,x1){
+  if(!CRAB.length)return;
+  /* skallfjell: fyll, glød på det ferske fjellet og skallbiter på overflaten */
+  var sg=ctx.createLinearGradient(0,M*9,0,M*26);sg.addColorStop(0,'#8a5240');sg.addColorStop(.45,'#5a382e');sg.addColorStop(1,'#241a19');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.moveTo(x0,MAXB+500);
+  for(var bx=Math.floor(x0/10)*10;bx<=x1+10;bx+=10)ctx.lineTo(bx,bottom(bx));
+  ctx.lineTo(x1+10,MAXB+500);ctx.fill();
+  var ac=CRAB[crabAct],gl=ctx.createRadialGradient(ac.c,M*10.5,0,ac.c,M*10.5,ac.w*1.1);gl.addColorStop(0,'rgba(240,140,95,.45)');gl.addColorStop(1,'rgba(240,140,95,0)');
+  ctx.save();ctx.beginPath();ctx.moveTo(x0,MAXB+500);for(bx=Math.floor(x0/10)*10;bx<=x1+10;bx+=10)ctx.lineTo(bx,bottom(bx));ctx.lineTo(x1+10,MAXB+500);ctx.clip();
+  ctx.fillStyle=gl;ctx.fillRect(ac.c-ac.w*1.2,M*9,ac.w*2.4,M*17);ctx.restore();
+  for(bx=Math.floor(x0/5)*5;bx<=x1;bx+=5){
+    var by=bottom(bx),near=1e9,ag=4;
+    for(var i=0;i<CRAB.length;i++){var dd=Math.abs(bx-CRAB[i].c);if(dd<near){near=dd;ag=CRAB[i].age}}
+    var h=((bx*7919)%97)/97,h2=((bx*104729)%89)/89,fresh=ag===0?.95:ag===1?.55:.3;
+    if(h<fresh){ctx.fillStyle=CRABC[(bx/5|0)%4];ctx.save();ctx.translate(bx+2,by+1+h2*7);ctx.rotate(h*6+h2);ctx.fillRect(-2.4,-1.1,4.8,2.2);ctx.restore()}
+    if(h2<fresh*.6){ctx.fillStyle=CRABC[((bx/5|0)+1)%4];ctx.fillRect(bx,by+10+h*16,3,1.6)}
+    if(ag>1&&h>.88){ctx.fillStyle='rgba(120,160,90,.6)';ctx.fillRect(bx+1,by-5-h2*5,2,6+h2*5)}
+    if(ag>1&&h2>.93){ctx.fillStyle='rgba(240,210,200,.7)';ctx.beginPath();ctx.arc(bx+2,by-3,2.2,0,6.283);ctx.fill()}
+  }
+  /* røret fra fabrikken */
+  var p=crabPipe();
+  if(p.x1>x0-40){
+    ctx.strokeStyle='#3c4548';ctx.lineWidth=12;ctx.lineCap='butt';ctx.beginPath();ctx.moveTo(p.x0,p.y0);ctx.quadraticCurveTo((p.x0+p.x1)/2,p.y1+30,p.x1,p.y1);ctx.stroke();
+    ctx.strokeStyle='rgba(160,175,178,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x0,p.y0-4);ctx.quadraticCurveTo((p.x0+p.x1)/2,p.y1+26,p.x1,p.y1-4);ctx.stroke();
+    ctx.fillStyle='#2b3235';ctx.fillRect(p.x1-4,p.y1-9,10,18);
+    for(var j=1;j<6;j++){var tt=j/6,jx=(1-tt)*(1-tt)*p.x0+2*(1-tt)*tt*(p.x0+p.x1)/2+tt*tt*p.x1,jy=(1-tt)*(1-tt)*p.y0+2*(1-tt)*tt*(p.y1+30)+tt*tt*p.y1;ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(jx,jy-14,5,0,6.283);ctx.fill();ctx.strokeStyle='rgba(240,236,214,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(jx,jy-9);ctx.lineTo(jx,jy-5);ctx.stroke()}
+    var cl=ctx.createRadialGradient(p.x1+30,p.y1+40,0,p.x1+30,p.y1+40,120);cl.addColorStop(0,'rgba(240,200,170,.22)');cl.addColorStop(1,'rgba(240,200,170,0)');ctx.fillStyle=cl;ctx.fillRect(p.x1-100,p.y1-80,260,260);
+  }
+  for(var k=0;k<crabF.length;k++){var q=crabF[k];if(q.x<x0||q.x>x1)continue;ctx.fillStyle=CRABC[q.c];ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillRect(-q.r,-q.r*.55,q.r*2,q.r*1.1);ctx.restore()}
+
+}
 function buildWorld(){
-  kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
+  kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
+  if(level===7){
+    var cb=[[880,15,240],[1480,12.5,260],[2080,12,270],[2680,12.5,260],[3200,15,220]];
+    crabAct=1+((Math.random()*3)|0);
+    CRAB=cb.map(function(q,ix){return{c:q[0],pk:ix===crabAct?10:q[1]+rnd(-.6,.6),w:q[2],age:Math.abs(ix-crabAct)}});
+    crabBall=[];for(var cbi=0;cbi<260;cbi++)crabBall.push({a:rnd(0,6.283),r:Math.sqrt(Math.random()),sp:rnd(.25,.55)*(Math.random()<.5?1:1),ph:rnd(0,6.283)});
+  }
   if(level===3)pipes=[{a:300,b:900,t:'10 m'},{a:1430,b:2180,t:'18 m'},{a:2730,b:3300,t:'25 m'}];
   for(var pi=0;pi<pipes.length;pi++)pipes[pi].y=bottom((pipes[pi].a+pipes[pi].b)/2)-22;
   for(var x=20;x<W;x+=rnd(14,34)){
-    var grow=level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
+    var grow=level===7?(bottom(x)<M*7&&Math.random()<.3):level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
     if(grow)kelp.push({x:x,h:level===6?rnd(40,110):level===5?rnd(26,60):level!==1?rnd(60,170):Math.max(40,Math.min(rnd(90,330),bottom(x)-45)),ph:rnd(0,6.28),w:rnd(5,10),c:Math.random()<.5});
   }
   shelters=[];
@@ -563,7 +653,7 @@ function buildWorld(){
       if(qn)rocks.push({x:(qx+boul[qn-1].x)/2,w:0,h:0,gap:true});
       qx+=qr*rnd(1.25,1.6);
     }
-  }else if(level!==4&&level!==5)for(var rx0=rnd(120,300);rx0<W-100;rx0+=rnd(190,430))rocks.push({x:rx0,w:rnd(22,46),h:rnd(14,26)});
+  }else if(level!==4&&level!==5&&level!==7)for(var rx0=rnd(120,300);rx0<W-100;rx0+=rnd(190,430))rocks.push({x:rx0,w:rnd(22,46),h:rnd(14,26)});
   for(var i=0;i<150;i++)motes.push({x:rnd(0,W),y:rnd(10,MAXB),r:rnd(.6,1.8),ph:rnd(0,6.28)});
 }
 buildWorld();
@@ -806,6 +896,7 @@ var S=(function(){
     L4:{bpm:92,prog:[[52,59,63,66],[49,56,64,68],[45,52,61,64],[47,54,63,68]],arp:'marimba',arpP:.7,arpOct:24,bassP:.5,shaker:true,scale:[64,66,68,71,73,76,78,80]},
     L5:{bpm:76,prog:[[45,52,57,60],[41,48,57,60],[43,50,55,59],[40,47,55,59]],arp:'pluck',arpP:0,arpOct:12,bassP:.6,pick:[0,2,1,2,3,2,1,2],scale:[64,67,69,71,72,74,76]},
     L6:{bpm:100,prog:[[38,45,53,57],[34,41,50,53],[41,48,57,60],[36,43,52,55]],arp:'bell',arpP:.12,arpOct:24,bassP:1,ostinato:true,scale:[62,64,65,67,69,70,72]},
+    L7:{bpm:80,prog:[[40,47,55,59],[43,50,55,62],[38,45,53,57],[41,48,57,60]],arp:'kalimba',arpP:.45,arpOct:24,bassP:.8,shaker:true,scale:[64,66,67,69,71,74,76]},
     night:{bpm:56,prog:[[42,49,57,64],[38,45,54,61],[35,42,50,57],[37,44,51,59]],arp:'bell',arpP:.16,arpOct:24,bassP:0,scale:[66,68,69,71,73,74,76]}
   };
   function pickSong(){
@@ -1733,7 +1824,7 @@ function drawHolding(){
 }
 /* ---------- trofeer og lagring av dykket ---------- */
 var TROF={};try{TROF=JSON.parse(localStorage.getItem('ettpust-trofe')||'{}')||{}}catch(_){TROF={}}
-var TORDER=['torsk','lyr','sei','makrell','rodspette','steinbit','kveite','tuna','mahi','wahoo','spmak','gt','marlin','dentice','orata','sarago','spigola','ricciola'];
+var TORDER=['torsk','lyr','sei','makrell','rodspette','steinbit','kveite','breiflabb','tuna','mahi','wahoo','spmak','gt','marlin','dentice','orata','sarago','spigola','ricciola'];
 function trophyCheck(f){
   var t=TROF[f.kind];
   if(!t||f.cm>t.cm){
@@ -1905,6 +1996,7 @@ function land(f){
   var s=f.s,n=counts[f.kind]||0;
   slingOut=false;slingSpear=null;
   if(f===hal)hal=null;
+  if(level===7&&f.kind==='pale'){toast('Bare en pale fra stimen – den teller ikke');catches.push({f:f,pts:0,note:'pale'});return}
   if(s.fredet){score-=1500;toast(s.name+' er ikke lov med harpun  −1500','bad');catches.push({f:f,pts:-1500,note:'ikke lov'});return}
   if(f.cm<s.min){var p=s.under||s.treff;score-=p;toast(s.name+' '+f.cm+' cm er under '+s.min+' cm  −'+p,'bad');catches.push({f:f,pts:-p,note:'under mål'});return}
   var fkg=s.k*f.cm*f.cm*f.cm/1000;
@@ -1925,7 +2017,7 @@ function land(f){
 function spawnOne(kind){
   if(SCH[kind]){
     var left=0;for(var i=0;i<fish.length;i++)if(fish[i].kind===kind)left++;
-    if(left>(level===4?2:6))return;
+    if(left>(level===4?2:level===7&&kind==='pale'?55:6))return;
   }
   spawn(kind,true);
 }
@@ -1997,6 +2089,7 @@ function update(dt){
       if(slingOut&&!carry&&Math.hypot(diver.x-slingSpear.x,diver.y-slingSpear.y)<50){slingOut=false;slingSpear=null;S.tick();toast('Du har pila igjen')}
     }
     updateNight(dt);
+    if(level===7)updateCrab(dt);
     if(gruntT>0)gruntT-=dt;if(gruntCd>0)gruntCd-=dt;if(flCd>0)flCd-=dt;
     if(flasher){
       flasher.t+=dt;if(!flasher.held)flasher.y=Math.min(1320,flasher.y+45*dt);
@@ -2279,6 +2372,21 @@ function drawFishBody(f){
       if(f.stage>=3){ctx.moveTo(L*.22,-L*.3);ctx.lineTo(L*.26,L*.02)}ctx.stroke()}
     ctx.restore();return;
   }
+  if(k==='breiflabb'){
+    var wb=wag*.4;
+    ctx.fillStyle='#4a3d28';ctx.beginPath();ctx.moveTo(-L*.36,-L*.03+wb);ctx.lineTo(-L*.52,-L*.09+wb);ctx.lineTo(-L*.5,0+wb);ctx.lineTo(-L*.52,L*.08+wb);ctx.lineTo(-L*.36,L*.03+wb);ctx.closePath();ctx.fill();
+    var bgB=ctx.createLinearGradient(0,-L*.16,0,L*.1);bgB.addColorStop(0,'#6e5a3a');bgB.addColorStop(1,'#b09a70');
+    ctx.fillStyle=bgB;ctx.beginPath();ctx.moveTo(L*.5,L*.02);ctx.bezierCurveTo(L*.5,-L*.14,L*.25,-L*.17,L*.08,-L*.12);ctx.bezierCurveTo(-L*.12,-L*.07,-L*.28,-L*.04,-L*.38,-L*.025+wb);ctx.lineTo(-L*.38,L*.025+wb);ctx.bezierCurveTo(-L*.2,L*.05,0,L*.08,L*.2,L*.09);ctx.bezierCurveTo(L*.38,L*.1,L*.5,L*.08,L*.5,L*.02);ctx.closePath();ctx.fill();
+    ctx.save();ctx.clip();ctx.fillStyle='rgba(60,45,25,.45)';for(i=0;i<16;i++)ell(L*.46-((i*37)%90)/100*L*.88,-L*.12+((i*53)%22)/100*L,L*.035,L*.022);ctx.restore();
+    ctx.fillStyle='rgba(80,64,40,.9)';ctx.beginPath();ctx.ellipse(L*.04,L*.07,L*.09,L*.04,.5,0,6.283);ctx.fill();
+    ctx.strokeStyle='#2a2116';ctx.lineWidth=Math.max(1,L*.012);ctx.beginPath();ctx.moveTo(L*.5,L*.02);ctx.quadraticCurveTo(L*.36,L*.065,L*.2,L*.035);ctx.stroke();
+    ctx.fillStyle='#efe8d6';for(i=0;i<7;i++){var tbx=L*.48-i*L*.04,tby=L*.025+i*L*.004;ctx.beginPath();ctx.moveTo(tbx,tby);ctx.lineTo(tbx-L*.008,tby+L*.022);ctx.lineTo(tbx-L*.016,tby);ctx.fill()}
+    ctx.strokeStyle='#5a4a30';ctx.lineWidth=Math.max(1,L*.008);for(i=0;i<9;i++){var frx=L*.42-i*L*.08,fry=L*.075-(i>4?L*.025:0);ctx.beginPath();ctx.moveTo(frx,fry);ctx.lineTo(frx-L*.012,fry+L*.03);ctx.stroke()}
+    ctx.strokeStyle='#3a2f1e';ctx.lineWidth=Math.max(1,L*.008);ctx.beginPath();ctx.moveTo(L*.38,-L*.13);ctx.quadraticCurveTo(L*.48,-L*.25,L*.56,-L*.17);ctx.moveTo(L*.3,-L*.15);ctx.lineTo(L*.27,-L*.21);ctx.moveTo(L*.24,-L*.15);ctx.lineTo(L*.22,-L*.19);ctx.stroke();
+    ctx.fillStyle='#d8c9a4';ell(L*.56,-L*.165,L*.02+.5,L*.014+.5);
+    ctx.fillStyle='#e8dcae';ell(L*.36,-L*.11,L*.022+.8,L*.02+.8);ctx.fillStyle='#0a0a0a';ell(L*.365,-L*.11,L*.011+.6,L*.011+.6);
+    ctx.restore();return;
+  }
   if(k==='steinbit'){
     var w=wag*.5;
     ctx.fillStyle='#3d4b59';
@@ -2397,6 +2505,7 @@ function drawFish(f){
     if(ek==='hummer'){pts=[[.31,-.06]];er=2}
     else if(ek==='rodspette'||ek==='kveite'){pts=[[.33,-.045],[.37,-.005]];er=eL*.022+1.2}
     else if(ek==='steinbit'){pts=[[.4,-.045]];er=eL*.016+1.2}
+    else if(ek==='breiflabb'){pts=[[.36,-.11]];er=eL*.02+1.2}
     else{var ec=RF[ek];pts=[[.37,-ec.top*.32]];er=Math.max(2,eL*ec.eye)}
     ctx.save();ctx.translate(f.x,f.y);if(f.rot)ctx.rotate(f.rot);ctx.scale(f.dir,1);ctx.lineCap='round';
     for(var ei=0;ei<pts.length;ei++){
@@ -2599,6 +2708,13 @@ function render(){
   ctx.lineTo(x1,0);if(level!==2)ctx.fill();
   if(level===6){ctx.fillStyle='#e8eef0';for(var pk=Math.floor(x0/260)*260;pk<=x1;pk+=260){var ph6=60+((pk*13)%40);ctx.beginPath();ctx.moveTo(pk-60,-40);ctx.lineTo(pk,-40-ph6);ctx.lineTo(pk+60,-40);ctx.fill();ctx.fillStyle='#55625f';ctx.beginPath();ctx.moveTo(pk-90,-25);ctx.lineTo(pk-30,-40-ph6*.6);ctx.lineTo(pk+20,-50);ctx.lineTo(pk+90,-25);ctx.fill();ctx.fillStyle='#e8eef0'}}
   drawBridge(x0,x1);
+  if(level===7){
+    ctx.fillStyle='#4f6a66';ctx.beginPath();ctx.moveTo(-200,0);ctx.lineTo(-200,-40);ctx.quadraticCurveTo(200,-50,420,0);ctx.fill();
+    ctx.fillStyle='#8a929a';ctx.fillRect(-120,-96,260,74);ctx.fillStyle='#6d757c';ctx.beginPath();ctx.moveTo(-130,-96);ctx.lineTo(10,-118);ctx.lineTo(150,-96);ctx.fill();
+    ctx.fillStyle='#5c6468';ctx.fillRect(100,-150,18,56);ctx.fillStyle='rgba(230,236,238,.5)';ctx.beginPath();ctx.arc(110+Math.sin(tClock*.6)*6,-160-((tClock*8)%30),10+((tClock*8)%30)*.3,0,6.283);ctx.fill();
+    ctx.fillStyle='#c0392b';ctx.fillRect(-90,-80,150,20);ctx.fillStyle='#fff';ctx.font='700 13px Figtree, sans-serif';ctx.textAlign='left';ctx.fillText('KRABBEFABRIKK',-84,-65);
+    ctx.fillStyle='#39464a';for(var fw=-100;fw<130;fw+=40)ctx.fillRect(fw,-52,22,16);
+  }
   if(level===3){
     ctx.fillStyle='#7d8a8c';ctx.fillRect(90,-78,360,78);
     ctx.fillStyle='#5c686b';ctx.beginPath();ctx.moveTo(80,-78);ctx.lineTo(270,-104);ctx.lineTo(460,-78);ctx.closePath();ctx.fill();
@@ -2626,6 +2742,7 @@ function render(){
 
   /* tare bak */
   for(i=0;i<kelp.length;i++){var kp=kelp[i];if(kp.x<x0||kp.x>x1||!kp.c)continue;drawKelp(kp,level===5?'#2c5a35':'#3d4a22',.75)}
+  if(level===7)drawCrabBall(x0,x1);
   /* bunn */
   ctx.fillStyle='#0b1a1c';ctx.beginPath();ctx.moveTo(x0,MAXB+500);
   for(var bx=Math.floor(x0/14)*14;bx<=x1+14;bx+=14)ctx.lineTo(bx,bottom(bx));
@@ -2644,6 +2761,7 @@ function render(){
     ctx.fillStyle='rgba(143,137,96,.35)';
     for(bx=Math.floor(sx0/46)*46;bx<=x1;bx+=46)if(bx>=W-850)ctx.fillRect(bx,bottom(bx)+9+(bx%3)*5,22,2);
   }
+  if(level===7)drawCrab(x0,x1);
   for(i=0;i<fish.length;i++){var fh=fish[i];if(fh.hide&&fh.x>x0-80&&fh.x<x1+80)drawFish(fh)}
   var BC=['#14292b','#19353a','#10242a'];
   for(i=0;i<boul.length;i++){var bo=boul[i];if(bo.x<x0-70||bo.x>x1+70)continue;
@@ -2778,7 +2896,7 @@ function render(){
     ctx.font='600 13px Figtree, system-ui, sans-serif';ctx.textAlign='center';
     for(i=0;i<fish.length;i++){
       f=fish[i];var d=Math.hypot(f.x-diver.x,f.y-diver.y);
-      var SEE=MASK[G.mask].see;if(d<(f.stage>=2?520:SEE)&&lit(f.x,f.y)){
+      var SEE=MASK[G.mask].see;if(level===7&&f.kind==='pale')continue;if(d<(f.stage>=2?520:SEE)&&lit(f.x,f.y)){
         ctx.globalAlpha=f.stage>=2?1:clamp((SEE-d)/60,0,1);
         var txt=f.stage>=2?['','','Kveite – sett skudd nr. 2','Kveite – opp og pust først','Kveite – svøm bort og ta tak'][f.stage]:f.s.name+(f.s.fredet?'':' '+sizeTxt(f));
         ctx.lineWidth=3;ctx.strokeStyle='rgba(6,34,43,.85)';ctx.strokeText(txt,f.x,f.y-f.px*.25-9);
@@ -2895,13 +3013,13 @@ function finish(why){
     rows+='<tr'+(c.pts<0?' class="fredet"':'')+'><td>'+c.f.s.name+(c.note?' ('+c.note+')':'')+'</td><td class="n">'+sizeTxt(c.f)+'</td><td class="n">'+(c.pts>0?'+':'')+fmt(c.pts).replace('-','−')+'</td></tr>';
   }
   $('overTable').innerHTML=rows;
-  if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<6)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
-  if(!night&&why==='kvote'&&level===maxLevel&&maxLevel<6){
+  if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<7)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
+  if(!night&&why==='kvote'&&level===maxLevel&&maxLevel<7){
     maxLevel++;try{localStorage.setItem('ettpust-lvl',String(maxLevel))}catch(_){}
     $('overLead').textContent+=' Nivå '+maxLevel+', '+LN[maxLevel]+', er åpnet.';
   }
   lockUi();
-  nextLv=(!night&&why==='kvote'&&level<6&&maxLevel>level)?level+1:level;
+  nextLv=(!night&&why==='kvote'&&level<7&&maxLevel>level)?level+1:level;
   $('again').textContent=nextLv>level?'Videre til nivå '+nextLv+': '+LN[nextLv]:'Dykk igjen';
   S.music(true);$('grunt').hidden=true;$('kick').hidden=true;$('holdBtn').hidden=true;$('curInfo').hidden=true;$('quit').hidden=true;$('flash').hidden=true;$('strBtn').hidden=true;$('knifeBtn').hidden=true;
   $('over').hidden=false;$('over').scrollTop=0;
@@ -2918,12 +3036,13 @@ function start(lv,nt){
 function beginPlay(){
   state='play';lastHud='';
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
+  if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
   if(level===6){toast('Saltstraumen: stillstrømmen kommer om rundt 20 sekunder og varer ca. 30 sekunder. Da kan du komme deg ned under broa der storfisken står');return}
   if(level===5){toast('Middelhavet: dentexen står ved stupet på 20–45 meter. Ligg i ro der nede og la den komme til deg');return}
   toast(level===4?'Blåvann: pila sitter i bøya. Skyt, pust, og hal fisken opp før haiene kommer':level===3?'Rørdykket: rørene ligger på 10, 18 og 25 meter':level===2?'Moloen: svøm utover, legg deg stille og vent på fisken':'Pust rolig, dykk når du er klar');
 }
 var testLv=0;
-function readTest(){var m=/^#niva([1-6])$/.exec(location.hash||'');testLv=m?+m[1]:0;if(typeof lockUi==='function')lockUi()}
+function readTest(){var m=/^#niva([1-7])$/.exec(location.hash||'');testLv=m?+m[1]:0;if(typeof lockUi==='function')lockUi()}
 function lockUi(){
   $('shopBtn').textContent='Dykkerbutikken · '+fmt(G.kr)+' kr';
   var sr=loadRun(),rb=$('resumeBtn');rb.hidden=!sr;if(sr)rb.textContent='Fortsett dykket: '+(sr.night?'Nattdykk':'nivå '+sr.level+', '+LN[sr.level])+' · '+Math.floor(sr.timeLeft/60)+':'+('0'+Math.floor(sr.timeLeft%60)).slice(-2)+' igjen';
@@ -2961,6 +3080,7 @@ var SPOTS=[
   {lv:4,n:'Blåvannet',w:'Tropisk åpent hav',d:'Tunfisk, mahi-mahi, wahoo og marlin. Pila sitter i bøya – og haiene følger etter.'},
   {lv:5,n:'Middelhavet',w:'Italiensk klippekyst · 20–45 m',d:'Dentex ved stupet, dorade og sarago på grunna. Dagskvote 5 kg.'},
   {lv:6,n:'Saltstraumen',w:'Ved Bodø · en av verdens sterkeste tidevannsstrømmer',d:'Storsei og kjempetorsk under broa. Dykk i stillstrømmen, ligg i le bak pilarene.'},
+  {lv:7,n:'Crabmountain',w:'Krabbefabrikk · fjell av krabbeskall fra 10 m',d:'Et rør dumper knust krabbeskall som blir til fjell på bunnen. Pale så tett som en baitball, svær lyr, kjempetorsk og breiflabb.'},
   {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
 var spotImg={};
 function spotPic(k){
@@ -2969,7 +3089,7 @@ function spotPic(k){
   try{
     ctx=c.getContext('2d');var W0=640,H0=260,SY=78,i,x;
     var sky=ctx.createLinearGradient(0,0,0,SY),sea=ctx.createLinearGradient(0,SY,0,H0);
-    var P={1:['#9fbcc2','#dbe6e0','#2f8f8c','#0b3440'],2:['#a9bfc4','#e0e8e3','#2a8784','#082c36'],3:['#93a9b0','#d3ddd8','#257a7a','#062430'],4:['#4fb2e6','#cdeefb','#2fb0d0','#04224a'],5:['#5fb0e0','#f3e7c9','#3cbcd4','#05305a'],6:['#7fa0b6','#e2eaee','#1f6f78','#04212b'],7:['#040914','#16263d','#123a45','#020c10']}[k];
+    var P={8:['#9fb4ba','#dbe4df','#2a8380','#082c36'],1:['#9fbcc2','#dbe6e0','#2f8f8c','#0b3440'],2:['#a9bfc4','#e0e8e3','#2a8784','#082c36'],3:['#93a9b0','#d3ddd8','#257a7a','#062430'],4:['#4fb2e6','#cdeefb','#2fb0d0','#04224a'],5:['#5fb0e0','#f3e7c9','#3cbcd4','#05305a'],6:['#7fa0b6','#e2eaee','#1f6f78','#04212b'],7:['#040914','#16263d','#123a45','#020c10']}[k];
     sky.addColorStop(0,P[0]);sky.addColorStop(1,P[1]);sea.addColorStop(0,P[2]);sea.addColorStop(1,P[3]);
     ctx.fillStyle=sky;ctx.fillRect(0,0,W0,SY);ctx.fillStyle=sea;ctx.fillRect(0,SY,W0,H0-SY);
     function fishAt(kind,x,y,px,dir){var f={kind:kind,s:SP[kind],cm:60,x:x,y:y,dir:dir||1,rot:0,ph:x,fleeT:0,dead:false,px:px};drawFishBody(f)}
@@ -3029,6 +3149,15 @@ function spotPic(k){
       ctx.beginPath();ctx.arc(330,180,26,0,5);ctx.stroke();ctx.beginPath();ctx.arc(330,180,14,1,6);ctx.stroke();
       for(i=0;i<7;i++)fishAt('sei',480+(i%3)*40,120+i*12,60,-1);fishAt('torsk',250,214,96,1)
     }
+    if(k===8){
+      hills('#4f6a66',14);ctx.fillStyle='#8a929a';ctx.fillRect(10,SY-44,120,34);ctx.fillStyle='#c0392b';ctx.fillRect(22,SY-36,80,10);ctx.fillStyle='#5c6468';ctx.fillRect(110,SY-66,10,26);
+      bottomFill('#6b4a3a',function(x){var d=236;[[160,40,70],[330,90,80],[500,55,70]].forEach(function(m){var u=(x-m[0])/m[2];d-=m[1]*Math.exp(-u*u)});return d});
+      for(i=0;i<220;i++){var cx8=(i*53)%640;var cy8=0;[[160,40,70],[330,90,80],[500,55,70]].forEach(function(m){var u=(cx8-m[0])/m[2];cy8+=m[1]*Math.exp(-u*u)});ctx.fillStyle=['#e07a4f','#f0a27a','#c95a3a','#f4e2cf'][i%4];ctx.fillRect(cx8,236-cy8+((i*17)%14),4,2.4)}
+      ctx.strokeStyle='#3c4548';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(60,SY+6);ctx.quadraticCurveTo(200,150,318,138);ctx.stroke();
+      ctx.fillStyle='#e9a07a';for(i=0;i<40;i++)ctx.fillRect(322+((i*13)%30)-6,140+i*1.4,3,2);
+      ctx.fillStyle='rgba(180,198,204,.7)';for(i=0;i<420;i++){var th8=i*2.399,rr8=Math.sqrt((i%97)/97);ctx.beginPath();ctx.ellipse(350+Math.cos(th8)*190*rr8,120+Math.sin(th8)*60*rr8,4.5,1.4,th8+1.57,0,6.283);ctx.fill()}
+      fishAt('breiflabb',540,226,90,-1);fishAt('torsk',200,214,96,1);fishAt('lyr',470,120,80,-1);buoyAt(600)
+    }
     if(k!==4&&k!==5&&k!==7)surface();else if(k!==7)surface();
     url=c.toDataURL('image/jpeg',.85);
   }catch(e){url=''}
@@ -3037,7 +3166,7 @@ function spotPic(k){
 function renderSpots(){
   var h='';
   for(var i=0;i<SPOTS.length;i++){
-    var sp=SPOTS[i],key=sp.night?7:sp.lv,open=sp.night?G.lamp>0:sp.lv<=maxLevel;
+    var sp=SPOTS[i],key=sp.night?7:sp.lv===7?8:sp.lv,open=sp.night?G.lamp>0:sp.lv<=maxLevel;
     var lockTxt=sp.night?'Låst – kjøp en lykt i Havguden':'Låst – fyll kvoten på '+LN[sp.lv-1]+' for å låse opp';
     h+='<button type="button" class="spot'+(open?'':' locked')+'" data-i="'+i+'"'+(open?'':' disabled aria-disabled="true"')+'><div class="spic"><img alt="" src="'+spotPic(key)+'">'+(open?'':'<span class="lock">🔒 Låst</span>')+'</div><div class="sp"><b>'+(sp.night?'':sp.lv+'. ')+sp.n+'</b><span class="where">'+sp.w+'</span><span class="what">'+sp.d+'</span>'+(open?'':'<span class="need">'+lockTxt+'</span>')+'</div></button>';
   }
