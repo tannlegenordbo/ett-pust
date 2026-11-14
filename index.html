@@ -50,6 +50,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -85,6 +87,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #fire:active{transform:scale(.94)}
 #quota{position:fixed;left:12px;top:62px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;pointer-events:none;font-size:11px;font-variant-numeric:tabular-nums}
 #quota span{background:rgba(6,34,43,.62);border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap}
+#quota span.wx{opacity:.8;margin-top:4px}
 #quota span.full{background:var(--foam);color:#06222b;font-weight:700;border-color:var(--foam)}
 #grunt{position:fixed;right:122px;bottom:38px;width:68px;height:68px;border-radius:50%;border:2px solid var(--foam);background:rgba(6,34,43,.78);color:var(--foam);font-family:var(--display);font-weight:700;font-size:11px;touch-action:none;cursor:pointer}
 #grunt[hidden],#kick[hidden],#flash[hidden],#strBtn[hidden],#knifeBtn[hidden]{display:none}
@@ -233,7 +236,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 13.11n · stringer og haling</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11a · vær, vind, strøm og sikt</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -321,6 +324,7 @@ td.n,th.n{text-align:right}
       <li>Dagskvoten er 5 kg per dykker. Fisken som tar deg over 5 kg får du beholde, men da er dagen over – også om det er én stor fisk. Cernia er fredet i spillet.</li>
       <li><b>Utstyr for dypet:</b> en tynn drakt mister lite oppdrift på dypet, og et lett belte gjør at du blir nøytral på rundt 11 meter. Da kommer du lettere opp. Med tykk drakt og tungt belte blir du dratt ned.</li>
       <li><b>Variabel vekt:</b> med synkelodd tar du tak i loddet ved bøya og blir dratt raskt ned uten å bruke krefter. Styr litt til siden med joysticken på vei ned, så havner du der du vil. Trykk SLIPP på ønsket dybde, og svøm opp selv.</li>
+      <li><b>Været varierer</b> fra dag til dag: sol, overskyet eller regn, vind, strøm og sikt. Dårlig sikt gjør at du ser kortere, men fisken ser deg også senere. Mye vind gir krapp sjø, så pusten kommer saktere tilbake i overflaten. Strøm fører deg sidelengs – legg deg på bunnen for å ligge i ro. Været står under kvoten.</li>
       <li>Utstyr du har kjøpt, kan du bytte mellom i Havguden før hver runde.</li>
       <li><b>Fiskestringer:</b> har du kjøpt stringer, trykker du STRINGER (skyteknappen) når en fisk på opptil 8 kg henger på pila under vann. Da treres den på beltet, du lader på nytt og kan jakte videre i samme dykk. Fisken henges på bøya når du kommer opp.</li>
       <li><b>Kosthold og søvn</b> kjøpes per dag og gir ekstra pust neste runde.</li>
@@ -651,6 +655,26 @@ function drawCrabDark(){
   c.globalCompositeOperation='source-over';
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(crabCv,0,0);ctx.restore();
 }
+/* ---------- vær, vind, strøm og sikt ---------- */
+var WX={vis:12,wind:3,cur:0,sky:'sol'},wxDrift=0;
+var WXR={1:[5,15,0,10,.4],2:[5,14,0,12,.6],3:[4,12,0,8,.5],4:[20,40,2,10,1.2],5:[15,35,0,8,.4],6:[6,15,0,12,0],7:[3,8,0,10,.3]};
+function rollWx(){
+  var r=WXR[level]||WXR[1],u=Math.random();
+  var sky=level===5?(u<.75?'sol':u<.95?'skyet':'regn'):level===4?(u<.6?'sol':u<.85?'skyet':'regn'):(u<.35?'sol':u<.75?'skyet':'regn');
+  var wind=Math.round(r[2]+(r[3]-r[2])*Math.pow(Math.random(),1.3)+(sky==='regn'?2:0));
+  var vis=Math.round(r[0]+(r[1]-r[0])*Math.random()-(sky==='regn'?2:0)-(wind>8?2:0));vis=Math.max(r[0]-1,vis);
+  var cur=r[4]?+(r[4]*Math.pow(Math.random(),1.4)*(Math.random()<.5?-1:1)).toFixed(1):0;
+  WX={vis:vis,wind:Math.min(14,wind),cur:cur,sky:sky};wxDrift=0;
+}
+function wxSkyTxt(){return{sol:'☀️ Sol',skyet:'☁️ Overskyet',regn:'🌧️ Regn'}[WX.sky]}
+function wxText(long){
+  var c=Math.abs(WX.cur),t=wxSkyTxt()+' · vind '+WX.wind+' m/s · sikt '+WX.vis+' m';
+  if(level!==6)t+=' · '+(c<.05?'ingen strøm':'strøm '+c.toFixed(1).replace('.',',')+' knop '+(WX.cur>0?'→':'←'));
+  if(long){var w=[];if(WX.vis<=6)w.push('dårlig sikt, fisken ser deg sent');else if(WX.vis>=25)w.push('krystallklart vann');if(WX.wind>=9)w.push('krapp sjø i overflaten');if(c>=.6)w.push('merkbar strøm');if(w.length)t+=' – '+w.join(', ')}
+  return t;
+}
+function visPx(){return WX.vis*M}
+function wxCurPx(){return level===6?0:WX.cur*.514*M}
 function buildWorld(){
   kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
   if(level===7){
@@ -988,7 +1012,7 @@ var S=(function(){
     uwFilter.frequency.setTargetAtTime(uw?(inf.state==='blackout'?260:850):9000,t,.12);
     musFilter.frequency.setTargetAtTime(uw?2600:7000,t,.3);
     ambUW.g.gain.setTargetAtTime(play&&uw?.22:0,t,.4);
-    ambWave.g.gain.setTargetAtTime(play&&!uw?(.05+.05*Math.sin(t*.7)*Math.sin(t*.31)+.03):0,t,.5);
+    ambWave.g.gain.setTargetAtTime(play&&!uw?(.05+.05*Math.sin(t*.7)*Math.sin(t*.31)+.03)*(.6+(inf.wind||3)/8):0,t,.5);
     var cmag=Math.min(1,Math.abs(inf.cur||0)/210);
     ambCur.g.gain.setTargetAtTime(play&&inf.level===6?cmag*(uw?.5:.25):0,t,.5);ambCur.f.frequency.setTargetAtTime(300+500*cmag,t,.5);
     ambShrimp.g.gain.setTargetAtTime(play&&uw&&(inf.level===4||inf.level===5)?(inf.level===5?.006:.012):0,t,.4);
@@ -1828,7 +1852,11 @@ function holdPress(){
   var side=diver.x<sh.x?-1:1;holding={x:sh.x+side*(sh.hw+18),y:diver.y,sh:sh};diver.vx=diver.vy=0;S.tick();
 }
 function updateCurrent(dt){
-  if(level!==6)return;
+  if(level!==6){
+    var cp=wxCurPx();wxDrift+=cp*dt;
+    if(state==='play'&&cp&&!lying&&!sledRide&&!(carry&&carry.mount)){var df=diver.y<16?1:Math.max(.35,1-diver.y/(M*30));diver.x=clamp(diver.x+cp*df*dt,60,W-60)}
+    return;
+  }
   curDrift+=tideC()*CMAX*.9*dt;
   if(state!=='play')return;
   if(holding){
@@ -1913,7 +1941,7 @@ function renderTrophies(){
 }
 function saveRun(){
   if(state!=='play'&&state!=='intro')return;
-  var sv={v:1,level:level,night:night,timeLeft:timeLeft,score:score,peak:peak,counts:counts,medKg:medKg,medBig:medBig,foodB:foodB,fishKr:fishKr,fishPts:fishPts,
+  var sv={v:1,level:level,night:night,timeLeft:timeLeft,score:score,peak:peak,counts:counts,medKg:medKg,medBig:medBig,foodB:foodB,wx:WX,fishKr:fishKr,fishPts:fishPts,
     catches:catches.map(function(c){return{kind:c.f.kind,cm:c.f.cm,pts:c.pts,note:c.note}})};
   try{localStorage.setItem('ettpust-run',JSON.stringify(sv))}catch(_){}
 }
@@ -1921,7 +1949,7 @@ function loadRun(){try{var sv=JSON.parse(localStorage.getItem('ettpust-run')||'n
 function clearRun(){try{localStorage.removeItem('ettpust-run')}catch(_){}}
 function resumeRun(){
   var sv=loadRun();if(!sv)return;
-  resuming=true;start(sv.level,sv.night);resuming=false;foodB=sv.foodB||0;
+  resuming=true;if(sv.wx)WX=sv.wx;else rollWx();start(sv.level,sv.night);resuming=false;foodB=sv.foodB||0;
   timeLeft=sv.timeLeft;score=sv.score||0;peak=sv.peak||0;counts=sv.counts||{};medKg=sv.medKg||0;medBig=!!sv.medBig;fishKr=sv.fishKr||0;fishPts=sv.fishPts||0;
   catches=(sv.catches||[]).map(function(c){var f=makeFish(c.kind,0,0);f.cm=c.cm;f.px=c.cm*(c.kind==='kveite'?.9:SP[c.kind].hp?.8:1.1);f.dead=true;return{f:f,pts:c.pts,note:c.note}});
   if((counts.kveite||0)>0&&hal){var hi=fish.indexOf(hal);if(hi>=0)fish.splice(hi,1);hal=null}
@@ -2183,7 +2211,7 @@ function update(dt){
     }else if(!under){contrT=.8;contrTold=false}
     if(under){diveT+=dt;maxD=Math.max(maxD,diver.y/M);air-=100/cap()*(1+.8*FIN[G.fin].a*effort*effort+(.54+.36*th)*load*effort+.5*boost)*(1-RELAX[G.relax].r*(1-Math.min(1,effort*3)))*dt}
     else{
-      air=Math.min(100,air+recRate*dt*(tClock-lastHaul<1.6?.25:1));
+      air=Math.min(100,air+recRate*dt*(tClock-lastHaul<1.6?.25:1)*(1-clamp((WX.wind-6)/16,0,.35)));
       if(carry&&carry.mode==='hang'&&Math.abs(diver.x-buoy.x)<(G.buoy?220:110)){var cf=carry;carry=null;land(cf)}
       if(strung.length){var sl=strung;strung=[];for(var si3=0;si3<sl.length;si3++)land(sl[si3]);if(state==='play')toast(sl.length>1?sl.length+' fisk fra stringeren er hengt på bøya':'Fisken fra stringeren er hengt på bøya','good')}
       compWarn=false;
@@ -2278,7 +2306,7 @@ function update(dt){
     if(f.hooked)continue;
     if(f.kind==='dentice'&&state==='play'&&under&&d<330&&f.fleeT<=0){var dpa=clamp(((1-air/100)-.45)/.35,0,1);if(!(f.cur&&dpa>.3)){f.fleeT=rnd(.5,.9);f.cur=false}}
     var mov=!!diver.mov,nf=night?(lit(f.x,f.y)?.4:.55):1,fac=nf*(mov?(f.cur?1.5:(level===2||level===4?.95:.55)+1.1*diver.spd)*(SUIT[G.suit].sneak||1)*(MASK[G.mask].sneak||1):(diver.gentle?.32:.2));
-    if(state==='play'&&diver.y>12&&!f.stage&&!f.hide&&d<s.alert*fac){f.fleeT=Math.max(f.fleeT,rnd(1.2,2.2));f.cur=false}
+    if(state==='play'&&diver.y>12&&!f.stage&&!f.hide&&d<s.alert*fac*clamp(WX.vis/12,.6,1.25)){f.fleeT=Math.max(f.fleeT,rnd(1.2,2.2));f.cur=false}
     if(f.hole){
       var hl=f.curious&&state==='play'&&stillT>2&&diver.y>bottom(diver.x)-70&&d<650&&f.fleeT<=0,gx2,gy2,hv2;
       if(f.fleeT>0)f.fleeT-=dt;
@@ -2744,6 +2772,8 @@ function render(){
   var sg=ctx.createLinearGradient(0,-120,0,0);
   if(night){sg.addColorStop(0,'#040914');sg.addColorStop(1,'#16263d')}else if(level===5){sg.addColorStop(0,'#5fb0e0');sg.addColorStop(1,'#d8eef7')}else{sg.addColorStop(0,'#8fb1b8');sg.addColorStop(1,'#d5e2dc')}
   ctx.fillStyle=sg;ctx.fillRect(x0,-800,vw+80,800);
+  if(!night&&WX.sky!=='sol'){ctx.fillStyle=WX.sky==='regn'?'rgba(70,80,88,.55)':'rgba(140,150,156,.4)';ctx.fillRect(x0,-800,vw+80,800);
+    ctx.fillStyle=WX.sky==='regn'?'rgba(90,98,106,.85)':'rgba(220,226,230,.8)';for(var cl0=Math.floor(x0/220)*220;cl0<x1+220;cl0+=220){var cy0=-150-((cl0*31)%60);ctx.beginPath();ctx.ellipse(cl0+((tClock*4)%220),cy0,90,22,0,0,6.283);ctx.ellipse(cl0+50+((tClock*4)%220),cy0-14,60,20,0,0,6.283);ctx.fill()}}
   if(night){
     ctx.fillStyle='rgba(235,240,255,.85)';
     for(var st=Math.floor(x0/37)*37;st<x1;st+=37){var sy2=-30-((st*7919)%170);ctx.fillRect(st+((st*31)%23),sy2,1.4,1.4)}
@@ -2786,14 +2816,14 @@ function render(){
   ctx.fillStyle=wg;ctx.fillRect(x0,0,vw+80,MAXB+400);
 
   /* lysstråler */
-  ctx.fillStyle=night?'rgba(0,0,0,0)':'rgba(230,242,238,.045)';
+  ctx.fillStyle=night||WX.sky!=='sol'?'rgba(230,242,238,'+(night?0:WX.sky==='skyet'?.015:.006)+')':'rgba(230,242,238,.045)';
   for(var r=Math.floor(x0/170)*170;r<x1;r+=170){
     var sw=reduce?0:Math.sin(tClock*.4+r)*14;
     ctx.beginPath();ctx.moveTo(r+sw,0);ctx.lineTo(r+50+sw,0);ctx.lineTo(r-60,level===5?1100:420);ctx.lineTo(r-150,level===5?1100:420);ctx.fill();
   }
   /* partikler */
   ctx.fillStyle='rgba(230,242,238,.35)';
-  for(var i=0;i<motes.length;i++){var m=motes[i],mxx=m.x;if(level===6){mxx=((m.x+curDrift*(.6+.4*m.r/1.8))%W+W)%W}if(mxx>x0&&mxx<x1)ell(mxx+Math.sin(tClock*.5+m.ph)*6,m.y+Math.cos(tClock*.4+m.ph)*4,m.r,m.r)}
+  for(var i=0;i<motes.length;i++){var m=motes[i],mxx=m.x;if(level===6){mxx=((m.x+curDrift*(.6+.4*m.r/1.8))%W+W)%W}else if(WX.cur){mxx=((m.x+wxDrift*(.6+.4*m.r/1.8))%W+W)%W}if(mxx>x0&&mxx<x1)ell(mxx+Math.sin(tClock*.5+m.ph)*6,m.y+Math.cos(tClock*.4+m.ph)*4,m.r,m.r)}
 
   /* tare bak */
   for(i=0;i<kelp.length;i++){var kp=kelp[i];if(kp.x<x0||kp.x>x1||!kp.c)continue;drawKelp(kp,level===5?'#2c5a35':'#3d4a22',.75)}
@@ -2864,7 +2894,7 @@ function render(){
   for(i=0;i<kelp.length;i++){kp=kelp[i];if(kp.x<x0||kp.x>x1||kp.c)continue;drawKelp(kp,level===5?'#4f8a48':'#8a6f24',1)}
 
   /* bøye, makker og line */
-  var bob=reduce?0:Math.sin(tClock*1.6)*2;
+  var bob=reduce?0:Math.sin(tClock*1.6)*(1.5+WX.wind*.4);
   if(state==='intro'&&introT<2.9)ctx.globalAlpha=0;
   ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(buoy.x,2+bob);
   ctx.quadraticCurveTo(buoy.x,diver.y*.6,diver.x-10,diver.y);if(!hooked)ctx.stroke();
@@ -2953,7 +2983,7 @@ function render(){
     ctx.font='600 13px Figtree, system-ui, sans-serif';ctx.textAlign='center';
     for(i=0;i<fish.length;i++){
       f=fish[i];var d=Math.hypot(f.x-diver.x,f.y-diver.y);
-      var SEE=MASK[G.mask].see;if(level===7&&f.kind==='pale')continue;if(d<(f.stage>=2?520:SEE)&&lit(f.x,f.y)){
+      var SEE=Math.min(MASK[G.mask].see,visPx()*.7+60);if(level===7&&f.kind==='pale')continue;if(d<(f.stage>=2?520:SEE)&&lit(f.x,f.y)){
         ctx.globalAlpha=f.stage>=2?1:clamp((SEE-d)/60,0,1);
         var txt=f.stage>=2?['','','Kveite – sett skudd nr. 2','Kveite – opp og pust først','Kveite – svøm bort og ta tak'][f.stage]:f.s.name+(f.s.fredet?'':' '+sizeTxt(f));
         ctx.lineWidth=3;ctx.strokeStyle='rgba(6,34,43,.85)';ctx.strokeText(txt,f.x,f.y-f.px*.25-9);
@@ -2964,10 +2994,19 @@ function render(){
   }
   /* overflate */
   ctx.strokeStyle='rgba(230,242,238,.7)';ctx.lineWidth=2;ctx.beginPath();
-  for(var sx=Math.floor(x0/18)*18;sx<=x1+18;sx+=18){var sy=reduce?0:Math.sin(sx/40+tClock*1.5)*2;if(sx<=x0)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy)}
+  for(var sx=Math.floor(x0/18)*18;sx<=x1+18;sx+=18){var sy=reduce?0:Math.sin(sx/40+tClock*1.5)*(1.5+WX.wind*.45)+(WX.wind>6?Math.sin(sx/13+tClock*2.7)*(WX.wind-6)*.35:0);if(sx<=x0)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy)}
   ctx.stroke();
+  if(WX.wind>=8&&!reduce){ctx.fillStyle='rgba(255,255,255,.75)';for(var wc=Math.floor(x0/90)*90;wc<x1;wc+=90){var wph=(tClock*.8+wc*.013)%3;if(wph<1)ctx.fillRect(wc+((wc*7)%40),-2+Math.sin(wc/40+tClock*1.5)*3,10*(1-wph)+3,2)}}
+  if(WX.sky==='regn'&&!reduce){ctx.strokeStyle='rgba(220,230,236,.45)';ctx.lineWidth=1;ctx.beginPath();for(var rn=0;rn<70;rn++){var rx2=x0+((rn*97+tClock*40*(rn%3+1))%(vw+80)),ry2=-260+((tClock*520+rn*53)%262);if(ry2<0){ctx.moveTo(rx2,ry2);ctx.lineTo(rx2-3-WX.wind*.4,ry2+10)}}ctx.stroke()}
   ctx.restore();
   drawNight();
+  /* sikt: grumset vann lukker seg rundt dykkeren */
+  if((state==='play'||state==='blackout'||state==='intro')&&WX.vis<26&&!(level===7&&diver.y>M*2)){
+    var syS=(0-cam.y),dsx=diver.x-cam.x,dsy=diver.y-cam.y,vr=visPx()*.55,va=clamp((26-WX.vis)/20,0,1)*(night?.5:.82);
+    var mg2=ctx.createRadialGradient(dsx,dsy,vr*.35,dsx,dsy,vr*1.25),mc=level===4||level===5?'8,40,70':'10,44,46';
+    mg2.addColorStop(0,'rgba('+mc+',0)');mg2.addColorStop(1,'rgba('+mc+','+va+')');
+    ctx.save();ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);ctx.fillStyle=mg2;ctx.fillRect(0,Math.max(0,syS+3),vw,vh);ctx.restore();
+  }
   /* Crabmountain: palestimen gjør vannet svart – du ser bare nært og nær bunnen */
   if(level===7&&CRAB.length&&(state==='play'||state==='blackout'||state==='intro'))drawCrabDark();
   /* maskens synsfelt */
@@ -3033,6 +3072,7 @@ function hud(){
   $('score').textContent=fmt(score);
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
+  qh+='<span class="wx">'+wxSkyTxt()+' · '+WX.vis+' m sikt · '+WX.wind+' m/s'+(level!==6&&Math.abs(WX.cur)>=.05?' · strøm '+Math.abs(WX.cur).toFixed(1).replace('.',',')+(WX.cur>0?' →':' ←'):'')+'</span>';
   if(level===5)qh='<span'+(medKg>=5?' class="full"':'')+'>Dagskvote '+medKg.toFixed(1).replace('.',',')+'/5 kg</span>'+qh;
   $('quota').innerHTML=qh;
   $('quit').hidden=state!=='play';
@@ -3088,12 +3128,14 @@ function start(lv,nt){
   night=!!nt&&G.lamp>0;if(night)level=1;mor=[];
   RANGE=GUN[G.gun].r*BAND[G.band].r*TIP[G.tip].r;
   if(!resuming){foodB=0;if(G.food>0){G.food--;saveG();foodB=8;setTimeout(function(){if(state==='play')toast('Godt uthvilt og mett: +8 sekunder pust i dag','good')},6500)}}
+  if(!resuming)rollWx();
   clearRun();S.init();buildWorld();reset();timeLeft=ROUND+BOAT[G.boat].t;state='intro';introT=0;introS=0;lastHud='';S.motor(1);
   $('menu').hidden=true;$('over').hidden=true;
   S.music(true);
 }
 function beginPlay(){
   state='play';lastHud='';
+  setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
   if(level===6){toast('Saltstraumen: stillstrømmen kommer om rundt 20 sekunder og varer ca. 30 sekunder. Da kan du komme deg ned under broa der storfisken står');return}
@@ -3262,7 +3304,7 @@ var last=0;
 function frame(t){
   var dt=Math.min(.05,(t-last)/1000||0);last=t;
   update(dt);render();hud();
-  S.update(dt,{state:state,under:under&&(state==='play'||state==='blackout'),level:level,night:night,cur:level===6?curAt(diver.x,diver.y):0,sharks:sharks.length});
+  S.update(dt,{wind:WX.wind,state:state,under:under&&(state==='play'||state==='blackout'),level:level,night:night,cur:level===6?curAt(diver.x,diver.y):0,sharks:sharks.length});
   if(!$('shop').hidden)drawShopScene(dt);
   requestAnimationFrame(frame);
 }
