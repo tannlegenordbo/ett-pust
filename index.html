@@ -72,6 +72,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -260,7 +262,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11d · lever fisken i båten</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11e · snorkling og duck dive</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -628,7 +630,7 @@ function reset(){
     for(var gj=0;gj<5;gj++){var bsf=makeFish('sei',bsx+rnd(-50,50),bsc.y+rnd(-25,25),bsc);bsf.cm=Math.round(rnd(100,122));bsf.px=bsf.cm*1.1;fish.push(bsf)}
     var kx=rnd(1450,1950);spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(150,200));hal.px=hal.cm*.9;hal.x=kx;hal.y=bottom(kx)-(hal.px*.1+2);
   }
-  towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];pend9=[];pendT=0;quotaWait=false;BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
+  duck=null;diveCd=0;towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];pend9=[];pendT=0;quotaWait=false;BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
   if(level===7){
     for(var g7=0;g7<3;g7++){var gx7=CRAB[(crabAct+g7)%CRAB.length].c+rnd(-260,260);gx7=clamp(gx7,600,W-150);var gf7=makeFish('torsk',gx7,bottom(gx7)-28);gf7.cm=Math.round(rnd(110,138));gf7.px=gf7.cm*1.1;gf7.big=1;fish.push(gf7)}
     crabF=[];crabEmit=0;
@@ -1869,7 +1871,7 @@ function toast(msg,cls,dur){
   clearTimeout(toastT);toastT=setTimeout(function(){t.className=cls||''},dur||2200);
 }
 
-var lastHaul=-9,haulN=0,foodB=0,strung=[],maxD=0,compWarn=false,resuming=false;
+var duck=null,diveCd=0,lastHaul=-9,haulN=0,foodB=0,strung=[],maxD=0,compWarn=false,resuming=false;
 function cap(){return (26+(level===5?SUIT[G.suit].bw:SUIT[G.suit].b)+LUNG[G.lung].b+MASK[G.mask].b+foodB)*(level===9?1-.4*coldK:1)}
 var WARM=[0,.35,.7,1.05,.12];
 function FREEV(){return G.tool?.5:1.2}
@@ -2360,7 +2362,18 @@ function update(dt){
     if(strung.length&&!beltOff)load=Math.max(load,clamp((strKg()-1.5)/8,0,.6));
     if(load>.8)load=.8;if(beltOff)load=0;
     var th=carry&&!carry.dead&&carry.mode==='hang'?1:0;
+    var canFlat=diver.y<16&&!towing&&!sledRide&&!haul&&!holding&&!(carry&&carry.mount)&&!(level===4&&hooked&&hooked.hp<=0);
+    if(!duck&&canFlat&&inp.y>.4&&inp.m>.3&&!carry&&diveCd<=0){duck={t:0,dir:Math.cos(diver.ang)>=0?1:-1};S.splash()}
+    if(diveCd>0)diveCd-=dt;
+    if(duck){
+      duck.t+=dt;var dk=clamp(duck.t/.75,0,1),de=dk<.5?2*dk*dk:1-Math.pow(-2*dk+2,2)/2;
+      diver.ang=duck.dir>0?de*1.5:Math.PI-de*1.5;diver.av=0;
+      diver.y=4+de*34;diver.x+=duck.dir*(55-40*de)*dt;diver.vx=0;diver.vy=0;
+      inp={x:0,y:0,m:0};sIn.x=sIn.y=0;
+      if(duck.t>=.75){duck=null;diver.vy=140;diver.vx=0;diveCd=.6;for(var db=0;db<8;db++)bubbles.push({x:diver.x+rnd(-12,12),y:rnd(8,30),r:rnd(1.5,4),v:rnd(40,80),ph:rnd(0,6)})}
+    }
     var gz=clamp((inp.m-.1)/.25,0,1),mx=(lying||holding)?0:inp.x*gz,my=(lying||holding)?0:inp.y*gz;
+    if(canFlat&&!duck&&my<0)my=0;
     diver.vx+=(mx*MAXS*(1-.3*load)-diver.vx)*Math.min(1,dt*2.9);
     diver.vy+=(my*MAXS*(my<0?1-(.35+.25*th)*load:EQ[G.eq].v)-diver.vy)*Math.min(1,dt*2.9);
     if(load>0&&diver.y>16){diver.vy+=load*(60+70*th)*(1+(.5+.5*th)*Math.sin(tClock*(6+5*th)))*dt;if(th)diver.vx+=load*170*Math.sin(tClock*8.3)*dt}
@@ -2390,7 +2403,8 @@ function update(dt){
       var ta=Math.atan2(inp.y,inp.x),da=Math.atan2(Math.sin(ta-diver.ang),Math.cos(ta-diver.ang));
       tav=clamp(da*(lying?3:1.7+2.3*inp.m),-2.6,2.6);
     }
-    diver.av=(diver.av||0)+(tav-(diver.av||0))*Math.min(1,dt*5);diver.ang+=diver.av*dt;
+    if(!duck){diver.av=(diver.av||0)+(tav-(diver.av||0))*Math.min(1,dt*5);diver.ang+=diver.av*dt}
+    if(!duck&&canFlat&&diver.y<12){var fd=Math.abs(inp.x)>.12?(inp.x>0?1:-1):(Math.cos(diver.ang)>=0?1:-1),ft=fd>0?0:Math.PI,fa=Math.atan2(Math.sin(ft-diver.ang),Math.cos(ft-diver.ang));diver.ang+=fa*Math.min(1,dt*7);diver.av=0;if(diver.y>5)diver.y+=(4-diver.y)*Math.min(1,dt*3)}
     if(!hooked){if(!sledRide)buoy.x+=(diver.x-30-buoy.x)*Math.min(1,dt*1.2)}
     else updateHooked(dt);
     updateSharks(dt);
@@ -3253,7 +3267,7 @@ function render(){
     var hauling=!under&&state==='play'&&tClock-lastHaul<1.6&&(haul||(level===4&&hooked&&hooked.hp<=0));
     if(hauling)drawHauler();
     else if(carry&&carry.mount)drawRider(carry,'near');
-    else drawDiver(diver.x,diver.y,bang,diver.kick,diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);
+    else drawDiver(diver.x,diver.y,bang,duck?tClock*16:diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);
     }
     if(cA>0)ctx.restore();
   }
