@@ -70,6 +70,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -258,7 +260,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11c · dramatisk bjørneangrep</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11d · lever fisken i båten</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -369,6 +371,7 @@ td.n,th.n{text-align:right}
       <li>Iskaldt vann, rundt 6 grader. For hvert dykk blir du kaldere, og kulden spiser av pusten din. Tykk drakt hjelper mye, og i overflaten blir du varm igjen sakte.</li>
       <li>Laksen trekker i stim langs kysten mot elva. Ute i sjøen er det lov å skyte laks (minst 41 cm), men i ferskvannet ved elvemunningen er det ikke lov å skyte noe. Kongelaksen er fredet.</li>
       <li>Lingcod ligger blant steinene i tareskogen og må være minst 89 cm. Stillehavskveita ligger på sanden lenger ute, og svart uer står i stim rundt steinene.</li>
+      <li><b>Lever fisken i båten.</b> Fisk du henger på flåten, er ikke trygg. Svøm ut til båten som ligger for anker lenger ute, og kom opp ved den for å levere. Ligger det fisk på flåten en stund, får bjørnen teften, svømmer ut og river den av flåten.</li>
       <li><b>Bjørnen</b> går langs land hele tiden og følger etter deg. Blir du liggende i overflaten for å puste, brøler den og kaster seg ut i vannet etter deg. Dykk eller svøm unna – den venter en stund i vannet før den går i land igjen. Får den tak i deg, biter den og drar deg på land, og runden er over.</li>
     </ul>
     <h2>Kjempekveita</h2>
@@ -469,7 +472,7 @@ function crabDepth(x){
 }
 function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
 var nowT=-9,nzShelter='',ROPE=720,callDone=false,PIN={x:2300,top:22},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
-var bearSplash=[],coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
+var BOAT9=2650,pend9=[],pendT=0,quotaWait=false,bearSplash=[],coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
 function bottom(x){
   if(level===9)return Math.min(MAXB,M*(1.2+5*sst(x/420)+7*sst((x-500)/900)+12*sst((x-2000)/700)+(x>450&&x<2000?1.4*Math.sin(x/47)+.9*Math.sin(x/19):.3*Math.sin(x/61))));
   if(level===8){var u=(x-PIN.x)/200,u2=(x-PIN.x+820)/210,e=Math.exp(-u*u),rg=e>.05?(1.1*Math.sin(x/17)+.8*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*(PIN.top-.4),M*(44-(44-PIN.top+.4)*e-11*Math.exp(-u2*u2)+rg)))}
@@ -625,7 +628,7 @@ function reset(){
     for(var gj=0;gj<5;gj++){var bsf=makeFish('sei',bsx+rnd(-50,50),bsc.y+rnd(-25,25),bsc);bsf.cm=Math.round(rnd(100,122));bsf.px=bsf.cm*1.1;fish.push(bsf)}
     var kx=rnd(1450,1950);spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(150,200));hal.px=hal.cm*.9;hal.x=kx;hal.y=bottom(kx)-(hal.px*.1+2);
   }
-  towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
+  towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];pend9=[];pendT=0;quotaWait=false;BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
   if(level===7){
     for(var g7=0;g7<3;g7++){var gx7=CRAB[(crabAct+g7)%CRAB.length].c+rnd(-260,260);gx7=clamp(gx7,600,W-150);var gf7=makeFish('torsk',gx7,bottom(gx7)-28);gf7.cm=Math.round(rnd(110,138));gf7.px=gf7.cm*1.1;gf7.big=1;fish.push(gf7)}
     crabF=[];crabEmit=0;
@@ -741,14 +744,33 @@ function wxText(long){
 function visPx(){return WX.vis*M}
 function wxCurPx(){return level===6?0:WX.cur*.514*M}
 /* ---------- Alaska: bjørnen langs land ---------- */
+function deliver9(){
+  if(!pend9.length)return;var n=pend9.length;pend9=[];S.chime();toast(n>1?n+' fisk er levert i båten – trygt fra bjørnen':'Fisken er levert i båten – trygt fra bjørnen','good',3000);
+  if(quotaWait){quotaWait=false;finish('kvote')}
+}
+function steal9(){
+  var n=0;for(var i=0;i<pend9.length;i++){var c=pend9[i];if(c.pts<=0)continue;score-=c.pts;fishPts-=c.pts;fishKr-=(c.kr||0);counts[c.f.kind]=Math.max(0,(counts[c.f.kind]||0)-1);c.pts=0;c.note='tatt av bjørnen';c.gone=true;n++}
+  pend9=[];quotaWait=false;S.roar();toast(n>1?'Bjørnen rev '+n+' fisk av flåten!':'Bjørnen rev fisken av flåten!','bad',4000);try{if(navigator.vibrate)navigator.vibrate([150,60,150])}catch(_){}
+}
 function updateBear(dt){
   var b=BEAR;b.t+=dt;
+  if(state==='play'&&!under&&pend9.length&&Math.abs(diver.x-BOAT9)<160)deliver9();
+  if(pend9.length)pendT+=dt;
   if(!under)surfT+=dt;else surfT=0;
   var tx=diver.x,dx=tx-b.x;
   if(Math.abs(dx)>2)b.dir=dx>0?1:-1;
+  if(b.mode==='raid'){
+    var rx=buoy.x-b.x;if(Math.abs(rx)>2)b.dir=rx>0?1:-1;
+    b.z=Math.min(1,b.z+dt/4.5);b.x+=clamp(rx,-100*dt,100*dt);
+    if(!pend9.length){b.mode='back'}
+    else if(!under&&surfT>.6){b.mode='charge'}
+    else if(b.z>=1&&Math.abs(rx)<45){steal9();b.mode='back'}
+    return;
+  }
   if(b.mode==='patrol'){
     b.z=Math.max(0,b.z-dt/3);
     b.x+=clamp(dx,-115*dt,115*dt);
+    if(pend9.length&&under&&pendT>5&&b.z<.05&&Math.abs(buoy.x-b.x)<1100){b.mode='raid';S.roar();toast('Bjørnen har fått teften av fisken på flåten og svømmer ut!','bad',3500)}
     if(!under&&surfT>1.5&&b.t>7&&Math.abs(dx)<900&&b.z<.05){b.mode='charge';S.roar();toast('Bjørnen brøler og kaster seg ut i vannet! Dykk eller svøm unna','bad',3500);try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(_){}}
   }else if(b.mode==='charge'){
     b.z=Math.min(1,b.z+dt/4.2);b.x+=clamp(dx,-105*dt,105*dt);
@@ -2288,13 +2310,15 @@ function land(f){
   var pts=Math.round((s.treff+s.k*f.cm*f.cm*f.cm)*landMul),kr=Math.round(krOf(fkg)*landMul*(G.cam&&f.head?1.4:1));
   fishPts+=pts;fishKr+=kr;
   var c0=Math.floor(cap());
-  counts[f.kind]=n+1;score+=pts;catches.push({f:f,pts:pts,note:''});
+  counts[f.kind]=n+1;score+=pts;catches.push({f:f,pts:pts,note:'',kr:kr});
+  if(level===9&&!(Math.abs(diver.x-BOAT9)<160&&!under)){pend9.push(catches[catches.length-1]);pendT=0}
   var newT=trophyCheck(f);
   peak=Math.max(peak,score);
   var gain=Math.floor(cap())-c0;
   toast((newT?'Ny trofé! ':'')+(G.cam&&f.head?'Hodeskudd på video! ':'')+s.name+' '+sizeTxt(f)+'  +'+fmt(kr)+' kr'+(gain>0?'  ·  +'+gain+' s pust':''),'good');
   var full=true,ql=night?NQ:LQ[level];for(var qk=0;qk<ql.length;qk++)if((counts[ql[qk]]||0)<SP[ql[qk]].quota)full=false;
   if(level===5&&medKg>=5){full=true;toast('Dagskvoten på 5 kg er nådd. '+s.name+' '+sizeTxt(f)+'  +'+fmt(kr)+' kr','good')}
+  if(full&&level===9&&pend9.length){quotaWait=true;toast('Kvoten er full! Svøm og lever fisken i båten før bjørnen tar den','good',4000);return}
   if(full)finish('kvote');
 }
 function spawnOne(kind){
@@ -3141,6 +3165,7 @@ function render(){
   for(i=0;i<kelp.length;i++){kp=kelp[i];if(kp.x<x0||kp.x>x1||kp.c)continue;drawKelp(kp,level===5?'#4f8a48':'#8a6f24',1)}
 
   drawBear();
+  if(level===9&&BOAT9>x0-200&&BOAT9<x1+200){var bb9=reduce?0:Math.sin(tClock*1.3)*2;drawBoatAt(BOAT9+60,-4+bb9);ctx.strokeStyle='rgba(200,200,190,.6)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(BOAT9+150,0);ctx.quadraticCurveTo(BOAT9+190,M*6,BOAT9+230,bottom(BOAT9+230));ctx.stroke();ctx.fillStyle='#e6f2ee';ctx.font='700 12px Figtree, sans-serif';ctx.textAlign='center';if(pend9.length)ctx.fillText('LEVER FISKEN HER',BOAT9+60,-58+bb9)}
   /* bøye, makker og line */
   var bob=reduce?0:Math.sin(tClock*1.6)*(1.5+WX.wind*.4);
   if(state==='intro'&&introT<2.9)ctx.globalAlpha=0;
@@ -3158,15 +3183,16 @@ function render(){
     if(towing){ctx.strokeStyle='rgba(240,236,214,.9)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(tbx-125,-6+bob);ctx.quadraticCurveTo((tbx+diver.x)/2,14,diver.x+28,8);ctx.stroke();
       ctx.strokeStyle='rgba(230,242,238,.7)';ctx.lineWidth=2;for(var tw=0;tw<4;tw++){ctx.beginPath();ctx.moveTo(diver.x-30-tw*22,6+Math.sin(tClock*9+tw)*2);ctx.lineTo(diver.x-48-tw*22,4);ctx.stroke()}}
   }
-  if(catches.length){
+  var shown=level===9?pend9.map(function(c){return c}):catches;
+  if(shown.length){
     var lx=buoy.x+26;
-    for(i=0;i<catches.length;i++){
-      var cf2=catches[i].f;cf2.dead=true;cf2.dir=-1;cf2.stage=0;cf2.hitL=null;
+    for(i=0;i<shown.length;i++){
+      var cf2=shown[i].f;cf2.dead=true;cf2.dir=-1;cf2.stage=0;cf2.hitL=null;
       cf2.rot=reduce?0:Math.sin(tClock*1.4+i*1.7)*.07;
       cf2.x=lx+cf2.px*.5;cf2.y=9+(i%2?4:0)+(reduce?0:Math.sin(tClock*1.6+i)*1.5);lx+=cf2.px*.8+6;
     }
     ctx.strokeStyle='rgba(255,210,63,.75)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(buoy.x+12,2+bob);ctx.lineTo(lx,9);ctx.stroke();
-    for(i=0;i<catches.length;i++)drawFish(catches[i].f);
+    for(i=0;i<shown.length;i++)drawFish(shown[i].f);
   }
   /* siktelinje og harpun */
   if(state==='play'&&diver.y>16&&!carry&&!shotUsed&&!noGun&&!(G.gun===0&&slingOut)){
@@ -3331,7 +3357,7 @@ function bigCountUpd(){
 function hud(){
   bigCountUpd();
   var nearB=state==='play'&&!sledRide&&(lying||(!carry&&diver.y>bottom(diver.x)-75));
-  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),nzShelter,Math.round(coldK*50),towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
+  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),pend9.length,nzShelter,Math.round(coldK*50),towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
   if(key===lastHud)return;lastHud=key;
   $('airBar').style.width=air.toFixed(0)+'%';
   var low=air<25&&state==='play';
@@ -3343,6 +3369,7 @@ function hud(){
   $('score').textContent=fmt(score);
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
+  if(level===9&&state==='play'&&pend9.length)qh+='<span class="wx" style="color:#ffd23f">🐟 '+pend9.length+' på flåten – lever i båten →</span>';
   if(level===9&&state==='play')qh+='<span class="wx">'+(coldK>.6?'🥶':coldK>.3?'❄️':'🌡️')+' Kulde '+Math.round(coldK*100)+' % · 6 °C</span>';
   if(level===8&&under&&state==='play')qh+='<span class="wx">'+(nzShelter==='le'?'🪨 I le bak pinnakkelen':nzShelter==='tare'?'✊ Holder deg fast':'🌊 Strømmen tar deg')+'</span>';
   qh+='<span class="wx">'+wxSkyTxt()+' · '+WX.vis+' m sikt · '+WX.wind+' m/s'+(level!==6&&Math.abs(WX.cur)>=.05?' · strøm '+Math.abs(WX.cur).toFixed(1).replace('.',',')+(WX.cur>0?' →':' ←'):'')+'</span>';
@@ -3415,7 +3442,7 @@ function beginPlay(){
   state='play';lastHud='';
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk','',7000);return}
+  if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk. Lever fisken i båten lenger ute, ellers tar bjørnen den fra flåten','',8000);return}
   if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og teller ned til båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe','',7000);return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
   if(level===6){toast('Saltstraumen: stillstrømmen kommer om rundt 20 sekunder og varer ca. 30 sekunder. Da kan du komme deg ned under broa der storfisken står');return}
