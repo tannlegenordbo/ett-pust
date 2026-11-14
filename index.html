@@ -58,6 +58,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -242,7 +244,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11d · sterkere strøm i New Zealand</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11e · dype pinnakler og båtmann med ekkolodd</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -343,7 +345,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>New Zealand – slepedykk</h2>
     <ul>
-      <li>Båten sleper deg i et tau over åpent hav. Et sted under deg står en pinnakkel som stiger fra nesten 40 meter opp til rundt 9 meter. Se ned, og trykk SLIPP TAUET i riktig øyeblikk. Strømmen er sterk, 1,6–2,6 knop, gjennom hele vannsøylen, så du må slippe godt før grunna – ellers driver du forbi.</li>
+      <li>Båten sleper deg i et 12 meter langt tau over åpent hav. Et sted under deg står en pinnakkel som stiger fra over 40 meter opp til 20–25 meter. Båtmannen følger med på ekkoloddet og roper «NÅ!» når båten er over grunna. Du henger bak båten, så du må selv beregne hvor lenge etter ropet du skal trykke SLIPP TAUET. Strømmen er sterk, 1,6–2,6 knop, gjennom hele vannsøylen og går samme vei som båten, så du driver videre mens du synker – slipper du for sent, havner du forbi.</li>
       <li>Du kan ikke ligge stille i vannmassene. Hold deg fast i taren på toppen (trykk LEGG DEG der det er tare), eller ligg i le på nedstrømssiden bak pinnakkelen. Kingfishen patruljerer i stim rundt toppen, og snapper står mellom steinene.</li>
       <li><b>Kingfish</b> som ikke får hodeskudd, stuper mot fjellet for å skjære av linen. Trykk HOLD! raskt for å stoppe den før den når steinene. Minstemål 75 cm.</li>
       <li>Når du kommer opp, trykker du HENT MEG, så kommer båten og tar deg på en ny runde. Hver runde koster litt tid.</li>
@@ -423,9 +425,9 @@ var SP={
   ricciola:{name:'Ricciola',min:0,treff:1000,quota:1,k:.011,len:[60,140],cruise:60,flee:240,alert:200,band:[10,28]},
   cernia:{name:'Cernia',fredet:1,len:[50,110],cruise:3,flee:60,alert:60,hug:1},
   breiflabb:{name:'Breiflabb',min:0,treff:1000,quota:1,k:.017,len:[80,150],cruise:0,flee:35,alert:22,bottom:1},
-  king:{name:'Kingfish',min:75,treff:1500,quota:2,k:.012,len:[60,150],cruise:55,flee:240,alert:170,band:[8,22]},
+  king:{name:'Kingfish',min:75,treff:1500,quota:2,k:.012,len:[60,150],cruise:55,flee:240,alert:170,band:[14,30]},
   snapper:{name:'Snapper',min:30,treff:1000,quota:3,k:.017,len:[25,75],cruise:20,flee:170,alert:120,hug:1},
-  maomao:{name:'Blåmaomao',min:0,treff:0,k:.015,len:[18,30],cruise:40,flee:200,alert:140,band:[3,12]},
+  maomao:{name:'Blåmaomao',min:0,treff:0,k:.015,len:[18,30],cruise:40,flee:200,alert:140,band:[12,26]},
   pale:{name:'Pale',min:45,treff:1000,k:.009,len:[16,28],cruise:45,flee:190,alert:150,band:[2,7.5]},
   orret:{name:'Sjøørret',fredet:1,len:[30,62],cruise:46,flee:205,alert:180,band:[.6,3]},
   hummer:{name:'Hummer',fredet:1,len:[22,32],cruise:3,flee:22,alert:28,bottom:1}
@@ -440,9 +442,9 @@ function crabDepth(x){
   return d+.35*Math.sin(x/23)+.25*Math.sin(x/9);
 }
 function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
-var nzShelter='',PIN={x:2300},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
+var nzShelter='',ROPE=720,callDone=false,PIN={x:2300,top:22},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
 function bottom(x){
-  if(level===8){var u=(x-PIN.x)/175,u2=(x-PIN.x-760)/200,e=Math.exp(-u*u),rg=e>.05?(1.2*Math.sin(x/17)+.9*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*8.8,M*(38-29.5*e-15*Math.exp(-u2*u2)+rg)))}
+  if(level===8){var u=(x-PIN.x)/200,u2=(x-PIN.x-820)/210,e=Math.exp(-u*u),rg=e>.05?(1.1*Math.sin(x/17)+.8*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*(PIN.top-.4),M*(44-(44-PIN.top+.4)*e-11*Math.exp(-u2*u2)+rg)))}
   if(level===7)return Math.min(MAXB,M*crabDepth(x));
   if(level===4)return 2100;
   if(level===6)return Math.min(MAXB,M*(2.5+9.5*sst(x/650)+12*sst((x-650)/450)-10*sst((x-2550)/350)-9.5*sst((x-3000)/300)+1.2*Math.sin(x/57)+.8*Math.sin(x/19)));
@@ -704,10 +706,10 @@ function wxText(long){
 function visPx(){return WX.vis*M}
 function wxCurPx(){return level===6?0:WX.cur*.514*M}
 function buildWorld(){
-  kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===8?2340:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
+  kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===8?2700:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
   if(level===8){
-    PIN.x=rnd(1900,2600);
-    for(var bq=0;bq<9;bq++){var bxq=PIN.x+rnd(-230,230);if(bottom(bxq)>M*22)continue;var brq=rnd(16,30);boul.push({x:bxq,r:brq,y:bottom(bxq)+brq*.45,c:bq%3});rocks.push({x:bxq+brq*.7,w:0,h:0,gap:true})}
+    PIN.x=rnd(2000,2650);PIN.top=Math.round(rnd(20,25)*10)/10;
+    for(var bq=0;bq<10;bq++){var bxq=PIN.x+rnd(-240,240);if(bottom(bxq)>M*(PIN.top+9))continue;var brq=rnd(16,30);boul.push({x:bxq,r:brq,y:bottom(bxq)+brq*.45,c:bq%3});rocks.push({x:bxq+brq*.7,w:0,h:0,gap:true})}
   }
   if(level===7){
     var cb=[[880,15,240],[1480,12.5,260],[2080,12,270],[2680,12.5,260],[3200,15,220]];
@@ -718,7 +720,7 @@ function buildWorld(){
   if(level===3)pipes=[{a:300,b:900,t:'10 m'},{a:1430,b:2180,t:'18 m'},{a:2730,b:3300,t:'25 m'}];
   for(var pi=0;pi<pipes.length;pi++)pipes[pi].y=bottom((pipes[pi].a+pipes[pi].b)/2)-22;
   for(var x=20;x<W;x+=rnd(14,34)){
-    var grow=level===8?(bottom(x)<M*17&&Math.random()<.5):level===7?(bottom(x)<M*7&&Math.random()<.3):level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
+    var grow=level===8?(bottom(x)<M*(PIN.top+3)&&Math.random()<.5):level===7?(bottom(x)<M*7&&Math.random()<.3):level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
     if(grow)kelp.push({x:x,h:level===8?rnd(30,80):level===6?rnd(40,110):level===5?rnd(26,60):level!==1?rnd(60,170):Math.max(40,Math.min(rnd(90,330),bottom(x)-45)),ph:rnd(0,6.28),w:rnd(5,10),c:Math.random()<.5});
   }
   shelters=[];
@@ -1318,7 +1320,7 @@ var TESTGEAR={
   5:{gun:3,fin:3,suit:4,wt:3,lung:5,sled:1,eq:2,relax:1,comp:1},
   6:{gun:4,fin:3,suit:3,wt:2,lung:4,tool:2,comp:1,tip:2},
   7:{gun:2,fin:3,suit:3,wt:2,lung:4,mask:2,tool:2,str:1,tip:2},
-  8:{gun:3,fin:3,suit:2,wt:1,lung:4,band:2,tip:2,comp:1,buoy:1,eq:1}};
+  8:{gun:3,fin:3,suit:2,wt:1,lung:5,band:2,tip:2,comp:1,buoy:1,eq:2,relax:1}};
 function applyTestGear(lv){testBak=JSON.stringify(G);var base={gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0};for(var k in base)G[k]=base[k];var tg=TESTGEAR[lv]||{};for(var k2 in tg)G[k2]=tg[k2]}
 function endTestGear(){if(!testBak)return;var o=JSON.parse(testBak);testBak=null;for(var k in o)G[k]=o[k];lockUi()}
 function saveG(){if(testBak)return;try{localStorage.setItem('ettpust-gear',JSON.stringify(G))}catch(_){}}
@@ -1899,9 +1901,10 @@ function holdPress(){
 function updateCurrent(dt){
   if(level!==6){
     if(level===8&&state==='play'){
-      if(pickupT>0){pickupT-=dt;diver.vx=diver.vy=0;if(pickupT<=0){towing=true;towRun++;diver.x=180;diver.y=4;buoy.x=diver.x-30;timeLeft=Math.max(5,timeLeft-4);toast('Ny runde på slep – se etter grunna og slipp tauet')}}
-      if(towing){diver.x+=190*dt;diver.y=4;diver.vx=0;diver.vy=0;lying=false;boatX=diver.x+230;
-        if(diver.x>W-260){diver.x=180;buoy.x=diver.x-30;towRun++;timeLeft=Math.max(5,timeLeft-4);toast('Båten snur og tar en ny runde')}
+      if(pickupT>0){pickupT-=dt;diver.vx=diver.vy=0;if(pickupT<=0){towing=true;towRun++;callDone=false;diver.x=180;diver.y=4;buoy.x=diver.x-30;timeLeft=Math.max(5,timeLeft-4);toast('Ny runde på slep – se etter grunna og slipp tauet')}}
+      if(towing){diver.x+=190*dt;diver.y=4;diver.vx=0;diver.vy=0;lying=false;boatX=diver.x+ROPE;
+        if(!callDone&&diver.x+ROPE>=PIN.x){callDone=true;S.chime();try{if(navigator.vibrate)navigator.vibrate([60,60,60])}catch(_){}toast('Båtmannen: «NÅ! Vi er over grunna!»','good')}
+        if(diver.x>W-260){diver.x=180;buoy.x=diver.x-30;towRun++;callDone=false;timeLeft=Math.max(5,timeLeft-4);toast('Båten snur og tar en ny runde')}
         wxDrift+=wxCurPx()*dt;return}
       boatX+=(pickupT>0?0:200)*dt;
     }
@@ -2996,10 +2999,10 @@ function render(){
   drawBuoyShape(buoy.x,bob,G.buoy,G.bcol);
 
   ctx.globalAlpha=1;if(state==='intro')drawIntro(bob);
-  if(level===8&&state!=='intro'&&(towing||pickupT>0||Math.abs(boatX-diver.x)<900)){
-    var tbx=towing?diver.x+230:pickupT>0?diver.x-40-480*(pickupT/2.5):boatX;
+  if(level===8&&state!=='intro'&&(towing||pickupT>0||Math.abs(boatX-diver.x)<1200)){
+    var tbx=towing?diver.x+ROPE:pickupT>0?diver.x-40-480*(pickupT/2.5):boatX;
     drawBoatAt(tbx,-4+bob);
-    if(towing){ctx.strokeStyle='rgba(240,236,214,.9)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(tbx-125,-6+bob);ctx.quadraticCurveTo((tbx+diver.x)/2,8,diver.x+28,8);ctx.stroke();
+    if(towing){ctx.strokeStyle='rgba(240,236,214,.9)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(tbx-125,-6+bob);ctx.quadraticCurveTo((tbx+diver.x)/2,14,diver.x+28,8);ctx.stroke();
       ctx.strokeStyle='rgba(230,242,238,.7)';ctx.lineWidth=2;for(var tw=0;tw<4;tw++){ctx.beginPath();ctx.moveTo(diver.x-30-tw*22,6+Math.sin(tClock*9+tw)*2);ctx.lineTo(diver.x-48-tw*22,4);ctx.stroke()}}
   }
   if(catches.length){
@@ -3241,7 +3244,7 @@ function beginPlay(){
   state='play';lastHud='';
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===8){towing=true;boatX=diver.x+230;toast('New Zealand: du blir slept etter båten. Se ned etter grunna og trykk SLIPP TAUET når du er rett over den');return}
+  if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og roper når båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe');return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
   if(level===6){toast('Saltstraumen: stillstrømmen kommer om rundt 20 sekunder og varer ca. 30 sekunder. Da kan du komme deg ned under broa der storfisken står');return}
   if(level===5){toast('Middelhavet: dentexen står ved stupet på 20–45 meter. Ligg i ro der nede og la den komme til deg');return}
@@ -3287,7 +3290,7 @@ var SPOTS=[
   {lv:5,n:'Middelhavet',w:'Italiensk klippekyst · 20–45 m',d:'Dentex ved stupet, dorade og sarago på grunna. Dagskvote 5 kg.'},
   {lv:6,n:'Saltstraumen',w:'Ved Bodø · en av verdens sterkeste tidevannsstrømmer',d:'Storsei og kjempetorsk under broa. Dykk i stillstrømmen, ligg i le bak pilarene.'},
   {lv:7,n:'Crabmountain',w:'Krabbefabrikk · fjell av krabbeskall fra 10 m',d:'Et flytende rør dumper knust krabbeskall som blir til hvite fjell på bunnen. Så mye pale at vannet blir svart – du dykker nesten i blinde. Svær lyr, kjempetorsk og breiflabb i dalene.'},
-  {lv:8,n:'New Zealand',w:'Slepedykk · pinnakkel fra 9 m',d:'Bli slept etter båten, slipp tauet over grunna og fall ned i strømmen. Kingfish som stuper mot fjellet, og snapper mellom steinene.'},
+  {lv:8,n:'New Zealand',w:'Slepedykk · pinnakkel på 20–25 m',d:'Bli slept etter båten. Båtmannen roper når dere er over grunna – du beregner selv når du skal slippe for å treffe den i strømmen. Kingfish som stuper mot fjellet, og snapper mellom steinene.'},
   {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
 var spotImg={};
 function spotPic(k){
