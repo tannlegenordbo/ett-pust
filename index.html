@@ -74,6 +74,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -262,7 +264,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11e · snorkling og duck dive</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11f · duck dive med hofteknekk</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -1871,7 +1873,7 @@ function toast(msg,cls,dur){
   clearTimeout(toastT);toastT=setTimeout(function(){t.className=cls||''},dur||2200);
 }
 
-var duck=null,diveCd=0,lastHaul=-9,haulN=0,foodB=0,strung=[],maxD=0,compWarn=false,resuming=false;
+var DBEND=0,duck=null,diveCd=0,lastHaul=-9,haulN=0,foodB=0,strung=[],maxD=0,compWarn=false,resuming=false;
 function cap(){return (26+(level===5?SUIT[G.suit].bw:SUIT[G.suit].b)+LUNG[G.lung].b+MASK[G.mask].b+foodB)*(level===9?1-.4*coldK:1)}
 var WARM=[0,.35,.7,1.05,.12];
 function FREEV(){return G.tool?.5:1.2}
@@ -2366,11 +2368,13 @@ function update(dt){
     if(!duck&&canFlat&&inp.y>.4&&inp.m>.3&&!carry&&diveCd<=0){duck={t:0,dir:Math.cos(diver.ang)>=0?1:-1};S.splash()}
     if(diveCd>0)diveCd-=dt;
     if(duck){
-      duck.t+=dt;var dk=clamp(duck.t/.75,0,1),de=dk<.5?2*dk*dk:1-Math.pow(-2*dk+2,2)/2;
-      diver.ang=duck.dir>0?de*1.5:Math.PI-de*1.5;diver.av=0;
-      diver.y=4+de*34;diver.x+=duck.dir*(55-40*de)*dt;diver.vx=0;diver.vy=0;
+      duck.t+=dt;var ez=function(v){v=clamp(v,0,1);return v<.5?2*v*v:1-Math.pow(-2*v+2,2)/2};
+      var p1=ez(duck.t/.35),p2=ez((duck.t-.35)/.3),p3=ez((duck.t-.65)/.3);
+      diver.ang=duck.dir>0?p1*1.57:Math.PI-p1*1.57;diver.av=0;duck.bend=-1.57*p1*(1-p2);
+      diver.y=4+p1*16+p2*4+p3*26;diver.x+=duck.dir*(50*(1-p1)+8)*dt;diver.vx=0;diver.vy=0;
+      if(p2>0&&!duck.lift){duck.lift=1;S.splash()}
       inp={x:0,y:0,m:0};sIn.x=sIn.y=0;
-      if(duck.t>=.75){duck=null;diver.vy=140;diver.vx=0;diveCd=.6;for(var db=0;db<8;db++)bubbles.push({x:diver.x+rnd(-12,12),y:rnd(8,30),r:rnd(1.5,4),v:rnd(40,80),ph:rnd(0,6)})}
+      if(duck.t>=.95){duck=null;diver.vy=140;diver.vx=0;diveCd=.6;for(var db=0;db<8;db++)bubbles.push({x:diver.x+rnd(-12,12),y:rnd(8,30),r:rnd(1.5,4),v:rnd(40,80),ph:rnd(0,6)})}
     }
     var gz=clamp((inp.m-.1)/.25,0,1),mx=(lying||holding)?0:inp.x*gz,my=(lying||holding)?0:inp.y*gz;
     if(canFlat&&!duck&&my<0)my=0;
@@ -2935,6 +2939,7 @@ function drawDiver(x,y,ang,kick,spd,surface,aim){
   if(gr.scol&&su>0&&SCOL[gr.scol]){SUIT=SCOL[gr.scol].c[0];ARM=SCOL[gr.scol].c[1];FARC=SCOL[gr.scol].c[2]}
   var k=Math.sin(kick)*(4+spd*9),i,sw=k*.18,flen=[0,27,50,50][fn];
   /* bein og finner */
+  ctx.save();if(DBEND){ctx.translate(-14,0);ctx.rotate(DBEND);ctx.translate(14,0)}
   for(i=0;i<2;i++){
     var sg=i?-1:1,ay=sg*(2+k*.55),ty=sg*(3+k*1.75),ky=sg*2+(ay-sg*2)*.4;
     ctx.strokeStyle=i?FARC:SUIT;ctx.lineWidth=6.6;ctx.beginPath();ctx.moveTo(-14,sg*2);ctx.quadraticCurveTo(-30,sg*2+(ay-sg*2)*.35,-46,ay);ctx.stroke();
@@ -2952,6 +2957,7 @@ function drawDiver(x,y,ang,kick,spd,surface,aim){
       ctx.fillStyle=i?D_FAR[0]:D_SKIN;ctx.beginPath();ctx.ellipse(-50,ay+sg*1.2,6.5,3,sg*.25,0,6.283);ctx.fill();
     }
   }
+  ctx.restore();
   /* arm som holder våpenet (bak kroppen) */
   if(!surface&&aim==null)drawGun(8,14);
   else if(aim==null)limb(15,3,25,9,36,6+sw,5.6,ARM,hand);
@@ -3267,7 +3273,7 @@ function render(){
     var hauling=!under&&state==='play'&&tClock-lastHaul<1.6&&(haul||(level===4&&hooked&&hooked.hp<=0));
     if(hauling)drawHauler();
     else if(carry&&carry.mount)drawRider(carry,'near');
-    else drawDiver(diver.x,diver.y,bang,duck?tClock*16:diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);
+    else{DBEND=duck?duck.bend||0:0;drawDiver(diver.x,diver.y,bang,duck?(duck.t>.65?tClock*16:0):diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);DBEND=0}
     }
     if(cA>0)ctx.restore();
   }
