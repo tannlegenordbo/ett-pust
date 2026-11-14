@@ -54,6 +54,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -238,7 +240,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11b · New Zealand slepedykk</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11c · testlenker med riktig utstyr</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -1304,7 +1306,19 @@ var G={kr:0,gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,ma
 try{var gs=JSON.parse(localStorage.getItem('ettpust-gear')||'null');if(gs){for(var gk in G)if(typeof gs[gk]==='number')G[gk]=Math.max(0,Math.floor(gs[gk]));if(gs.own&&typeof gs.own==='object')for(var ok2 in gs.own)if(typeof gs.own[ok2]==='number')G.own[ok2]=gs.own[ok2]}}catch(_){}
 for(var si=0;si<SHOP.length;si++){if(SHOP[si].cons)continue;var sk=SHOP[si].k;G[sk]=Math.min(G[sk],SHOP[si].items.length-1);if(typeof G.own[sk]!=='number')G.own[sk]=(1<<(G[sk]+1))-1;G.own[sk]|=1|(1<<G[sk])}
 function owns(k,i){return !!(G.own[k]&(1<<i))}
-function saveG(){try{localStorage.setItem('ettpust-gear',JSON.stringify(G))}catch(_){}}
+var testBak=null;
+var TESTGEAR={
+  1:{gun:1,fin:1,suit:1,wt:1,lung:1},
+  2:{gun:2,fin:2,suit:2,wt:1,lung:2,tip:1},
+  3:{gun:2,fin:2,suit:2,wt:2,lung:3,mask:1},
+  4:{gun:3,fin:3,suit:1,wt:1,lung:3,flash:1,buoy:1,band:1,tip:2},
+  5:{gun:3,fin:3,suit:4,wt:3,lung:5,sled:1,eq:2,relax:1,comp:1},
+  6:{gun:4,fin:3,suit:3,wt:2,lung:4,tool:2,comp:1,tip:2},
+  7:{gun:2,fin:3,suit:3,wt:2,lung:4,mask:2,tool:2,str:1,tip:2},
+  8:{gun:3,fin:3,suit:2,wt:1,lung:4,band:2,tip:2,comp:1,buoy:1,eq:1}};
+function applyTestGear(lv){testBak=JSON.stringify(G);var base={gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0};for(var k in base)G[k]=base[k];var tg=TESTGEAR[lv]||{};for(var k2 in tg)G[k2]=tg[k2]}
+function endTestGear(){if(!testBak)return;var o=JSON.parse(testBak);testBak=null;for(var k in o)G[k]=o[k];lockUi()}
+function saveG(){if(testBak)return;try{localStorage.setItem('ettpust-gear',JSON.stringify(G))}catch(_){}}
 var iconCache={},gunOnly=false,noArm=false;
 function gearIcon(kind,tier){
   var key=kind+tier;if(iconCache[key])return iconCache[key];
@@ -1944,6 +1958,7 @@ function drawHolding(){
 var TROF={};try{TROF=JSON.parse(localStorage.getItem('ettpust-trofe')||'{}')||{}}catch(_){TROF={}}
 var TORDER=['torsk','lyr','sei','makrell','rodspette','steinbit','kveite','breiflabb','king','snapper','tuna','mahi','wahoo','spmak','gt','marlin','dentice','orata','sarago','spigola','ricciola'];
 function trophyCheck(f){
+  if(testBak)return false;
   var t=TROF[f.kind];
   if(!t||f.cm>t.cm){
     var d=new Date();
@@ -1976,6 +1991,7 @@ function renderTrophies(){
   $('trophyCount').textContent=n+' av '+TORDER.length+' arter';
 }
 function saveRun(){
+  if(testBak)return;
   if(state!=='play'&&state!=='intro')return;
   var sv={v:1,level:level,night:night,timeLeft:timeLeft,score:score,peak:peak,counts:counts,medKg:medKg,medBig:medBig,foodB:foodB,wx:WX,fishKr:fishKr,fishPts:fishPts,
     catches:catches.map(function(c){return{kind:c.f.kind,cm:c.f.cm,pts:c.pts,note:c.note}})};
@@ -3165,10 +3181,13 @@ function finish(why){
   state='over';joy=null;endReason=why;carry=null;lying=false;$('lie').hidden=true;clearRun();
   var best=0;try{best=+localStorage.getItem('ettpust-best')||0}catch(_){}
   var earn=Math.max(0,Math.round(fishKr+(score-fishPts)/5));if(why==='blackout')earn=Math.round(earn/2);
+  var wasTest=!!testBak;
   G.kr+=earn;saveG();
+  if(testBak){$('overKr').textContent='Testdykk – du ville tjent '+fmt(earn)+' kr. Utstyret var lånt, og ingenting er lagret.';endTestGear();}
+  else
   $('overKr').textContent='Du tjente '+fmt(earn)+' kr'+(why==='blackout'?' (halvert etter blackout)':'')+'. Saldo: '+fmt(G.kr)+' kr.';
   var isBest=score>best;
-  if(isBest){try{localStorage.setItem('ettpust-best',String(score))}catch(_){}}
+  if(isBest&&!testBak){try{localStorage.setItem('ettpust-best',String(score))}catch(_){}}
   $('overTitle').textContent=why==='blackout'?'Blackout':why==='kvote'?'Kvoten er full':why==='avslutt'?'Dykket er avsluttet':'Dagen er over';
   $('overLead').textContent=why==='blackout'
     ?'Du gikk tom for luft. Makkeren din fikk deg opp til overflaten, og jakta er over for i dag. Derfor dykker ingen alene.'
@@ -3183,8 +3202,8 @@ function finish(why){
     rows+='<tr'+(c.pts<0?' class="fredet"':'')+'><td>'+c.f.s.name+(c.note?' ('+c.note+')':'')+'</td><td class="n">'+sizeTxt(c.f)+'</td><td class="n">'+(c.pts>0?'+':'')+fmt(c.pts).replace('-','−')+'</td></tr>';
   }
   $('overTable').innerHTML=rows;
-  if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<8)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
-  if(!night&&why==='kvote'&&level===maxLevel&&maxLevel<8){
+  if(!night&&why!=='kvote'&&level===maxLevel&&maxLevel<8&&!wasTest)$('overLead').textContent+=' Fyll kvoten på nivået for å låse opp nivå '+(level+1)+', '+LN[level+1]+'.';
+  if(!night&&!wasTest&&why==='kvote'&&level===maxLevel&&maxLevel<8){
     maxLevel++;try{localStorage.setItem('ettpust-lvl',String(maxLevel))}catch(_){}
     $('overLead').textContent+=' Nivå '+maxLevel+', '+LN[maxLevel]+', er åpnet.';
   }
@@ -3197,6 +3216,7 @@ function finish(why){
 function start(lv,nt){
   if(lv)level=lv;
   night=!!nt&&G.lamp>0;if(night)level=1;mor=[];
+  if(testLv&&!nt&&lv===testLv){if(!testBak)applyTestGear(lv)}else endTestGear();
   RANGE=GUN[G.gun].r*BAND[G.band].r*TIP[G.tip].r;
   if(!resuming){foodB=0;if(G.food>0){G.food--;saveG();foodB=8;setTimeout(function(){if(state==='play')toast('Godt uthvilt og mett: +8 sekunder pust i dag','good')},6500)}}
   if(!resuming)rollWx();
@@ -3220,7 +3240,7 @@ function lockUi(){
   $('shopBtn').textContent='Dykkerbutikken · '+fmt(G.kr)+' kr';
   var sr=loadRun(),rb=$('resumeBtn');rb.hidden=!sr;if(sr)rb.textContent='Fortsett dykket: '+(sr.night?'Nattdykk':'nivå '+sr.level+', '+LN[sr.level])+' · '+Math.floor(sr.timeLeft/60)+':'+('0'+Math.floor(sr.timeLeft%60)).slice(-2)+' igjen';
   $('play').className=sr?'btn alt':'btn';
-  $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]:maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
+  $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]+' (med testutstyr)':maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
   $('restart').hidden=maxLevel<2;
   var nb=$('nightBtn');nb.disabled=G.lamp<1;nb.textContent=G.lamp<1?'Nattdykk (kjøp lykt i Havguden)':'Nattdykk i tareskogen';
 }
