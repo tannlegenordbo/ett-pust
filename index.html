@@ -56,6 +56,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -240,7 +242,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11c · testlenker med riktig utstyr</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 14.11d · sterkere strøm i New Zealand</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -341,8 +343,8 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>New Zealand – slepedykk</h2>
     <ul>
-      <li>Båten sleper deg i et tau over åpent hav. Et sted under deg står en pinnakkel som stiger fra nesten 40 meter opp til rundt 9 meter. Se ned, og trykk SLIPP TAUET når du er over den – strømmen tar deg videre, så slipp litt før.</li>
-      <li>Ligg i le på nedstrømssiden av fjellet. Kingfishen patruljerer i stim rundt toppen, og snapper står mellom steinene.</li>
+      <li>Båten sleper deg i et tau over åpent hav. Et sted under deg står en pinnakkel som stiger fra nesten 40 meter opp til rundt 9 meter. Se ned, og trykk SLIPP TAUET i riktig øyeblikk. Strømmen er sterk, 1,6–2,6 knop, gjennom hele vannsøylen, så du må slippe godt før grunna – ellers driver du forbi.</li>
+      <li>Du kan ikke ligge stille i vannmassene. Hold deg fast i taren på toppen (trykk LEGG DEG der det er tare), eller ligg i le på nedstrømssiden bak pinnakkelen. Kingfishen patruljerer i stim rundt toppen, og snapper står mellom steinene.</li>
       <li><b>Kingfish</b> som ikke får hodeskudd, stuper mot fjellet for å skjære av linen. Trykk HOLD! raskt for å stoppe den før den når steinene. Minstemål 75 cm.</li>
       <li>Når du kommer opp, trykker du HENT MEG, så kommer båten og tar deg på en ny runde. Hver runde koster litt tid.</li>
     </ul>
@@ -437,7 +439,8 @@ function crabDepth(x){
   d=Math.min(d,3+22*sst(x/520));
   return d+.35*Math.sin(x/23)+.25*Math.sin(x/9);
 }
-var PIN={x:2300},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
+function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
+var nzShelter='',PIN={x:2300},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
 function bottom(x){
   if(level===8){var u=(x-PIN.x)/175,u2=(x-PIN.x-760)/200,e=Math.exp(-u*u),rg=e>.05?(1.2*Math.sin(x/17)+.9*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*8.8,M*(38-29.5*e-15*Math.exp(-u2*u2)+rg)))}
   if(level===7)return Math.min(MAXB,M*crabDepth(x));
@@ -688,7 +691,7 @@ function rollWx(){
   var wind=Math.round(r[2]+(r[3]-r[2])*Math.pow(Math.random(),1.3)+(sky==='regn'?2:0));
   var vis=Math.round(r[0]+(r[1]-r[0])*Math.random()-(sky==='regn'?2:0)-(wind>8?2:0));vis=Math.max(r[0]-1,vis);
   var cur=r[4]?+(r[4]*Math.pow(Math.random(),1.4)*(Math.random()<.5?-1:1)).toFixed(1):0;
-  if(level===8)cur=+(.5+Math.random()*.9).toFixed(1);
+  if(level===8)cur=+(1.6+Math.random()*1).toFixed(1);
   WX={vis:vis,wind:Math.min(14,wind),cur:cur,sky:sky};wxDrift=0;
 }
 function wxSkyTxt(){return{sol:'☀️ Sol',skyet:'☁️ Overskyet',regn:'🌧️ Regn'}[WX.sky]}
@@ -1902,7 +1905,16 @@ function updateCurrent(dt){
         wxDrift+=wxCurPx()*dt;return}
       boatX+=(pickupT>0?0:200)*dt;
     }
-    var cp=wxCurPx();if(level===8){var lee=diver.x>PIN.x-20&&diver.x<PIN.x+340&&diver.y>bottom(PIN.x)-M*1.5;if(lee)cp*=.2;else if(diver.y>bottom(diver.x)-M*2)cp*=.5}
+    var cp=wxCurPx();
+    if(level===8&&state==='play'&&under){
+      var lee=diver.x>PIN.x+10&&diver.x<PIN.x+300&&diver.y>bottom(PIN.x)-M*.5&&diver.y>bottom(diver.x)-M*6;
+      var grip=lying&&kelpNear(diver.x);
+      nzShelter=lee?'le':grip?'tare':'';
+      if(lee)cp*=.08;else if(grip)cp=0;
+      else if(lying){lying=false;toast('Du får ikke tak her – strømmen river deg løs. Finn tare eller le bak pinnakkelen','bad')}
+      if(cp){diver.x=clamp(diver.x+cp*dt,60,W-60);if(carry&&carry.mode==='hang'){carry.x+=cp*dt}}
+      wxDrift+=wxCurPx()*dt;return;
+    }
     wxDrift+=wxCurPx()*dt;
     if(state==='play'&&cp&&!lying&&!sledRide&&!towing&&!(carry&&carry.mount)){var df=diver.y<16?1:Math.max(.35,1-diver.y/(M*30));diver.x=clamp(diver.x+cp*df*dt,60,W-60)}
     return;
@@ -3147,7 +3159,7 @@ function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' '
 var lastHud='';
 function hud(){
   var nearB=state==='play'&&!sledRide&&(lying||(!carry&&diver.y>bottom(diver.x)-75));
-  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
+  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),nzShelter,towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
   if(key===lastHud)return;lastHud=key;
   $('airBar').style.width=air.toFixed(0)+'%';
   var low=air<25&&state==='play';
@@ -3159,6 +3171,7 @@ function hud(){
   $('score').textContent=fmt(score);
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
+  if(level===8&&under&&state==='play')qh+='<span class="wx">'+(nzShelter==='le'?'🪨 I le bak pinnakkelen':nzShelter==='tare'?'🌿 Holder deg i taren':'🌊 Strømmen tar deg')+'</span>';
   qh+='<span class="wx">'+wxSkyTxt()+' · '+WX.vis+' m sikt · '+WX.wind+' m/s'+(level!==6&&Math.abs(WX.cur)>=.05?' · strøm '+Math.abs(WX.cur).toFixed(1).replace('.',',')+(WX.cur>0?' →':' ←'):'')+'</span>';
   if(level===5)qh='<span'+(medKg>=5?' class="full"':'')+'>Dagskvote '+medKg.toFixed(1).replace('.',',')+'/5 kg</span>'+qh;
   $('quota').innerHTML=qh;
