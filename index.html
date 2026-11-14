@@ -68,6 +68,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -256,7 +258,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11b · Alaska med hissig bjørn</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11c · dramatisk bjørneangrep</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -467,7 +469,7 @@ function crabDepth(x){
 }
 function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
 var nowT=-9,nzShelter='',ROPE=720,callDone=false,PIN={x:2300,top:22},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
-var coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
+var bearSplash=[],coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
 function bottom(x){
   if(level===9)return Math.min(MAXB,M*(1.2+5*sst(x/420)+7*sst((x-500)/900)+12*sst((x-2000)/700)+(x>450&&x<2000?1.4*Math.sin(x/47)+.9*Math.sin(x/19):.3*Math.sin(x/61))));
   if(level===8){var u=(x-PIN.x)/200,u2=(x-PIN.x+820)/210,e=Math.exp(-u*u),rg=e>.05?(1.1*Math.sin(x/17)+.8*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*(PIN.top-.4),M*(44-(44-PIN.top+.4)*e-11*Math.exp(-u2*u2)+rg)))}
@@ -623,7 +625,7 @@ function reset(){
     for(var gj=0;gj<5;gj++){var bsf=makeFish('sei',bsx+rnd(-50,50),bsc.y+rnd(-25,25),bsc);bsf.cm=Math.round(rnd(100,122));bsf.px=bsf.cm*1.1;fish.push(bsf)}
     var kx=rnd(1450,1950);spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(150,200));hal.px=hal.cm*.9;hal.x=kx;hal.y=bottom(kx)-(hal.px*.1+2);
   }
-  towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
+  towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
   if(level===7){
     for(var g7=0;g7<3;g7++){var gx7=CRAB[(crabAct+g7)%CRAB.length].c+rnd(-260,260);gx7=clamp(gx7,600,W-150);var gf7=makeFish('torsk',gx7,bottom(gx7)-28);gf7.cm=Math.round(rnd(110,138));gf7.px=gf7.cm*1.1;gf7.big=1;fish.push(gf7)}
     crabF=[];crabEmit=0;
@@ -766,8 +768,9 @@ function bearPos(){var b=BEAR,z=b.z;return{x:b.x,y:-12+15*z,sc:.5+.7*z}}
 function drawBear(){
   if(level!==9)return;
   var b=BEAR,p=bearPos(),inW=b.z>.12,ch=b.mode==='charge'||b.mode==='drag',dir=b.dir,t=tClock;
-  if(state==='bear'){var k=clamp(bearAnim/2.2,0,1);p={x:b.x,y:-12+15*(1-k),sc:.5+.7*(1-k)}}
-  ctx.save();ctx.translate(p.x,p.y);ctx.scale(dir*p.sc,p.sc);
+  var shake=0;
+  if(state==='bear'){var k=clamp((bearAnim-.7)/2.6,0,1);k=k*k*(3-2*k);p={x:b.x-dir*k*30,y:-12+15*(1-k),sc:.5+.7*(1-k)};shake=bearAnim<3.4?1:0}
+  ctx.save();ctx.translate(p.x+(shake?Math.sin(t*23)*2.5:0),p.y);ctx.rotate(shake?Math.sin(t*9)*.05:0);ctx.scale(dir*p.sc,p.sc);
   var walk=inW?Math.sin(t*6)*2:Math.sin(t*(ch?10:5))*3.5;
   if(inW){ctx.beginPath();ctx.rect(-80,-90,160,92);ctx.clip()}
   /* bein */
@@ -779,7 +782,7 @@ function drawBear(){
   ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(-40,-12);ctx.quadraticCurveTo(-46,-36,-24,-42);ctx.quadraticCurveTo(4,-48,16,-54);ctx.quadraticCurveTo(30,-50,34,-36);ctx.quadraticCurveTo(40,-18,30,-8);ctx.lineTo(-34,-6);ctx.closePath();ctx.fill();
   ctx.strokeStyle='rgba(140,100,60,.6)';ctx.lineWidth=1.2;for(var f=0;f<9;f++){ctx.beginPath();ctx.moveTo(-30+f*7,-40+Math.abs(f-5)*1.2);ctx.lineTo(-33+f*7,-34+Math.abs(f-5)*1.2);ctx.stroke()}
   /* hode */
-  ctx.save();ctx.translate(38,-40+(ch?Math.sin(t*14)*1.5:0));ctx.rotate(ch?.12:0);
+  ctx.save();ctx.translate(38,-40+(ch?Math.sin(t*14)*1.5:0)+(shake?Math.sin(t*19)*3:0));ctx.rotate(ch?.12+(shake?Math.sin(t*17)*.28:0):0);
   ctx.fillStyle='#3a2516';ctx.beginPath();ctx.ellipse(0,0,15,13,0,0,6.283);ctx.fill();
   ctx.beginPath();ctx.arc(-7,-12,5,0,6.283);ctx.arc(5,-13,4.5,0,6.283);ctx.fill();
   ctx.fillStyle='#6b4a2c';ctx.beginPath();ctx.moveTo(8,-4);ctx.quadraticCurveTo(26,-4,27,2);ctx.lineTo(10,8);ctx.closePath();ctx.fill();
@@ -794,7 +797,21 @@ function drawBear(){
   ctx.restore();
   ctx.restore();
   if(inW){ctx.strokeStyle='rgba(230,242,238,.75)';ctx.lineWidth=2;var wl=p.y+2;for(var w=0;w<3;w++){ctx.beginPath();ctx.ellipse(p.x+Math.sin(t*3+w)*6,wl,40*p.sc+w*8,4,0,0,6.283);ctx.stroke()}}
-  if(state==='bear'){curGear=G;drawDiver(p.x+dir*40*p.sc,p.y-6*p.sc,dir>0?Math.PI:0,t*8,.4,true);curGear=FULL}
+  if(state==='bear'){
+    var mx9=p.x+dir*(38+20)*p.sc,my9=p.y+(-40+22)*p.sc,ph9=t*15,a9=(dir>0?Math.PI*.55:Math.PI*.45)+Math.sin(ph9)*.55+Math.sin(ph9*.53)*.3;
+    var lift=bearAnim<.5?-18*(1-bearAnim/.5):0;
+    curGear=G;ctx.save();ctx.translate(mx9,my9+lift);ctx.scale(p.sc*1.05,p.sc*1.05);
+    drawDiver(0,22,a9,t*34,1,true);
+    /* armene som slår vilt */
+    var su9=G.suit,ac9=G.scol&&su9>0?SCOL[G.scol].c[1]:D_ARMS[su9];
+    for(var ar=-1;ar<=1;ar+=2){var aa=Math.sin(ph9*1.3+ar)*1.4+ar*.6,ex=Math.cos(a9)*6+ar*4,ey=22+Math.sin(a9)*6;
+      ctx.strokeStyle=ac9;ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+Math.cos(aa-1.57)*12,ey+Math.sin(aa-1.57)*12);ctx.lineTo(ex+Math.cos(aa-1.2)*22,ey+Math.sin(aa-1.2)*22);ctx.stroke();
+      ctx.fillStyle=su9?'#07090a':D_SKIN;ctx.beginPath();ctx.arc(ex+Math.cos(aa-1.2)*22,ey+Math.sin(aa-1.2)*22,3,0,6.283);ctx.fill()}
+    ctx.restore();curGear=FULL;
+    /* skvett */
+    ctx.fillStyle='rgba(235,245,248,.9)';for(var sq=0;sq<bearSplash.length;sq++){var q=bearSplash[sq];ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,6.283);ctx.fill()}
+    ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2.5;for(var rg9=0;rg9<3;rg9++){var rr9=((t*60+rg9*25)%75);ctx.globalAlpha=1-rr9/75;ctx.beginPath();ctx.ellipse(mx9,p.y+3,rr9*p.sc+10,5,0,0,6.283);ctx.stroke()}ctx.globalAlpha=1;
+  }
 }
 function buildWorld(){
   kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===9?1600:level===8?2700:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
@@ -2301,7 +2318,15 @@ function update(dt){
     if(introS<3&&introT>3.1){introS=3;S.motor(0)}
     if(introT>4.4)beginPlay();
   }
-  if(state==='bear'){bearAnim+=dt;if(bearAnim>2.6)finish('bjørn')}
+  if(state==='bear'){
+    var ba0=bearAnim;bearAnim+=dt;
+    if(ba0<.05&&bearAnim>=.05){S.splash();S.gasp()}
+    if(Math.floor(bearAnim*2.2)!==Math.floor(ba0*2.2)&&bearAnim<3.2){S.splash();if(Math.random()<.6)S.gasp();try{if(navigator.vibrate)navigator.vibrate(40)}catch(_){}}
+    if(ba0<1.6&&bearAnim>=1.6)S.roar();
+    var bp0=bearPos();if(bearAnim<3.3)for(var sp9=0;sp9<3;sp9++)bearSplash.push({x:bp0.x+BEAR.dir*42*bp0.sc+rnd(-22,22),y:bp0.y+rnd(-4,2),vx:rnd(-90,90),vy:rnd(-190,-70),r:rnd(1.5,3.5),l:rnd(.4,.8)});
+    for(var si9=bearSplash.length-1;si9>=0;si9--){var q9=bearSplash[si9];q9.vy+=420*dt;q9.x+=q9.vx*dt;q9.y+=q9.vy*dt;q9.l-=dt;if(q9.l<=0)bearSplash.splice(si9,1)}
+    if(bearAnim>3.9)finish('bjørn');
+  }
   if(state==='play'){
     var inp=inputVec(),MAXS=165*FIN[G.fin].v;
     if(sledRide){sledSteer=inp.m>.08?clamp(inp.x/Math.max(.3,inp.m)*Math.min(1,inp.m*1.6),-1,1):0;inp={x:0,y:0,m:0};sIn.x=sIn.y=0}
@@ -2578,6 +2603,7 @@ function update(dt){
   var cty=clamp(diver.y+(under2?Math.sin(diver.ang)*LA:0)-vh*.45,minY,maxY);
   if(state==='intro')cty=-vh*.42;
   if(level===9&&(state==='bear'||(state==='play'&&diver.y<16))){cty=-vh*.33}
+  if(state==='bear'){ctx0=clamp(BEAR.x-vw*.45,0,Math.max(0,W-vw))}
   if(level===8&&state==='play'&&(towing||pickupT>0)){cty=-vh*.4;ctx0=clamp(diver.x-vw*.22,0,Math.max(0,W-vw))}
   if(cam.snap){cam.x=ctx0;cam.y=cty;cam.snap=false}
   else{var cr=Math.min(1,dt*2.6);cam.x+=(ctx0-cam.x)*cr;cam.y+=(cty-cam.y)*cr}
@@ -2977,7 +3003,7 @@ function drawIntro(bob){
 function render(){
   ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);
   ctx.clearRect(0,0,vw,vh);
-  ctx.save();ctx.translate(-cam.x,-cam.y);
+  ctx.save();var shk=state==='bear'&&bearAnim<3.4?(bearAnim<.6?9:4):0;ctx.translate(-cam.x+(shk?rnd(-shk,shk):0),-cam.y+(shk?rnd(-shk,shk):0));
   var x0=cam.x-40,x1=cam.x+vw+40;
 
   /* himmel */
@@ -3248,6 +3274,12 @@ function render(){
     ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);ctx.fillStyle=mg;ctx.fillRect(0,0,vw,vh);
   }
 
+  if(state==='bear'){
+    var rf=Math.max(0,.55*(1-bearAnim/.45))+(bearAnim<3.4?.12+.1*Math.sin(tClock*12):0),fade=clamp((bearAnim-3.1)/.8,0,1);
+    ctx.save();ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);
+    var rg=ctx.createRadialGradient(vw/2,vh/2,Math.min(vw,vh)*.2,vw/2,vh/2,Math.max(vw,vh)*.75);rg.addColorStop(0,'rgba(150,0,0,'+rf*.4+')');rg.addColorStop(1,'rgba(150,0,0,'+rf+')');
+    ctx.fillStyle=rg;ctx.fillRect(0,0,vw,vh);if(fade){ctx.fillStyle='rgba(0,0,0,'+fade+')';ctx.fillRect(0,0,vw,vh)}ctx.restore();
+  }
   /* mørke når lufta tar slutt */
   if(state==='play'&&air<25){
     var a=(30-air)/30,pulse=reduce?1:.75+.25*Math.sin(tClock*6);
