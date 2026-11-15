@@ -98,6 +98,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -290,7 +292,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11r · sikt mens du krabber</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11s · vekting sparer luft</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -326,6 +328,7 @@ td.n,th.n{text-align:right}
       <li><b>KICK!:</b> hamre på KICK!-knappen for å gi gass i den retningen du svømmer, opp eller ned. Jo fortere du trykker, jo fortere går det, men det koster luft og skremmer fisken.</li>
       <li><b>BELTE-DROPP:</b> rekker du ikke opp med fisken, kan du slippe blybeltet. Da fyker du til overflaten, mens beltet, harpunen og fisken blir liggende på bunnen. Det koster 10 000 poeng, og du må ligge i overflaten og trykke HAL! raskt for å dra alt opp med lina.</li>
       <li><b>Lite luft?</b> Når lufta er under en tredjedel, dukker en rød SLIPP BELTET-knapp opp. Den virker alltid, også uten fisk, og koster 3 000 poeng (10 000 med fisk).</li>
+      <li><b>Vekting og luft:</b> er du nøytral (verken tung eller lett) på dybden du svømmer, bruker du 20 % mindre luft. Er du mye for tung eller lett, må du jobbe for å holde dybden og bruker opptil 20 % mer. Merket ⚖️ viser hvordan du ligger an. Velg belte og drakt etter hvor dypt du skal.</li>
       <li><b>Krabbe langs bunnen:</b> ligger du på bunnen og er tung, drar dykkeren seg fram med armene når du trykker joysticken godt ut til siden. Harpunen peker dit joysticken peker, så du kan sikte mens du krabber. Et lite trykk sikter uten å krabbe.</li>
       <li><b>Kom tett på</b> før du skyter. Harpunen rekker bare et par meter.</li>
       <li><b>Fisken dingler i lina.</b> Dra den med opp til bøya, der den henges på fiskelina og gir poeng. Stor fisk drar deg ned, så du må kicke hardt, og hardt kick bruker lufta fortere.</li>
@@ -562,7 +565,7 @@ function bottom(x){
   var t1=clamp((x-200)/(W-500),0,1);
   return Math.min(MAXB,M*(3+10*Math.pow(t1,1.15)+(.25+.75*t1)*(Math.sin(x/310)+.5*Math.sin(x/97+1)+.25*Math.sin(x/41))));
 }
-var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false,crawlV=0,crawlPh=0,DCRAWL=-1;
+var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false,crawlV=0,crawlPh=0,DCRAWL=-1,trimF=1,trimS=9;
 var night=false;
 var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet','Middelhavet','Saltstraumen','Crabmountain','New Zealand','Alaska','Vraket'];
 var slingOut=false,slingSpear=null,noWeaponDraw=false;
@@ -1544,7 +1547,8 @@ var WT=[
   {n:'Ingen vekter',nd:1.5,f:.35,p:0,d:'Du flyter opp og kan ikke legge deg på bunnen.'},
   {n:'Blybelte',nd:5,f:1,p:600,d:'Nøytral på 5 meter. Du kan legge deg på bunnen og gjøre beltedropp.'},
   {n:'Blybelte og sele',nd:4,f:1.15,p:2500,d:'Nøytral på 4 meter og synker lettere på dypet.'},
-  {n:'Lett belte for dypdykk',nd:11,f:.85,p:3000,d:'Nøytral på rundt 11 meter. Du må svømme deg ned, men kommer mye lettere opp fra 30–40 meter.'}];
+  {n:'Lett belte for dypdykk',nd:11,f:.85,p:3000,d:'Nøytral på rundt 11 meter. Du må svømme deg ned, men kommer mye lettere opp fra 30–40 meter.'},
+  {n:'Vrakbelte',nd:34,f:.7,p:6000,d:'Nesten ikke bly. Nøytral på rundt 34–37 meter med tykk drakt, perfekt inne i vraket. Du må svømme hele veien ned, men sparer luft når du er der.'}];
 var LUNG=[
   {n:'Utrent',b:0,p:0,d:'Ingen pustetrening.'},
   {n:'Pustetrening 1',b:8,p:1000,d:'+8 sekunder pust.'},
@@ -1647,7 +1651,7 @@ var TESTGEAR={
   7:{gun:2,fin:3,suit:3,wt:2,lung:4,mask:2,tool:2,str:1,tip:2},
   8:{gun:3,fin:3,suit:2,wt:1,lung:5,band:2,tip:2,comp:1,buoy:1,eq:2,relax:1},
   9:{gun:2,fin:3,suit:3,wt:2,lung:4,tip:2,tool:1,comp:1,mask:1,str:1},
-  10:{gun:4,fin:3,suit:3,wt:2,lung:5,eq:2,relax:1,comp:1,lamp:2,sled:1,tip:2,mask:1}};
+  10:{gun:4,fin:3,suit:3,wt:4,lung:5,eq:2,relax:1,comp:1,lamp:2,sled:1,tip:2,mask:1}};
 function applyTestGear(lv){testBak=JSON.stringify(G);var base={gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0};for(var k in base)G[k]=base[k];var tg=TESTGEAR[lv]||{};for(var k2 in tg)G[k2]=tg[k2]}
 function endTestGear(){if(!testBak)return;var o=JSON.parse(testBak);testBak=null;for(var k in o)G[k]=o[k];lockUi()}
 function saveG(){if(testBak)return;try{localStorage.setItem('ettpust-gear',JSON.stringify(G))}catch(_){}}
@@ -2672,7 +2676,10 @@ function update(dt){
         if(!contrTold){contrTold=true;toast('Kontraksjoner! Tid for å starte på vei opp','bad')}
       }
     }else if(!under){contrT=.8;contrTold=false}
-    if(under){diveT+=dt;maxD=Math.max(maxD,diver.y/M);air-=100/cap()*(1+.8*FIN[G.fin].a*effort*effort+(.54+.36*th)*load*effort+.5*boost)*(1-RELAX[G.relax].r*(1-Math.min(1,effort*3)))*dt}
+    trimF=1;trimS=9;
+    if(under&&G.wt>0&&!beltOff&&!sledRide&&!towing){var tb=diver.y/M-WT[G.wt].nd-SUIT[G.suit].lift,ab=Math.abs(tb);trimS=ab<2?0:tb>0?1:-1;
+      if(!lying&&!holding){var free=(tb>0&&diver.vy>20)||(tb<0&&diver.vy<-20);trimF=ab<2?.8:free?1:Math.min(1.2,.8+.07*ab)}}
+    if(under){diveT+=dt;maxD=Math.max(maxD,diver.y/M);air-=trimF*100/cap()*(1+.8*FIN[G.fin].a*effort*effort+(.54+.36*th)*load*effort+.5*boost)*(1-RELAX[G.relax].r*(1-Math.min(1,effort*3)))*dt}
     else{
       air=Math.min(100,air+recRate*dt*(tClock-lastHaul<1.6?.25:1)*(1-clamp((WX.wind-6)/16,0,.35)));
       if(carry&&carry.mode==='hang'&&Math.abs(diver.x-buoy.x)<(G.buoy?220:110)){var cf=carry;carry=null;land(cf)}
@@ -3595,7 +3602,7 @@ function bigCountUpd(){
 function hud(){
   bigCountUpd();
   var nearB=state==='play'&&!sledRide&&(lying||(!carry&&nearFloor()));
-  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),inWreck,pend9.length,nzShelter,Math.round(coldK*50),towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0].join('|');
+  var cs=Math.floor(cap()),t=Math.ceil(timeLeft),key=[level,holding?1:0,Math.round(tideC()*20),Math.round(curAt(diver.x,diver.y)/6),Math.floor(slackInfo().rem),sledRide,sled.state,medKg.toFixed(1),cs,state,nearB,lying,Math.round(air*2),Math.round(diver.y/6),t,score,shotUsed,slingOut,noGun,!!stuck,beltOff,!!haul,!!flasher,flCd>0,hooked?hooked.hp:-1,under,gruntCd>0,catches.length,carry?carry.mode:0,Math.floor(diveT),inWreck,pend9.length,nzShelter,Math.round(coldK*50),towing,pickupT>0,carry&&carry.mode==='fight'?Math.round(carry.st*10):0,!!canKnife(),carry&&carry.mount?carry.stabs:carry&&carry.pull?-2:-1,!!canString(),strung.length,compWarn,G.comp?Math.round(maxD):0,trimS].join('|');
   if(key===lastHud)return;lastHud=key;
   $('airBar').style.width=air.toFixed(0)+'%';
   var low=air<25&&state==='play';
@@ -3607,6 +3614,7 @@ function hud(){
   $('score').textContent=fmt(score);
   var qh='',QL=night?NQ:LQ[level];
   for(var qi2=0;qi2<QL.length;qi2++){var qc=counts[QL[qi2]]||0,qq=SP[QL[qi2]].quota;qh+='<span'+(qc>=qq?' class="full"':'')+'>'+SP[QL[qi2]].name+' '+qc+'/'+qq+'</span>'}
+  if(state==='play'&&under&&trimS!==9)qh+=trimS===0?'<span class="wx" style="color:#7ed49a">⚖️ Nøytral · sparer luft</span>':'<span class="wx" style="color:#ff9c7a">⚖️ '+(trimS>0?'Tung':'Lett')+' her · bruker mer luft</span>';
   if(level===10&&state==='play'&&inWreck)qh+='<span class="wx" style="color:#ffd23f">⚓ Inne i lasterommet</span>';
   if(level===9&&state==='play'&&pend9.length)qh+='<span class="wx" style="color:#ffd23f">🐟 '+pend9.length+' på flåten – lever i båten →</span>';
   if(level===9&&state==='play')qh+='<span class="wx">'+(coldK>.6?'🥶':coldK>.3?'❄️':'🌡️')+' Kulde '+Math.round(coldK*100)+' % · 6 °C</span>';
