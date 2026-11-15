@@ -122,6 +122,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -248,6 +250,14 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .apW span{flex:1;font-size:14px}
 .apW b{font-family:var(--display);font-size:20px;min-width:62px;text-align:center}
 .apW button{width:42px;height:42px;border-radius:10px;border:2px solid var(--foam);background:transparent;color:var(--foam);font-size:22px;font-weight:700;cursor:pointer}
+.crBox{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,210,63,.12);border:2px solid var(--warn)}
+.crH{font-size:15px;margin:20px 0 6px;opacity:.8;font-family:var(--display)}
+.crC{background:rgba(230,242,238,.08);border-radius:12px;padding:12px 14px;margin-top:8px}
+.crC .t{font-family:var(--display);font-weight:700;font-size:16px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.crC .t em{font-style:normal;font-size:11px;background:var(--warn);color:#1b1400;border-radius:8px;padding:3px 8px;white-space:nowrap}
+.crC .d{font-size:13px;opacity:.85;margin-top:4px;line-height:1.4}
+.crC button{margin-top:10px;width:100%;padding:11px;border-radius:10px;border:2px solid var(--foam);background:transparent;color:var(--foam);font-family:var(--display);font-weight:700;font-size:14px;cursor:pointer}
+.crC button.go{background:var(--buoy);border-color:var(--buoy);color:#1b0c04}
 #apRes{margin-top:12px;padding:14px;border-radius:12px;font-weight:700}
 #apRes[hidden]{display:none}
 #apRes.white{background:#f3f6f4;color:#06222b}#apRes.yellow{background:#ffd23f;color:#1b1400}#apRes.red{background:#d42a2a;color:#fff}
@@ -351,9 +361,10 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="shopBtn" type="button">Dykkerbutikken</button>
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
+    <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
+    <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12j · velg vekting i apnea</p>
-    <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.13a · karrierer</p>
   </div>
 </div>
 
@@ -390,6 +401,25 @@ td.n,th.n{text-align:right}
 <button class="apB" id="apQuit" type="button" hidden>Avbryt</button>
 <button class="apB" id="apHook" type="button" hidden>KROKPUST<br><small style="font-weight:600">hold inne</small></button>
 <div id="apPr" hidden></div>
+
+<div class="overlay" id="careers" hidden>
+  <div class="card">
+    <h1 style="font-size:28px">Karrierer</h1>
+    <p class="lead">Start en ny karriere helt fra bunnen, eller fortsett en du har spilt før. Ingenting blir slettet – den du spiller nå, legges i listen.</p>
+    <div id="crConfirm" class="crBox" hidden>
+      <b>Start karrieren på nytt?</b>
+      <p class="small" style="opacity:.85">Du begynner på nivå 1 med 0 kr, uten utstyr, trofeer og med 10 m godkjent dybde. Karrieren du har nå, lagres nedenfor, så du kan fortsette den senere.</p>
+      <button class="btn" id="crYes" type="button">Ja, start på nytt</button>
+      <button class="btn alt" id="crNo" type="button">Avbryt</button>
+    </div>
+    <h2 class="crH">Spiller nå</h2>
+    <div id="crCur"></div>
+    <h2 class="crH">Lagrede karrierer</h2>
+    <div id="crList"></div>
+    <button class="btn alt" id="crNewBtn" type="button">Start karrieren på nytt</button>
+    <button class="btn alt" id="crBack" type="button">Tilbake</button>
+  </div>
+</div>
 
 <div class="overlay" id="spots" hidden>
   <div class="card">
@@ -4203,6 +4233,38 @@ function apDraw(){
     c.fillStyle='#ffd23f';c.font='600 12px system-ui,sans-serif';c.fillText('Dommeren',cx2+cw/2,cy2-10)}
 }
 
+/* ---------- karrierer ---------- */
+var CK=['ettpust-gear','ettpust-lvl','ettpust-l2','ettpust-trofe','ettpust-run','ettpust-best','ettpust-apnea'];
+function crLoad(){try{var l=JSON.parse(localStorage.getItem('ettpust-careers')||'[]');return Array.isArray(l)?l:[]}catch(_){return []}}
+function crSave(l){try{localStorage.setItem('ettpust-careers',JSON.stringify(l))}catch(_){toast('Fikk ikke lagret karrieren','bad')}}
+function crCur(){var c=null;try{c=JSON.parse(localStorage.getItem('ettpust-cur')||'null')}catch(_){}if(!c||!c.id){c={id:Date.now(),started:Date.now()};try{localStorage.setItem('ettpust-cur',JSON.stringify(c))}catch(_){}}return c}
+function crSum(){var tro=0;for(var k in TROF)tro++;return {lv:maxLevel,pb:AP.pb,kr:G.kr,best:+(localStorage.getItem('ettpust-best')||0)||0,tro:tro}}
+function crSnap(){var d={};CK.forEach(function(k){try{var v=localStorage.getItem(k);if(v!=null)d[k]=v}catch(_){}});var c=crCur();return {id:c.id,started:c.started,saved:Date.now(),sum:crSum(),data:d}}
+function crScore(x){var u=x.sum||{};return (u.lv||1)*100000+(u.pb||10)*1000+(u.tro||0)*10+Math.min(9,(u.kr||0)/100000)}
+function crEmpty(u){return u.lv<=1&&u.pb<=10&&!u.kr&&!u.tro&&!u.best}
+function crArchive(){endTestGear();saveG();saveAP();var sn=crSnap();if(crEmpty(sn.sum))return;var l=crLoad().filter(function(x){return x.id!==sn.id});l.push(sn);l.sort(function(a,b){return crScore(b)-crScore(a)});crSave(l.slice(0,8))}
+function crClear(nc){CK.forEach(function(k){try{localStorage.removeItem(k)}catch(_){}});try{localStorage.setItem('ettpust-cur',JSON.stringify(nc||{id:Date.now(),started:Date.now()}))}catch(_){}}
+function crNew(){crArchive();crClear();location.reload()}
+function crResume(id){var t=null;crLoad().forEach(function(x){if(x.id===id)t=x});if(!t)return;
+  crArchive();crSave(crLoad().filter(function(x){return x.id!==id}));crClear({id:t.id,started:t.started});
+  for(var k in t.data){try{localStorage.setItem(k,t.data[k])}catch(_){}}location.reload()}
+function crDate(ts){try{return new Date(ts).toLocaleDateString('nb-NO',{day:'numeric',month:'short',year:'numeric'})}catch(_){return ''}}
+function crCard(x,tag,btn){var u=x.sum||{};
+  return '<div class="crC"><div class="t"><span>Nivå '+(u.lv||1)+' · '+LN[u.lv||1]+'</span>'+(tag?'<em>'+tag+'</em>':'')+'</div>'+
+    '<div class="d">Godkjent dybde '+(u.pb||10)+' m · '+fmt(u.kr||0)+' kr · '+(u.tro||0)+' trofeer'+(u.best?' · rekord '+fmt(u.best)+' poeng':'')+'<br>Startet '+crDate(x.started)+(x.saved?' · sist spilt '+crDate(x.saved):'')+'</div>'+(btn||'')+'</div>'}
+function crOpen(conf){
+  endTestGear();$('menu').hidden=true;$('careers').hidden=false;$('careers').scrollTop=0;$('crConfirm').hidden=!conf;$('crNewBtn').hidden=!!conf;
+  var cur={started:crCur().started,sum:crSum()},l=crLoad(),best=l.length?crScore(l[0]):-1,cb=crScore(cur)>=best;
+  $('crCur').innerHTML=crCard(cur,cb&&l.length?'Lengst kommet':'','');
+  $('crList').innerHTML=l.length?l.map(function(x,i){return crCard(x,i===0&&!cb?'Lengst kommet':'','<button type="button" class="'+(i===0&&!cb?'go':'')+'" data-id="'+x.id+'">Fortsett denne karrieren</button>')}).join(''):'<p class="small">Ingen lagrede karrierer ennå. Når du starter på nytt, havner karrieren du har nå her.</p>';
+}
+$('crList').addEventListener('click',function(e){var b=e.target.closest('button[data-id]');if(b)crResume(+b.dataset.id)});
+$('crYes').addEventListener('click',crNew);
+$('crNo').addEventListener('click',function(){$('crConfirm').hidden=true;$('crNewBtn').hidden=false});
+$('crNewBtn').addEventListener('click',function(){$('crConfirm').hidden=false;$('crNewBtn').hidden=true;$('careers').scrollTop=0});
+$('crBack').addEventListener('click',function(){$('careers').hidden=true;$('menu').hidden=false;lockUi()});
+crCur();
+
 var testLv=0;
 function readTest(){var m=/^#niva(10|[1-9])$/.exec(location.hash||'');testLv=m?+m[1]:0;if(typeof lockUi==='function')lockUi()}
 function lockUi(){
@@ -4211,14 +4273,15 @@ function lockUi(){
   var sr=loadRun(),rb=$('resumeBtn');rb.hidden=!sr;if(sr)rb.textContent='Fortsett dykket: '+(sr.night?'Nattdykk':'nivå '+sr.level+', '+LN[sr.level])+' · '+Math.floor(sr.timeLeft/60)+':'+('0'+Math.floor(sr.timeLeft%60)).slice(-2)+' igjen';
   $('play').className=sr?'btn alt':'btn';
   $('play').textContent=testLv?'Test nivå '+testLv+': '+LN[testLv]+' (med testutstyr)':maxLevel>1?'Fortsett på nivå '+maxLevel:'Spill';
-  $('restart').hidden=maxLevel<2;
+  $('restart').hidden=false;if(typeof crLoad==='function')$('crOther').hidden=!crLoad().length;
   var nb=$('nightBtn');nb.disabled=G.lamp<1;nb.textContent=G.lamp<1?'Nattdykk (kjøp lykt i Havguden)':'Nattdykk i tareskogen';
 }
 lockUi();
 $('play').addEventListener('click',function(){start(testLv||maxLevel)});
 readTest();window.addEventListener('hashchange',readTest);
 if(location.hash==='#apnea')setTimeout(function(){apOpen(null)},300);
-$('restart').addEventListener('click',function(){start(1)});
+$('restart').addEventListener('click',function(){crOpen(true)});
+$('crOther').addEventListener('click',function(){crOpen(false)});
 $('nightBtn').addEventListener('click',function(){if(G.lamp>0)start(1,true)});
 $('shopBtn').addEventListener('click',openShop);
 $('shopBtn2').addEventListener('click',openShop);
