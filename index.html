@@ -86,6 +86,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -274,7 +276,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11k · vraket som labyrint</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11l · vraket på 35–40 m</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -390,8 +392,8 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Vraket</h2>
     <ul>
-      <li>Et gammelt lasteskip ligger på skrå nedover skråningen: baugen ligger på rundt 15 meter, akterenden på rundt 40 meter.</li>
-      <li>Bergylt står ved baugen på grunna, lyr jager over vraket, og stor torsk står langs skroget. Langa ligger inne i lasterommet nede i den dype delen.</li>
+      <li>Et gammelt lasteskip ligger nesten flatt på bunnen nedenfor skråningen, på 35–40 meter: dekket på rundt 35 meter og kjølen på 40.</li>
+      <li>Bergylt og torsk står i steinene i skråningen opp mot land, og lyr jager over vraket. Langa ligger inne i lasterommet nede i den dype delen.</li>
       <li>Vraket er en labyrint av rom på to dekk. Du kommer inn gjennom de to lukene på dekket og må finne veien gjennom dører i skottene og åpninger i mellomdekket – du kan ikke svømme gjennom veggene. Jo lenger inn du kommer, jo større fisk står det i rommene. Det dypeste rommet nede midt i skipet når du bare via akterenden. Inne er det nesten helt mørkt, så en lykt hjelper mye. Pass på lufta og veien ut.</li>
     </ul>
     <h2>Kjempekveita</h2>
@@ -494,7 +496,7 @@ function crabDepth(x){
 }
 function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
 var nowT=-9,nzShelter='',ROPE=720,callDone=false,PIN={x:2300,top:22},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
-var WRK={x0:720,x1:2880,h:330},inWreck=false,wreckSeen=false;
+var WRK={x0:820,x1:3020,h:290},inWreck=false,wreckSeen=false;
 function wreckGeo(){var y0=bottom(WRK.x0),y1=bottom(WRK.x1),a=Math.atan2(y1-y0,WRK.x1-WRK.x0);return{x:WRK.x0,y:y0,a:a,L:Math.hypot(WRK.x1-WRK.x0,y1-y0),H:WRK.h}}
 function wreckLocal(x,y){var g=wreckGeo(),dx=x-g.x,dy=y-g.y,c=Math.cos(g.a),s2=Math.sin(g.a);return{u:dx*c+dy*s2,v:-(-dx*s2+dy*c),g:g}}
 function isInWreck(x,y){var l=wreckLocal(x,y);return l.u>4&&l.u<l.g.L-4&&l.v>4&&l.v<l.g.H-4}
@@ -532,7 +534,7 @@ function wreckCollide(){
 }
 var BOAT9=2650,pend9=[],pendT=0,quotaWait=false,bearSplash=[],coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
 function bottom(x){
-  if(level===10){var d=x<500?6+11*sst(x/500):17+27*clamp((x-500)/2700,0,1);return Math.min(MAXB,M*(d+.5*Math.sin(x/37)+.3*Math.sin(x/13)))}
+  if(level===10){var d=x<720?5+35*sst(x/720):40+.8*clamp((x-720)/2400,0,1);return Math.min(MAXB,M*(d+(x<720?.5*Math.sin(x/37)+.3*Math.sin(x/13):.12*Math.sin(x/53))))}
   if(level===9)return Math.min(MAXB,M*(1.2+5*sst(x/420)+7*sst((x-500)/900)+12*sst((x-2000)/700)+(x>450&&x<2000?1.4*Math.sin(x/47)+.9*Math.sin(x/19):.3*Math.sin(x/61))));
   if(level===8){var u=(x-PIN.x)/200,u2=(x-PIN.x+820)/210,e=Math.exp(-u*u),rg=e>.05?(1.1*Math.sin(x/17)+.8*Math.sin(x/7.3))*Math.min(1,e*3):.4*Math.sin(x/41);return Math.min(MAXB,Math.max(M*(PIN.top-.4),M*(44-(44-PIN.top+.4)*e-11*Math.exp(-u2*u2)+rg)))}
   if(level===7)return Math.min(MAXB,M*crabDepth(x));
@@ -626,8 +628,8 @@ function pickX(kind){
     return rnd(500,2900);
   }
   if(level===10){
-    if(kind==='bergylt')return rnd(650,1300);
-    if(kind==='torsk')return rnd(300,700);
+    if(kind==='bergylt')return rnd(150,560);
+    if(kind==='torsk')return rnd(350,760);
     return rnd(700,2600);
   }
   if(level===9){
@@ -949,7 +951,7 @@ function drawWreckDark(){
 function buildWorld(){
   kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===10?2700:level===9?1600:level===8?2700:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
   if(level===10){
-    for(var q10=0;q10<10;q10++){var bx10=rnd(150,700),br10=rnd(18,36);boul.push({x:bx10,r:br10,y:bottom(bx10)+br10*.45,c:q10%3});rocks.push({x:bx10+br10*.7,w:0,h:0,gap:true})}
+    for(var q10=0;q10<12;q10++){var bx10=rnd(120,640),br10=rnd(18,36);boul.push({x:bx10,r:br10,y:bottom(bx10)+br10*.45,c:q10%3});rocks.push({x:bx10+br10*.7,w:0,h:0,gap:true})}
   }
   if(level===9){
     for(var q9=0;q9<14;q9++){var bx9=rnd(520,1950),br9=rnd(18,40);boul.push({x:bx9,r:br9,y:bottom(bx9)+br9*.45,c:q9%3});rocks.push({x:bx9+br9*.7,w:0,h:0,gap:true})}
@@ -967,7 +969,7 @@ function buildWorld(){
   if(level===3)pipes=[{a:300,b:900,t:'10 m'},{a:1430,b:2180,t:'18 m'},{a:2730,b:3300,t:'25 m'}];
   for(var pi=0;pi<pipes.length;pi++)pipes[pi].y=bottom((pipes[pi].a+pipes[pi].b)/2)-22;
   for(var x=20;x<W;x+=rnd(14,34)){
-    var grow=level===10?(x<720&&Math.random()<.45):level===9?(x>480&&x<2000&&Math.random()<.42):level===8?(bottom(x)<M*(PIN.top+3)&&Math.random()<.5):level===7?(bottom(x)<M*7&&Math.random()<.3):level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
+    var grow=level===10?(bottom(x)<M*16&&Math.random()<.45):level===9?(x>480&&x<2000&&Math.random()<.42):level===8?(bottom(x)<M*(PIN.top+3)&&Math.random()<.5):level===7?(bottom(x)<M*7&&Math.random()<.3):level===6?(Math.random()<.32):level===5?(x<960&&Math.random()<.55):level===4?false:level===2?(x<W-860&&Math.random()<.13):level===3?(bottom(x)<M*11.5&&Math.random()<.35):Math.sin(x/170)+Math.sin(x/53)>-.5;
     if(grow)kelp.push({x:x,h:level===10?rnd(60,200):level===9?Math.max(40,Math.min(rnd(120,420),bottom(x)-25)):level===8?rnd(30,80):level===6?rnd(40,110):level===5?rnd(26,60):level!==1?rnd(60,170):Math.max(40,Math.min(rnd(90,330),bottom(x)-45)),ph:rnd(0,6.28),w:rnd(5,10),c:Math.random()<.5});
   }
   shelters=[];
@@ -3599,7 +3601,7 @@ function beginPlay(){
   state='play';lastHud='';
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===10){toast('Vraket: et gammelt lasteskip ligger på skrå fra 15 til 40 meter. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
+  if(level===10){toast('Vraket: et gammelt lasteskip ligger på 35–40 meter nedenfor skråningen. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
   if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk. Lever fisken i båten lenger ute, ellers tar bjørnen den fra flåten','',8000);return}
   if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og teller ned til båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe','',7000);return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
@@ -3649,7 +3651,7 @@ var SPOTS=[
   {lv:7,n:'Crabmountain',w:'Krabbefabrikk · fjell av krabbeskall fra 10 m',d:'Et flytende rør dumper knust krabbeskall som blir til hvite fjell på bunnen. Så mye pale at vannet blir svart – du dykker nesten i blinde. Svær lyr, kjempetorsk og breiflabb i dalene.'},
   {lv:8,n:'New Zealand',w:'Slepedykk · pinnakkel på 20–25 m',d:'Bli slept etter båten. Båtmannen roper når dere er over grunna – du beregner selv når du skal slippe for å treffe den i strømmen. Kingfish som stuper mot fjellet, og snapper mellom steinene.'},
   {lv:9,n:'Alaska',w:'Elvemunning og tareskog · 6 °C',d:'Laks på vei mot elva, lingcod i taren og stillehavskveite på sanden. Iskaldt vann, ferskvann der det ikke er lov å skyte – og en hissig bjørn som angriper når du puster i overflaten.'},
-  {lv:10,n:'Vraket',w:'Lasteskip på skrå · 15–40 m',d:'Et gammelt vrak ligger nedover skråningen. Svøm inn i labyrinten av mørke rom – jo lenger inn, jo større fisk.'},
+  {lv:10,n:'Vraket',w:'Lasteskip på bunnen · 35–40 m',d:'Et gammelt vrak ligger nedover skråningen. Svøm inn i labyrinten av mørke rom – jo lenger inn, jo større fisk.'},
   {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
 var spotImg={};
 function spotPic(k){
