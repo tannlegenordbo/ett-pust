@@ -112,6 +112,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -337,7 +339,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12e · blackout-redning</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12f · sparke-rytme og myk sikkerhetsdykker</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -353,11 +355,11 @@ td.n,th.n{text-align:right}
     <button class="btn" id="apGo" type="button">Start dykket</button>
     <button class="btn alt" id="apHow" type="button">Slik trener du</button>
     <div id="apHelp" class="small" hidden style="opacity:.9;font-size:14px;line-height:1.45">
-      <p><b>1. Senk pulsen:</b> du har 10 sekunder. Stryk fingeren opp og ned langs sporet i takt med den lyse kula – jevnt og rolig. Følger du kula, går pulsen ned. Rykk, raske drag eller å slippe gjør at den stiger. Jo lavere puls når dykket starter, jo mer luft har du.</p>
+      <p><b>1. Senk pulsen:</b> du har 20 sekunder. Stryk fingeren opp og ned langs sporet i takt med den lyse kula – jevnt og rolig. Følger du kula, går pulsen ned. Rykk, raske drag eller å slippe gjør at den stiger. Jo lavere puls når dykket starter, jo mer luft har du.</p>
       <p><b>2. Ned:</b> du svømmer med joysticken og KICK! akkurat som når du jakter, med ditt eget utstyr. Du er festet til lina med en lanyard – svøm rett ned langs lina. Går du på skrå, drar lanyarden og du bruker mer luft. Når du er tung nok, synker du av deg selv (fritt fall) – slipp joysticken og spar luft.</p>
       <p><b>3. Utlign:</b> ørene fylles med trykk på vei ned. Trykk UTLIGN når måleren er i det grønne feltet. Venter du til den blir rød, får du vondt og må opp litt.</p>
       <p><b>4. Munnfyll:</b> under 22 meter fylles ørene mye raskere. Hold UTLIGN inne i ett sekund mellom 14 og 22 meter for å ta munnfyll.</p>
-      <p><b>5. Bunnen:</b> trykk TA MERKET ved bunnplata, og svøm opp igjen langs lina.</p>
+      <p><b>5. Bunnen:</b> trykk TA MERKET ved bunnplata, og svøm opp igjen langs lina. På vei opp må du finne en jevn rytme på KICK! (omtrent ett trykk i sekundet) – da går det mye raskere og du bruker mindre luft. Ujevne eller for raske trykk ødelegger rytmen.</p>
       <p><b>6. Overflateprotokoll:</b> i overflaten trykker du i riktig rekkefølge: Masken av → OK-tegn → «Jeg er OK». Feil rekkefølge eller for sent gir rødt kort.</p>
       <p><b>Kort:</b> hvitt = godkjent. Gult = du fikk ikke med merket. Rødt = blackout, samba eller feil protokoll.</p>
     </div>
@@ -3868,7 +3870,11 @@ function apEqTap(){
 }
 function apPress(id,dn){
   if(!ap)return;
-  if(id==='apKick'){$('apKick').classList.toggle('on',dn);if(dn&&(ap.ph==='down'||ap.ph==='up')){ap.boost=Math.min(1,ap.boost+.25);try{S.kick()}catch(_){}}}
+  if(id==='apKick'){$('apKick').classList.toggle('on',dn);if(dn&&(ap.ph==='down'||ap.ph==='up')){
+    var nt=ap.t,iv=nt-(ap.lk==null?-9:ap.lk);ap.lk=nt;
+    if(iv>.45&&iv<1.05){var pr=ap.liv||iv,cons=clamp(1-Math.abs(iv-pr)/pr*3,0,1);ap.kr=(ap.kr||0)+(cons-(ap.kr||0))*.45;ap.liv=pr*.5+iv*.5}
+    else if(iv<=.45){ap.kr=(ap.kr||0)*.55;ap.liv=null}else ap.liv=null;
+    ap.boost=Math.min(1,ap.boost+.12+.18*(ap.kr||0));ap.kpulse=1;try{S.kick()}catch(_){}}}
   else if(id==='apEqB'){if(dn){ap.eqDown=true;ap.eqHold=0}else if(ap.eqDown){ap.eqDown=false;if(ap.eqHold<.35)apEqTap()}$('apEqB').classList.toggle('on',dn)}
   else if(id==='apHook'){$('apHook').classList.toggle('on',dn);if(ap.ph!=='proto')return;if(dn){ap.hookDown=true;ap.hookT=0}else if(ap.hookDown){ap.hookDown=false;if(ap.hookT>=.55){ap.o2=Math.min(100,ap.o2+11);try{S.breath()}catch(_){}apMsg('Krokpust – hendene roer seg',1.4)}else apMsg('Hold lenger for en full krokpust',1.2)}}
   else if(id==='apBr'){if(ap.ph==='ready'){if(dn)apGoDown()}else{ap.hold=dn;$('apBr').classList.toggle('on',dn)}}
@@ -3905,8 +3911,13 @@ function apSafety(dt){
   var a=ap,sd=a.sd;if(!sd)return;
   var meet=Math.max(40,a.maxD*M/2);
   if(a.ph==='bo'){sd.st='with';sd.y+=(a.y-sd.y)*Math.min(1,dt*3);return}
-  if(sd.st==='down'){sd.y+=150*dt;if(sd.y>=Math.min(meet,a.y-30)){sd.st='with';if(a.ph==='up'||a.ph==='turn')apMsg('Sikkerhetsdykkeren møter deg',1.6)}}
-  else sd.y+=(Math.max(0,a.y-28)-sd.y)*Math.min(1,dt*2.5);
+  if(sd.ang==null){sd.ang=1.5708;sd.v=0;sd.k=0;sd.bend=0}
+  if(sd.st==='down'){var ty=Math.min(meet,a.y-30),dist=ty-sd.y,tv=clamp(dist*1.3,25,175);sd.v+=(tv-sd.v)*Math.min(1,dt*2);sd.y+=sd.v*dt;sd.k+=dt*(2+sd.v/165*10);
+    sd.ang+=(1.5708-sd.ang)*Math.min(1,dt*3);if(dist<22)sd.st='wait'}
+  else if(sd.st==='wait'){sd.v*=1-Math.min(1,dt*3);sd.y+=sd.v*dt+Math.sin(tClock*1.3)*4*dt;sd.k+=dt*1.5;if(a.y-sd.y<3.2*M&&a.ph==='up'){sd.st='turn';sd.tt=0;apMsg('Sikkerhetsdykkeren møter deg',1.6)}}
+  else if(sd.st==='turn'){sd.tt+=dt;var pp=clamp(sd.tt/1.2,0,1),sm=pp*pp*(3-2*pp);sd.ang=1.5708-3.1416*sm;sd.bend=Math.sin(Math.PI*pp)*.9;sd.k+=dt*2;
+    sd.y+=(Math.max(0,a.y-28)-sd.y)*Math.min(1,dt*1.2);if(pp>=1){sd.st='with';sd.bend=0}}
+  else{sd.y+=(Math.max(0,a.y-28)-sd.y)*Math.min(1,dt*2.5);sd.ang+=(-1.5708-sd.ang)*Math.min(1,dt*3);sd.k+=dt*(2+Math.min(1,Math.abs(a.vy)/165)*10)}
 }
 function apSurface(){
   ap.ph='proto';ap.y=0;ap.vy=0;ap.vx=0;ap.surf=0;joy=null;ap.pi=0;ap.pt=[-9,-9,-9];ap.hookDown=false;ap.bend=0;if(ap.sd)ap.sd.st='surf';S.splash();try{S.gasp()}catch(_){}
@@ -3949,13 +3960,13 @@ function apUpdate(dt){
   if(a.ph==='breathe'){
     var gy=apGuide(a.t),err=a.touch?Math.abs(a.fy-gy):1,dp;
     if(a.t>0){
-      if(!a.touch)dp=.9;else dp=err<.07?-3.4:err<.14?-2:err<.24?-.4:1.4;
-      var jv=Math.abs(a.fv||0);if(a.touch&&jv>2.2)dp+=2.5;            /* rykk og raske drag gir høyere puls */
+      if(!a.touch)dp=.5;else dp=err<.07?-1.8:err<.14?-1.05:err<.24?-.2:.8;
+      var jv=Math.abs(a.fv||0);if(a.touch&&jv>2.2)dp+=1.4;            /* rykk og raske drag gir høyere puls */
       a.pulse=clamp(a.pulse+dp*dt,48,125);a.minP=Math.min(a.minP,a.pulse);
       a.good=a.touch&&err<.14;
     }
     a.hph+=dt*a.pulse/60;if(a.hph>=1){a.hph-=1;a.hs=1;try{S.beat(.22)}catch(_){}}a.hs=Math.max(0,a.hs-dt*4);
-    if(a.t>=10){apGoDown();return}
+    if(a.t>=20){apGoDown();return}
     a.ang=0;return;
   }
   if(a.ph==='ready')return;
@@ -3965,7 +3976,7 @@ function apUpdate(dt){
     if(a.bs==='limp'){
       a.lim=Math.min(1,a.lim+dt/1.1);a.y=Math.max(4,a.y+(a.y/M>WT[a.g.wt].nd+SUIT[a.g.suit].lift?10:-8)*dt);
       a.ang+=Math.sin(tClock*.6)*.05*dt;
-      var tgy=a.y-12,dy2=tgy-sd.y;sd.st=dy2>0?'down':'with';sd.y+=Math.sign(dy2)*Math.min(Math.abs(dy2),420*dt);
+      var tgy=a.y-12,dy2=tgy-sd.y;sd.st=dy2>0?'down':'with';sd.ang=(sd.ang==null?1.5708:sd.ang)+((dy2>0?1.5708:-1.5708)-(sd.ang==null?1.5708:sd.ang))*Math.min(1,dt*3);sd.k=(sd.k||0)+dt*9;sd.bend=0;sd.y+=Math.sign(dy2)*Math.min(Math.abs(dy2),420*dt);
       if(Math.abs(dy2)<10&&a.lim>=1){a.bs='grab';a.gT=0;apMsg('Sikkerhetsdykkeren tar tak i hodet ditt',2)}
     }else if(a.bs==='grab'){a.gT+=dt;sd.y=a.y-12;sd.st='with';if(a.gT>.8){a.bs='tow'}}
     else if(a.bs==='tow'){a.tv=Math.min(230,(a.tv||40)+160*dt);a.y=Math.max(0,a.y-a.tv*dt);sd.y=a.y-12;a.ang+=(-1.5708-a.ang)*Math.min(1,dt*1.2);if(a.y<=0){a.bs='rescue';a.rT=0;S.splash();apMsg('I overflaten: «Pust! Pust!» – blås, klapp, snakk',2.6)}}
@@ -3986,20 +3997,21 @@ function apUpdate(dt){
     if(a.tagging&&!a.tag&&a.ta>=.38){a.tag=true;S.chime();apMsg('Merket er tatt!',1.6)}
     a.ang=a.a0+(-1.5708-a.a0)*sm;a.bend=Math.sin(Math.PI*pT)*.95;a.y-=sm*14*dt;a.spd=.3*Math.sin(Math.PI*pT);a.kph+=dt*3;
     a.o2-=100/a.Tb*.8*dt;
-    if(a.ta>=t0+1){a.ph='up';a.vy=-55;a.bend=0;apUI();if(a.tag)apMsg('Svøm opp langs lina',1.6)}
+    if(a.ta>=t0+1){a.ph='up';a.vy=-55;a.bend=0;apUI();apMsg('Svøm opp – trykk KICK! i jevn rytme for god fart',2.4)}
     return;
   }
   if(a.ph==='up')apSafety(dt);
   /* utligning-hold for munnfyll */
   if(a.eqDown){a.eqHold+=dt;if(a.eqHold>=1&&!a.mf){if(a.y/M>=14&&a.y/M<=22.5){a.mf=true;a.eq=0;S.tick();apMsg('Munnfyll tatt – nå holder utligningen helt ned',2.4)}else if(a.eqHold<1.05)apMsg('Munnfyll tas mellom 14 og 22 meter',1.6)}}
-  var g=a.g,inp=inputVec(),MAXS=165*FIN[g.fin].v;
+  if(a.lk!=null&&a.t-a.lk>1.25)a.kr=Math.max(0,(a.kr||0)-dt*.7);if(a.kpulse>0)a.kpulse-=dt*3;
+  var g=a.g,inp=inputVec(),MAXS=165*FIN[g.fin].v,rhy=a.kr||0;
   a.sx+=(inp.x-a.sx)*Math.min(1,dt*11);a.sy+=(inp.y-a.sy)*Math.min(1,dt*11);
   var im=Math.min(1,Math.hypot(a.sx,a.sy));if(im<.03)im=0;
   if(a.pain>0||a.ph==='bo')im=0;
   a.im=im;var gz=clamp((im-.1)/.25,0,1),mx=im?a.sx*gz:0,my=im?a.sy*gz:0;
   var oy=a.y;
   a.vx+=(mx*MAXS-a.vx)*Math.min(1,dt*2.9);
-  a.vy+=(my*MAXS*(my>0?eqV():1)-a.vy)*Math.min(1,dt*2.9);
+  a.vy+=(my*MAXS*(my>0?eqV():a.ph==='up'?.5+.55*rhy:1)-a.vy)*Math.min(1,dt*2.9);
   if(a.y>16){var dm=a.y/M,bz=clamp(dm-WT[g.wt].nd-SUIT[g.suit].lift,-4.5,6);if(bz>0)bz*=1+SUIT[g.suit].comp*Math.min(1,dm/25);a.vy+=bz*22*WT[g.wt].f*dt}
   else if(a.y>2&&im<.1)a.vy+=(-40-a.vy)*Math.min(1,dt*1.5);
   if(a.boost>0){var ka=im>.1?Math.atan2(a.sy,a.sx):a.ang;a.vx+=Math.cos(ka)*a.boost*380*dt;a.vy+=Math.sin(ka)*a.boost*380*dt;a.boost=Math.max(0,a.boost-dt)}
@@ -4011,7 +4023,8 @@ function apUpdate(dt){
   if(a.y<0){a.y=0;if(a.vy<0)a.vy=0}
   var bot=a.tgt*M;if(a.y>bot){a.y=bot;if(a.vy>0)a.vy=0}
   a.spd=Math.min(1,Math.hypot(a.vx,a.vy)/165);
-  a.kph+=dt*(2+Math.max(a.spd,a.boost*1.6)*10);
+  a.ff=a.ph==='down'&&im<.1&&a.boost<.05&&a.vy>20;
+  if(a.ff){var kt=Math.round(a.kph/Math.PI)*Math.PI;a.kph+=(kt-a.kph)*Math.min(1,dt*5)}else a.kph+=dt*(2+Math.max(a.spd,a.boost*1.6)*10);
   /* vinkel følger joysticken */
   if(im>.06){var ta=Math.atan2(a.sy,a.sx),da=Math.atan2(Math.sin(ta-a.ang),Math.cos(ta-a.ang));a.ang+=clamp(da*(1.7+2.3*im),-2.6,2.6)*dt*1.4}
   else if(a.y<6){a.ang+=Math.atan2(Math.sin(0-a.ang),Math.cos(0-a.ang))*Math.min(1,dt*3)}
@@ -4028,7 +4041,7 @@ function apUpdate(dt){
   }else a.eq=Math.max(0,a.eq-dt*.5);
   if(a.pain>0)a.pain-=dt;
   /* oksygen – samme som når du jakter */
-  var eff=Math.max(im,a.spd),rate=(1+.8*FIN[g.fin].a*eff*eff+.5*a.boost)*(1-RELAX[g.relax].r*(1-Math.min(1,eff*3)))+(a.pain>0?.8:0)+(a.drag?.35:0)+(a.eqDown?.15:0);
+  var eff=Math.max(im,a.spd),rate=(1+.8*FIN[g.fin].a*eff*eff*(a.ph==='up'?1.15-.3*rhy:1)+.5*a.boost)*(1-RELAX[g.relax].r*(1-Math.min(1,eff*3)))+(a.pain>0?.8:0)+(a.drag?.35:0)+(a.eqDown?.15:0);
   if(a.y>4||a.ph!=='down')a.o2-=100/a.Tb*rate*dt;
   if(a.o2<45){a.ct-=dt;if(a.ct<=0){a.ct=.9+a.o2/14;a.shake=.25;try{S.beat(.3)}catch(_){}}}
   if(a.o2<=0){a.o2=0;a.ph='bo';a.bo=0;apUI();try{S.blackout()}catch(_){}return}
@@ -4086,7 +4099,7 @@ function apDraw(){
   var mc=ctx;ctx=c;
   c.save();c.translate(dx,yy);c.scale(s,s);
   var surf=(a.ph==='breathe'||a.ph==='ready')?true:2;
-  DLIMP=lim;drawDiver(0,0,dAng,lim>.3?0:a.kph,lim>.3?0:(a.spd||.15),surf,null);DLIMP=0;
+  DLIMP=lim;drawDiver(0,0,dAng,lim>.3?0:a.kph,lim>.3||a.ff?0:(a.spd||.15),surf,null);DLIMP=0;
   /* merket på armen */
   if(a.tag&&!(a.ph==='turn'&&a.ta<.75)){c.save();c.rotate(dAng);if(Math.cos(dAng)<0)c.scale(1,-1);c.fillStyle='#ff8a1f';c.fillRect(-2,-12,8,5);c.restore()}
   c.restore();
@@ -4104,7 +4117,7 @@ function apDraw(){
     c.save();c.translate(ssx,ssy);c.scale(s,s);drawDiver(0,0,sAng,a.bs==='tow'?tClock*8:tClock*2,a.bs==='tow'?.8:.2,a.bs==='rescue'?true:2,null);c.restore();DREACH=null;
     if(a.bs==='rescue'&&a.rT>.3&&a.rT<2.6){var bx3=ssx+18*s,by3=ssy-62*s;c.fillStyle='#fff';c.beginPath();if(c.roundRect)c.roundRect(bx3,by3-22,104,30,10);else c.rect(bx3,by3-22,104,30);c.fill();c.fillStyle='#06222b';c.font='700 15px system-ui,sans-serif';c.textAlign='left';c.fillText('Pust! Pust!',bx3+12,by3-1);c.textAlign='center'}
   }
-  else if(a.sd&&(a.ph==='turn'||a.ph==='up'||a.ph==='bo')){var sdy=a.sd.y/M*PM;curGear=FULL;c.save();c.translate(sdx,sdy);c.scale(s,s);drawDiver(0,0,a.sd.st==='down'?1.5708:-1.5708,tClock*7,.7,2,null);c.restore()}
+  else if(a.sd&&(a.ph==='turn'||a.ph==='up'||a.ph==='bo')){var sdy=a.sd.y/M*PM;curGear=FULL;c.save();c.translate(sdx,sdy);c.scale(s,s);DBEND=a.sd.bend||0;drawDiver(0,0,a.sd.ang!=null?a.sd.ang:(a.sd.st==='down'?1.5708:-1.5708),a.sd.k||tClock*7,a.sd.st==='turn'||a.sd.st==='wait'?.15:.7,2,null);DBEND=0;c.restore()}
   else if(a.ph==='breathe'||a.ph==='ready'||a.ph==='proto'||a.ph==='card'||a.ph==='down'&&a.d<3){curGear=FULL;c.save();c.translate(sdx+30*s,10+Math.sin(tClock*1.4+1)*2);c.scale(s,s);drawDiver(0,0,Math.PI,tClock*1.5,.1,true,null);c.restore()}
   ctx=mc;curGear=FULL;
   /* bobler */
@@ -4131,7 +4144,7 @@ function apDraw(){
     c.beginPath();c.moveTo(0,6);c.bezierCurveTo(-16,-4,-8,-16,0,-7);c.bezierCurveTo(8,-16,16,-4,0,6);c.fill();c.restore();
     c.fillStyle='#fff';c.font='800 30px system-ui,sans-serif';c.fillText(Math.round(a.pulse),hx2,hy2+56);c.font='600 12px system-ui,sans-serif';c.fillText('slag i minuttet',hx2,hy2+74);
     /* nedtelling */
-    c.font='800 52px system-ui,sans-serif';c.fillStyle=a.t<0?'rgba(255,255,255,.5)':'#fff';c.fillText(a.t<0?'Klar':Math.ceil(10-a.t),w/2,h*.26);
+    c.font='800 52px system-ui,sans-serif';c.fillStyle=a.t<0?'rgba(255,255,255,.5)':'#fff';c.fillText(a.t<0?'Klar':Math.ceil(20-a.t),w/2,h*.26);
     c.font='600 13px system-ui,sans-serif';c.fillText('Mål: '+a.tgt+' m',w/2,h*.26+24);
   }else{
     c.font='800 34px system-ui,sans-serif';c.fillText(a.d.toFixed(1).replace('.',',')+' m',w/2,58);
@@ -4149,6 +4162,9 @@ function apDraw(){
       else if(false){c.font='600 13px system-ui,sans-serif';c.fillStyle='#ffd23f';c.fillText('Du synker selv – slutt å sparke',w/2,138)}
     }
     if(a.atB&&!a.tag){c.font='700 15px system-ui,sans-serif';c.fillStyle='#ff8a1f';c.fillText('Ta merket! '+Math.max(0,4-a.bt).toFixed(1)+' s',w/2,160)}
+    if(a.ph==='up'){var rk=a.kr||0,rx=w-110,ry=h-150;c.fillStyle='rgba(0,0,0,.35)';c.fillRect(rx,ry,92,10);c.fillStyle=rk>.7?'#7ed49a':rk>.35?'#ffd23f':'#ff9c7a';c.fillRect(rx,ry,92*rk,10);
+      c.strokeStyle='#fff';c.lineWidth=1;c.strokeRect(rx,ry,92,10);c.fillStyle='#fff';c.font='700 11px system-ui,sans-serif';c.fillText(rk>.7?'GOD RYTME':'SPARKE-RYTME',rx+46,ry-6);
+      var kb=$('apKick');kb.style.boxShadow=a.kpulse>0?'0 0 0 '+(8*a.kpulse).toFixed(1)+'px rgba(126,212,154,'+(.6*a.kpulse*rk+.15).toFixed(2)+')':'';}
     if(a.ph==='up'&&a.drag){c.font='600 13px system-ui,sans-serif';c.fillStyle='#ffd23f';c.fillText('Lanyarden drar – svøm rett langs lina',w/2,138)}
     if(a.ph==='proto'){c.font='700 16px system-ui,sans-serif';c.fillStyle='#fff';c.fillText('Protokoll: '+Math.max(0,15-a.surf).toFixed(0)+' s',w/2,140)}
   }
