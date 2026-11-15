@@ -88,6 +88,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -276,7 +278,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11l · vraket på 35–40 m</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11m · vraket er en gammel fiskebåt</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -392,7 +394,7 @@ td.n,th.n{text-align:right}
     </ul>
     <h2>Vraket</h2>
     <ul>
-      <li>Et gammelt lasteskip ligger nesten flatt på bunnen nedenfor skråningen, på 35–40 meter: dekket på rundt 35 meter og kjølen på 40.</li>
+      <li>En stor gammel fiskebåt, «Havørn», ligger nesten flatt på bunnen nedenfor skråningen, på 35–40 meter: dekket på rundt 35 meter og kjølen på 40. Styrhuset, masten, nottrommelen og hekkgalgen står fortsatt, og gamle garn henger over ripa akter.</li>
       <li>Bergylt og torsk står i steinene i skråningen opp mot land, og lyr jager over vraket. Langa ligger inne i lasterommet nede i den dype delen.</li>
       <li>Vraket er en labyrint av rom på to dekk. Du kommer inn gjennom de to lukene på dekket og må finne veien gjennom dører i skottene og åpninger i mellomdekket – du kan ikke svømme gjennom veggene. Jo lenger inn du kommer, jo større fisk står det i rommene. Det dypeste rommet nede midt i skipet når du bare via akterenden. Inne er det nesten helt mørkt, så en lykt hjelper mye. Pass på lufta og veien ut.</li>
     </ul>
@@ -916,18 +918,40 @@ function drawWreck(x0,x1){
   ctx.fillStyle=ig;ctx.fillRect(0,-H,L,H);
   ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;for(var px=30;px<L;px+=60){ctx.beginPath();ctx.moveTo(px,-H+6);ctx.lineTo(px,-6);ctx.stroke()}
   ctx.fillStyle='rgba(150,80,40,.22)';for(var r=0;r<50;r++){var rx=(r*97)%L,ry=-H+((r*53)%H);ctx.beginPath();ctx.ellipse(rx,ry,10+(r%5)*3,3+(r%3),0,0,6.283);ctx.fill()}
-  /* baug og akter utenfor */
-  ctx.fillStyle='#3a302b';ctx.beginPath();ctx.moveTo(0,-H);ctx.quadraticCurveTo(-70,-H*.4,0,0);ctx.closePath();ctx.fill();
-  ctx.beginPath();ctx.moveTo(L,0);ctx.lineTo(L+30,-H*.5);ctx.lineTo(L,-H);ctx.closePath();ctx.fill();
+  /* skrog utvendig: gammel fiskebåt med høy baug, rød bunn og hvit vannlinje */
+  ctx.fillStyle='#1f2a33';ctx.beginPath();ctx.moveTo(0,-H);ctx.quadraticCurveTo(-30,-H-40,-60,-H-70);ctx.quadraticCurveTo(-75,-H*.4,0,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#6b2a22';ctx.beginPath();ctx.moveTo(-40,-H*.18);ctx.quadraticCurveTo(-20,-6,10,0);ctx.lineTo(0,-H*.18);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#1f2a33';ctx.beginPath();ctx.moveTo(L,0);ctx.quadraticCurveTo(L+50,-H*.35,L+40,-H);ctx.lineTo(L,-H);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(230,226,214,.55)';ctx.fillRect(-50,-H*.2-3,L+90,4);
+  ctx.fillStyle='rgba(120,40,30,.55)';ctx.fillRect(-30,-H*.18,L+70,H*.18-6);
+  ctx.fillStyle='rgba(230,226,214,.7)';ctx.font='700 22px Figtree, sans-serif';ctx.textAlign='left';ctx.fillText('HAVØRN',-40,-H-40);
+  ctx.fillStyle='rgba(150,80,40,.5)';for(var rs=0;rs<14;rs++){var rsx=(rs*173)%L;ctx.fillRect(rsx,-H+8,3,30+(rs%4)*14)}
+  ctx.strokeStyle='#2b363e';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(-58,-H-66);ctx.quadraticCurveTo(-20,-H-30,40,-H-24);ctx.lineTo(L*.06,-H-24);ctx.stroke();
   /* vegger, dekk og skott */
   ctx.lineCap='butt';
   W.forEach(function(q){ctx.strokeStyle='#5a4b40';ctx.lineWidth=14;ctx.beginPath();if(q.t==='h'){ctx.moveTo(q.a,-q.c);ctx.lineTo(q.b,-q.c)}else{ctx.moveTo(q.c,-q.a);ctx.lineTo(q.c,-q.b)}ctx.stroke();
     ctx.strokeStyle='rgba(160,120,80,.35)';ctx.lineWidth=2;ctx.beginPath();if(q.t==='h'){ctx.moveTo(q.a,-q.c-6);ctx.lineTo(q.b,-q.c-6)}else{ctx.moveTo(q.c-6,-q.a);ctx.lineTo(q.c-6,-q.b)}ctx.stroke()});
-  /* rekkverk og overbygg */
-  ctx.strokeStyle='rgba(120,105,90,.7)';ctx.lineWidth=1.5;for(var rk=10;rk<L-20;rk+=30){ctx.beginPath();ctx.moveTo(rk,-H-7);ctx.lineTo(rk,-H-20);ctx.stroke()}
-  ctx.fillStyle='#3d332d';ctx.fillRect(L-130,-H-90,110,84);ctx.fillStyle='#0b0d0e';for(var w=0;w<3;w++)ctx.fillRect(L-118+w*32,-H-78,20,16);
-  ctx.strokeStyle='#4a3f37';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(L*.38,-H-7);ctx.lineTo(L*.38,-H-180);ctx.lineTo(L*.38+90,-H-220);ctx.stroke();
-  ctx.lineWidth=2;ctx.strokeStyle='rgba(160,150,130,.45)';ctx.beginPath();ctx.moveTo(L*.38,-H-170);ctx.quadraticCurveTo(L*.5,-H-70,L*.62,-H-7);ctx.stroke();
+  /* rekke langs dekket */
+  ctx.strokeStyle='rgba(120,105,90,.7)';ctx.lineWidth=1.5;for(var rk=10;rk<L-20;rk+=30){ctx.beginPath();ctx.moveTo(rk,-H-7);ctx.lineTo(rk,-H-22);ctx.stroke()}ctx.beginPath();ctx.moveTo(0,-H-22);ctx.lineTo(L-10,-H-22);ctx.stroke();
+  /* styrhus med vinduer */
+  var wh0=L*.15,wh1=L*.27;ctx.fillStyle='#bdb8ac';ctx.fillRect(wh0,-H-120,wh1-wh0,113);ctx.fillStyle='rgba(60,50,40,.35)';ctx.fillRect(wh0,-H-120,wh1-wh0,113);
+  ctx.fillStyle='#1f2a33';ctx.fillRect(wh0-10,-H-132,wh1-wh0+20,14);
+  ctx.fillStyle='#0b0d0e';for(var wn=0;wn<5;wn++)ctx.fillRect(wh0+12+wn*((wh1-wh0-20)/5),-H-108,(wh1-wh0-40)/5,26);
+  ctx.fillRect(wh0+20,-H-62,26,55);
+  /* mast, bom og stag */
+  ctx.strokeStyle='#3d4a52';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(L*.21,-H-132);ctx.lineTo(L*.21,-H-260);ctx.stroke();
+  ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(L*.21-30,-H-230);ctx.lineTo(L*.21+30,-H-230);ctx.moveTo(L*.21,-H-200);ctx.lineTo(L*.33,-H-60);ctx.stroke();
+  ctx.lineWidth=1.5;ctx.strokeStyle='rgba(160,150,130,.5)';ctx.beginPath();ctx.moveTo(L*.21,-H-255);ctx.lineTo(L*.08,-H-24);ctx.moveTo(L*.21,-H-255);ctx.lineTo(L*.5,-H-24);ctx.stroke();
+  /* nottrommel og vinsj */
+  ctx.fillStyle='#3a4a3a';ctx.beginPath();ctx.ellipse(L*.68,-H-46,46,38,0,0,6.283);ctx.fill();ctx.strokeStyle='#2a352a';ctx.lineWidth=4;ctx.stroke();
+  ctx.strokeStyle='rgba(90,110,80,.7)';ctx.lineWidth=2;for(var nt=0;nt<6;nt++){ctx.beginPath();ctx.ellipse(L*.68,-H-46,40-nt*5,32-nt*4,0,0,6.283);ctx.stroke()}
+  ctx.fillStyle='#4a3f37';ctx.fillRect(L*.56,-H-30,60,24);
+  /* hekkgalge akter */
+  ctx.strokeStyle='#4a5560';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(L-70,-H-7);ctx.lineTo(L-30,-H-150);ctx.lineTo(L+10,-H-7);ctx.stroke();
+  ctx.fillStyle='#2a333a';ctx.beginPath();ctx.arc(L-30,-H-148,10,0,6.283);ctx.fill();
+  /* gammelt garn over ripa */
+  ctx.strokeStyle='rgba(170,180,150,.35)';ctx.lineWidth=1;for(var gn=0;gn<14;gn++){ctx.beginPath();ctx.moveTo(L*.78+gn*14,-H-20);ctx.quadraticCurveTo(L*.78+gn*14+10,-H*.5,L*.78+gn*16,-H*.15);ctx.stroke()}
+  for(var gh=0;gh<8;gh++){ctx.beginPath();ctx.moveTo(L*.78,-H+gh*22);ctx.lineTo(L*.78+190,-H+gh*24+10);ctx.stroke()}
   /* luker markert */
   ctx.fillStyle='rgba(255,210,63,.18)';[L*.07,L*.47].forEach(function(u){ctx.fillRect(u,-H-8,90,16)});
   /* liv på dekk */
@@ -3601,7 +3625,7 @@ function beginPlay(){
   state='play';lastHud='';
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===10){toast('Vraket: et gammelt lasteskip ligger på 35–40 meter nedenfor skråningen. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
+  if(level===10){toast('Vraket: den gamle fiskebåten «Havørn» ligger på 35–40 meter nedenfor skråningen. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
   if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk. Lever fisken i båten lenger ute, ellers tar bjørnen den fra flåten','',8000);return}
   if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og teller ned til båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe','',7000);return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
@@ -3651,7 +3675,7 @@ var SPOTS=[
   {lv:7,n:'Crabmountain',w:'Krabbefabrikk · fjell av krabbeskall fra 10 m',d:'Et flytende rør dumper knust krabbeskall som blir til hvite fjell på bunnen. Så mye pale at vannet blir svart – du dykker nesten i blinde. Svær lyr, kjempetorsk og breiflabb i dalene.'},
   {lv:8,n:'New Zealand',w:'Slepedykk · pinnakkel på 20–25 m',d:'Bli slept etter båten. Båtmannen roper når dere er over grunna – du beregner selv når du skal slippe for å treffe den i strømmen. Kingfish som stuper mot fjellet, og snapper mellom steinene.'},
   {lv:9,n:'Alaska',w:'Elvemunning og tareskog · 6 °C',d:'Laks på vei mot elva, lingcod i taren og stillehavskveite på sanden. Iskaldt vann, ferskvann der det ikke er lov å skyte – og en hissig bjørn som angriper når du puster i overflaten.'},
-  {lv:10,n:'Vraket',w:'Lasteskip på bunnen · 35–40 m',d:'Et gammelt vrak ligger nedover skråningen. Svøm inn i labyrinten av mørke rom – jo lenger inn, jo større fisk.'},
+  {lv:10,n:'Vraket',w:'Gammel fiskebåt · 35–40 m',d:'Fiskebåten «Havørn» ligger på bunnen. Svøm inn i labyrinten av mørke rom – jo lenger inn, jo større fisk.'},
   {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
 var spotImg={};
 function spotPic(k){
@@ -3732,11 +3756,14 @@ function spotPic(k){
     }
     if(k===11){
       hills('#4f6a66',16);rays(.04);
-      bottomFill('#1d2a2a',function(x){return 120+x*.22});
-      ctx.save();ctx.translate(120,150);ctx.rotate(.21);ctx.fillStyle='#3a302b';ctx.beginPath();ctx.moveTo(-10,-34);ctx.quadraticCurveTo(-18,-14,4,0);ctx.lineTo(430,0);ctx.lineTo(440,-24);ctx.lineTo(430,-40);ctx.lineTo(400,-40);ctx.lineTo(400,-34);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#07090a';[60,170,280].forEach(function(xx){ctx.fillRect(xx,-37,30,8)});ctx.fillStyle='#3d332d';ctx.fillRect(400,-56,34,18);
-      ctx.strokeStyle='#4a3f37';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(150,-34);ctx.lineTo(150,-90);ctx.lineTo(180,-104);ctx.stroke();
-      ctx.fillStyle='rgba(240,236,228,.85)';for(i=0;i<14;i++){ctx.beginPath();ctx.arc(10+i*28,-38,3,0,6.283);ctx.fill()}ctx.restore();
+      bottomFill('#1d2a2a',function(x){return x<120?90+x*1.0:214+(x-120)*.01});
+      ctx.save();ctx.translate(110,214);ctx.fillStyle='#1f2a33';ctx.beginPath();ctx.moveTo(-30,-58);ctx.quadraticCurveTo(-34,-20,0,0);ctx.lineTo(400,0);ctx.quadraticCurveTo(420,-20,416,-40);ctx.lineTo(0,-40);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#6b2a22';ctx.fillRect(-10,-10,415,8);ctx.fillStyle='rgba(230,226,214,.6)';ctx.fillRect(-14,-13,420,3);
+      ctx.fillStyle='#bdb8ac';ctx.fillRect(60,-80,60,40);ctx.fillStyle='#0b0d0e';for(i=0;i<3;i++)ctx.fillRect(66+i*18,-72,12,10);
+      ctx.strokeStyle='#3d4a52';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(90,-80);ctx.lineTo(90,-130);ctx.moveTo(90,-120);ctx.lineTo(150,-44);ctx.stroke();
+      ctx.fillStyle='#3a4a3a';ctx.beginPath();ctx.ellipse(280,-56,20,16,0,0,6.283);ctx.fill();
+      ctx.strokeStyle='#4a5560';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(370,-40);ctx.lineTo(388,-100);ctx.lineTo(406,-40);ctx.stroke();
+      ctx.fillStyle='rgba(240,236,228,.85)';for(i=0;i<12;i++){ctx.beginPath();ctx.arc(140+i*18,-44,2.6,0,6.283);ctx.fill()}ctx.restore();
       fishAt('lyr',300,110,70,1);fishAt('lyr',360,96,64,1);fishAt('bergylt',150,118,46,-1);fishAt('lange',470,236,110,-1);buoyAt(560)
     }
     if(k===10){
