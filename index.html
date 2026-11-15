@@ -118,6 +118,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -343,7 +345,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12h · kick i jevnt tempo, hvit lapp</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12i · raskere kick gir mer fart</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -363,7 +365,7 @@ td.n,th.n{text-align:right}
       <p><b>2. Ned:</b> du svømmer med joysticken og KICK! akkurat som når du jakter, med ditt eget utstyr. Du er festet til lina med en lanyard – svøm rett ned langs lina. Går du på skrå, drar lanyarden og du bruker mer luft. Når du er tung nok, synker du av deg selv (fritt fall) – slipp joysticken og spar luft.</p>
       <p><b>3. Utlign:</b> ørene fylles med trykk på vei ned. Trykk UTLIGN når måleren er i det grønne feltet. Venter du til den blir rød, får du vondt og må opp litt.</p>
       <p><b>4. Munnfyll:</b> under 22 meter fylles ørene mye raskere. Hold UTLIGN inne i ett sekund mellom 14 og 22 meter for å ta munnfyll.</p>
-      <p><b>5. Bunnen:</b> trykk TA MERKET ved bunnplata, og svøm opp igjen langs lina. På vei opp må du finne et jevnt tempo på KICK! (omtrent ett trykk i sekundet) – da går det mye raskere og du bruker mindre luft. Ujevne eller for raske trykk ødelegger tempoet.</p>
+      <p><b>5. Bunnen:</b> trykk TA MERKET ved bunnplata, og svøm opp igjen langs lina. På vei opp gir KICK! fart: jo fortere du trykker, jo mer fart får du. Hver spark koster litt luft.</p>
       <p><b>6. Overflateprotokoll:</b> i overflaten trykker du i riktig rekkefølge: Masken av → OK-tegn → «Jeg er OK». Feil rekkefølge eller for sent gir rødt kort.</p>
       <p><b>Kort:</b> hvitt = godkjent. Gult = du fikk ikke med merket. Rødt = blackout, samba eller feil protokoll.</p>
     </div>
@@ -3876,9 +3878,8 @@ function apPress(id,dn){
   if(!ap)return;
   if(id==='apKick'){$('apKick').classList.toggle('on',dn);if(dn&&(ap.ph==='down'||ap.ph==='up')){
     var nt=ap.t,iv=nt-(ap.lk==null?-9:ap.lk);ap.lk=nt;
-    if(iv>.45&&iv<1.05){var pr=ap.liv||iv,cons=clamp(1-Math.abs(iv-pr)/pr*3,0,1);ap.kr=(ap.kr||0)+(cons-(ap.kr||0))*.45;ap.liv=pr*.5+iv*.5}
-    else if(iv<=.45){ap.kr=(ap.kr||0)*.55;ap.liv=null}else ap.liv=null;
-    ap.boost=Math.min(1,ap.boost+.12+.18*(ap.kr||0));ap.kick2=1;try{S.kick()}catch(_){}}}
+    ap.kr=Math.min(1,(ap.kr||0)+.17);
+    ap.boost=Math.min(1,ap.boost+.22);ap.kick2=1;try{S.kick()}catch(_){}}}
   else if(id==='apEqB'){if(dn){ap.eqDown=true;ap.eqHold=0}else if(ap.eqDown){ap.eqDown=false;if(ap.eqHold<.35)apEqTap()}$('apEqB').classList.toggle('on',dn)}
   else if(id==='apHook'){$('apHook').classList.toggle('on',dn);if(ap.ph!=='proto')return;if(dn){ap.hookDown=true;ap.hookT=0}else if(ap.hookDown){ap.hookDown=false;if(ap.hookT>=.55){ap.o2=Math.min(100,ap.o2+11);try{S.breath()}catch(_){}apMsg('Krokpust – hendene roer seg',1.4)}else apMsg('Hold lenger for en full krokpust',1.2)}}
   else if(id==='apBr'){if(ap.ph==='ready'){if(dn)apGoDown()}else{ap.hold=dn;$('apBr').classList.toggle('on',dn)}}
@@ -4001,13 +4002,13 @@ function apUpdate(dt){
     if(a.tagging&&!a.tag&&a.ta>=.38){a.tag=true;S.chime();apMsg('Merket er tatt!',1.6)}
     a.ang=a.a0+(-1.5708-a.a0)*sm;a.bend=Math.sin(Math.PI*pT)*.95;a.y-=sm*14*dt;a.spd=.3*Math.sin(Math.PI*pT);a.kph+=dt*3;
     a.o2-=100/a.Tb*.8*dt;
-    if(a.ta>=t0+1){a.ph='up';a.vy=-55;a.bend=0;apUI();apMsg('Svøm opp – trykk KICK! i jevnt tempo for god fart',2.4)}
+    if(a.ta>=t0+1){a.ph='up';a.vy=-55;a.bend=0;apUI();apMsg('Svøm opp – jo fortere du trykker KICK!, jo mer fart',2.4)}
     return;
   }
   if(a.ph==='up')apSafety(dt);
   /* utligning-hold for munnfyll */
   if(a.eqDown){a.eqHold+=dt;if(a.eqHold>=1&&!a.mf){if(a.y/M>=14&&a.y/M<=22.5){a.mf=true;a.eq=0;S.tick();apMsg('Munnfyll tatt – nå holder utligningen helt ned',2.4)}else if(a.eqHold<1.05)apMsg('Munnfyll tas mellom 14 og 22 meter',1.6)}}
-  if(a.lk!=null&&a.t-a.lk>1.3)a.kr=Math.max(0,(a.kr||0)-dt*.7);if(a.kick2>0)a.kick2-=dt*2.5;
+  a.kr=Math.max(0,(a.kr||0)-dt*.45);if(a.kick2>0)a.kick2-=dt*2.5;
   var g=a.g,inp=inputVec(),MAXS=165*FIN[g.fin].v,rhy=a.kr||0;
   a.sx+=(inp.x-a.sx)*Math.min(1,dt*11);a.sy+=(inp.y-a.sy)*Math.min(1,dt*11);
   var im=Math.min(1,Math.hypot(a.sx,a.sy));if(im<.03)im=0;
@@ -4045,7 +4046,7 @@ function apUpdate(dt){
   }else a.eq=Math.max(0,a.eq-dt*.5);
   if(a.pain>0)a.pain-=dt;
   /* oksygen – samme som når du jakter */
-  var eff=Math.max(im,a.spd),rate=(1+.8*FIN[g.fin].a*eff*eff*(a.ph==='up'?1.15-.3*rhy:1)+.5*a.boost)*(1-RELAX[g.relax].r*(1-Math.min(1,eff*3)))+(a.pain>0?.8:0)+(a.drag?.35:0)+(a.eqDown?.15:0);
+  var eff=Math.max(im,a.spd),rate=(1+.8*FIN[g.fin].a*eff*eff+.5*a.boost)*(1-RELAX[g.relax].r*(1-Math.min(1,eff*3)))+(a.pain>0?.8:0)+(a.drag?.35:0)+(a.eqDown?.15:0);
   if(a.y>4||a.ph!=='down')a.o2-=100/a.Tb*rate*dt;
   if(a.o2<45){a.ct-=dt;if(a.ct<=0){a.ct=.9+a.o2/14;a.shake=.25;try{S.beat(.3)}catch(_){}}}
   if(a.o2<=0){a.o2=0;a.ph='bo';a.bo=0;apUI();try{S.blackout()}catch(_){}return}
