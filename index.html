@@ -120,6 +120,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -241,6 +243,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .apStats div{background:rgba(230,242,238,.08);border-radius:10px;padding:10px}
 .apStats b{display:block;font-family:var(--display);font-size:20px}
 .apStats span{font-size:12px;opacity:.75}
+#apNdTxt{opacity:.8}
+.apW{display:flex;align-items:center;gap:10px;margin-top:12px;background:rgba(230,242,238,.08);border-radius:10px;padding:10px 12px}
+.apW span{flex:1;font-size:14px}
+.apW b{font-family:var(--display);font-size:20px;min-width:62px;text-align:center}
+.apW button{width:42px;height:42px;border-radius:10px;border:2px solid var(--foam);background:transparent;color:var(--foam);font-size:22px;font-weight:700;cursor:pointer}
 #apRes{margin-top:12px;padding:14px;border-radius:12px;font-weight:700}
 #apRes[hidden]{display:none}
 #apRes.white{background:#f3f6f4;color:#06222b}#apRes.yellow{background:#ffd23f;color:#1b1400}#apRes.red{background:#d42a2a;color:#fff}
@@ -345,7 +352,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12i · raskere kick gir mer fart</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.12j · velg vekting i apnea</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -356,6 +363,8 @@ td.n,th.n{text-align:right}
     <p class="lead">Tren dypdykk langs line. Får du godkjent et dykk dypere enn før, øker godkjent dybde. Da kan du jakte dypere, du får lengre dykketid og bedre utligning.</p>
     <div id="apRes" hidden></div>
     <div class="apStats" id="apStats"></div>
+    <div class="apW"><span>Vekting – nøytral på</span><button type="button" id="apNdM">−</button><b id="apNd">10 m</b><button type="button" id="apNdP">+</button></div>
+    <p class="small" id="apNdTxt" style="margin-top:6px"></p>
     <p class="small" style="margin-top:14px">Velg dybde (scroll). Du kan melde opp til 4 meter dypere enn godkjent dybde.</p>
     <div id="apList"></div>
     <button class="btn" id="apGo" type="button">Start dykket</button>
@@ -3806,7 +3815,7 @@ function beginPlay(){
 /* ---------- apnétrening ---------- */
 var AP={pb:10,n:0,log:[]},testPB=0,earTold=false;
 try{var aps=JSON.parse(localStorage.getItem('ettpust-apnea')||'null');
-  if(aps&&typeof aps.pb==='number'){AP.pb=clamp(Math.floor(aps.pb),10,80);AP.n=Math.max(0,aps.n|0);AP.log=Array.isArray(aps.log)?aps.log.slice(0,8):[]}
+  if(aps&&typeof aps.pb==='number'){AP.pb=clamp(Math.floor(aps.pb),10,80);if(typeof aps.nd==='number')AP.nd=clamp(Math.round(aps.nd),0,30);AP.n=Math.max(0,aps.n|0);AP.log=Array.isArray(aps.log)?aps.log.slice(0,8):[]}
   else{ /* overgang: tidligere kjøpt pustetrening og utligning blir til godkjent dybde */
     var mp=10;if(G.lung>0&&LUNG[G.lung])mp=Math.max(mp,Math.round(10+LUNG[G.lung].b/1.5));if(G.eq>0)mp=Math.max(mp,[10,18,30][G.eq]||10);AP.pb=mp}
 }catch(_){}
@@ -3823,14 +3832,14 @@ var apCv=$('apCv'),apX=apCv.getContext('2d'),ap=null,apSel=Math.min(AP.pb+1,AP.p
 function apResize(){apD=Math.min(2,window.devicePixelRatio||1);apW=window.innerWidth;apH=window.innerHeight;apCv.width=Math.round(apW*apD);apCv.height=Math.round(apH*apD)}
 window.addEventListener('resize',function(){if(ap)apResize()});
 function apOpen(res){
-  endTestGear();
+  endTestGear();if(AP.nd==null)apNdUpd();
   $('menu').hidden=true;$('apnea').hidden=false;
   var rb=$('apRes');if(res){rb.hidden=false;rb.className=res.card;rb.innerHTML=res.html}else rb.hidden=true;
   var p=AP.pb,nx=p<18?'18 m gir Frenzel-utligning (20 % raskere ned)':p<30?'30 m gir munnfyll-teknikk (35 % raskere ned)':'Tren videre for mer dykketid';
   $('apStats').innerHTML='<div><b>'+p+' m</b><span>Godkjent dybde</span></div><div><b>'+(p+6)+' m</b><span>Du kan jakte ned til</span></div>'+
     '<div><b>+'+Math.round(trainB())+' s</b><span>Ekstra dykketid fra treningen</span></div><div><b>'+eqName(p)+'</b><span>Utligning</span></div>'+
     '<div style="grid-column:1/3"><span>Godkjente dykk: '+AP.n+' · Neste: '+nx+'</span></div>'+
-    (function(){var ag=apGear();return '<div style="grid-column:1/3"><span>Utstyr: '+FIN[ag.fin].n+', '+SUIT[ag.suit].n+', '+WT[ag.wt].n+(ag.loan.length?' · klubben låner deg '+ag.loan.join(' og '):'')+'</span></div>'})();
+    (function(){var ag=apGear();return '<div style="grid-column:1/3"><span>Utstyr: '+FIN[ag.fin].n+', '+SUIT[ag.suit].n+', '.replace(/, $/,'')+(ag.loan.length?' · klubben låner deg '+ag.loan.join(' og '):'')+'</span></div>'})();
   if(apSel>p+4)apSel=p+4;if(apSel<5)apSel=5;
   var h='';for(var d=5;d<=60;d++){var ok=d<=p+4,lb=d<=p?'godkjent':ok?'+'+(d-p)+' m · ny rekord':'🔒';
     var lv='';for(var L=1;L<=10;L++)if(LVNEED[L]===d-6&&d>p)lv=' · åpner '+LN[L];
@@ -3838,20 +3847,26 @@ function apOpen(res){
   $('apList').innerHTML=h;
   var sb=$('apList').querySelector('.sel'),al=$('apList');if(sb)setTimeout(function(){al.scrollTop=sb.offsetTop-al.offsetTop-al.clientHeight/2+sb.offsetHeight/2},30);$('apnea').scrollTop=0;
   $('apGo').textContent='Start dykket til '+apSel+' m';
+  apNdUpd();
 }
 $('apList').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;apSel=+b.dataset.d;
   var o=$('apList').querySelectorAll('button');for(var i=0;i<o.length;i++)o[i].classList.toggle('sel',o[i]===b);$('apGo').textContent='Start dykket til '+apSel+' m'});
+function apNdUpd(){if(AP.nd==null){var g0=apGear();AP.nd=g0.wt>0?Math.round(WT[g0.wt].nd+SUIT[g0.suit].lift):10}
+  var n=AP.nd;$('apNd').textContent=n+' m';
+  $('apNdTxt').textContent=n<=4?'Tung vekting: du synker raskt fra få meter, men det er tungt å komme opp fra dypet.':n<=12?'Middels vekting: du må svømme de første metrene, så synker du i fritt fall. Grei balanse.':'Lett vekting: du må svømme langt ned før du synker, men du flyter lettere opp igjen.'}
+$('apNdM').addEventListener('click',function(){AP.nd=Math.max(0,(AP.nd||0)-1);apNdUpd();saveAP()});
+$('apNdP').addEventListener('click',function(){AP.nd=Math.min(30,(AP.nd||0)+1);apNdUpd();saveAP()});
 $('apHow').addEventListener('click',function(){$('apHelp').hidden=!$('apHelp').hidden});
 $('apBack').addEventListener('click',function(){$('apnea').hidden=true;$('menu').hidden=false;lockUi()});
 $('apBtn').addEventListener('click',function(){apOpen(null)});
 $('apGo').addEventListener('click',apStart);
 
-function apGear(){var g={};for(var k in G)g[k]=G[k];g.loan=[];if(g.fin<1){g.fin=1;g.loan.push('finner')}if(g.suit<1){g.suit=1;g.loan.push('drakt')}if(g.wt<1){g.wt=1;g.loan.push('blybelte')}return g}
+function apGear(){var g={};for(var k in G)g[k]=G[k];g.loan=[];if(g.fin<1){g.fin=1;g.loan.push('finner')}if(g.suit<1){g.suit=1;g.loan.push('drakt')}return g}
 function apStart(){
   try{S.init()}catch(_){}
   apResize();
   var ag=apGear(),T=26+SUIT[ag.suit].b+trainB()+MASK[ag.mask].b;
-  ap={ph:'breathe',t:-2.5,im:0,g:ag,x:0,y:0,vx:0,vy:0,sx:0,sy:0,spd:0,boost:0,maxD:0,atB:false,drag:false,d:0,v:0,o2:100,T:T,Tb:T,tgt:apSel,eq:0,mf:false,pain:0,painN:0,tag:false,kick:false,kph:0,cal:0,calN:0,hold:false,
+  ap={ph:'breathe',t:-2.5,nd:AP.nd==null?10:AP.nd,im:0,g:ag,x:0,y:0,vx:0,vy:0,sx:0,sy:0,spd:0,boost:0,maxD:0,atB:false,drag:false,d:0,v:0,o2:100,T:T,Tb:T,tgt:apSel,eq:0,mf:false,pain:0,painN:0,tag:false,kick:false,kph:0,cal:0,calN:0,hold:false,
       msg:'Stryk fingeren opp og ned i takt med den lyse kula – jevnt og rolig. Lavest mulig puls når nedtellingen er ferdig',msgT:4,pulse:90+Math.floor(Math.random()*12),minP:200,hph:0,hs:0,touch:false,fy:.5,fv:0,good:false,eqDown:false,eqHold:0,surf:0,pr:[],pi:0,ang:0,bt:0,ct:3,shake:0,samba:0,bo:0,turned:false,mfTold:false,kickSnd:0};
   $('apnea').hidden=true;apCv.hidden=false;apUI();apLast=0;requestAnimationFrame(apLoop);
 }
@@ -3979,7 +3994,7 @@ function apUpdate(dt){
     if(!a.sd)a.sd={y:6,st:'down'};a.bo+=dt;var sd=a.sd;
     if(!a.bs){a.bs='limp';a.lim=0;a.gT=0;a.rT=0}
     if(a.bs==='limp'){
-      a.lim=Math.min(1,a.lim+dt/1.1);a.y=Math.max(4,a.y+(a.y/M>WT[a.g.wt].nd+SUIT[a.g.suit].lift?10:-8)*dt);
+      a.lim=Math.min(1,a.lim+dt/1.1);a.y=Math.max(4,a.y+(a.y/M>a.nd?10:-8)*dt);
       a.ang+=Math.sin(tClock*.6)*.05*dt;
       var tgy=a.y-12,dy2=tgy-sd.y;sd.st=dy2>0?'down':'with';sd.ang=(sd.ang==null?1.5708:sd.ang)+((dy2>0?1.5708:-1.5708)-(sd.ang==null?1.5708:sd.ang))*Math.min(1,dt*3);sd.k=(sd.k||0)+dt*9;sd.bend=0;sd.y+=Math.sign(dy2)*Math.min(Math.abs(dy2),420*dt);
       if(Math.abs(dy2)<10&&a.lim>=1){a.bs='grab';a.gT=0;apMsg('Sikkerhetsdykkeren tar tak i hodet ditt',2)}
@@ -4017,7 +4032,7 @@ function apUpdate(dt){
   var oy=a.y;
   a.vx+=(mx*MAXS-a.vx)*Math.min(1,dt*2.9);
   a.vy+=(my*MAXS*(my>0?eqV():a.ph==='up'?.5+.55*rhy:1)-a.vy)*Math.min(1,dt*2.9);
-  if(a.y>16){var dm=a.y/M,bz=clamp(dm-WT[g.wt].nd-SUIT[g.suit].lift,-4.5,6);if(bz>0)bz*=1+SUIT[g.suit].comp*Math.min(1,dm/25);a.vy+=bz*22*WT[g.wt].f*dt}
+  if(a.y>16){var dm=a.y/M,bz=clamp(dm-a.nd,-4.5,6);if(bz>0)bz*=1+SUIT[g.suit].comp*Math.min(1,dm/25);a.vy+=bz*22*dt}
   else if(a.y>2&&im<.1)a.vy+=(-40-a.vy)*Math.min(1,dt*1.5);
   if(a.boost>0){var ka=im>.1?Math.atan2(a.sy,a.sx):a.ang;a.vx+=Math.cos(ka)*a.boost*380*dt;a.vy+=Math.sin(ka)*a.boost*380*dt;a.boost=Math.max(0,a.boost-dt)}
   if(a.pain>0){a.vy+=(-55-a.vy)*Math.min(1,dt*4)}
