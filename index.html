@@ -100,6 +100,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -292,7 +294,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11s · vekting sparer luft</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11t · zoom i liggende telefon</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -598,8 +600,21 @@ function resize(){
   dpr=Math.min(2,window.devicePixelRatio||1);
   var w=window.innerWidth,h=window.innerHeight;
   cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
-  Z=clamp(h/720,.75,1.5);
+  LAND=w>h*1.15;
+  ZP=clamp(Math.max(w,h)/720,.75,1.5);           /* samme skala som stående */
+  ZW=LAND?clamp(h/820,.42,ZP):ZP;                 /* vid utsikt på vei ned */
+  Z=LAND?ZP+(ZW-ZP)*zMix:clamp(h/720,.75,1.5);
   vw=w/Z;vh=h/Z;
+}
+var LAND=false,ZP=1,ZW=1,zMix=0;
+function updateZoom(dt){
+  if(!LAND)return;
+  var mv=state==='play'&&under&&!lying&&!holding&&(duck||Math.abs(diver.vy)>45||(beltOff&&diver.y>16));
+  var tgt=state==='intro'||(state==='play'&&!under&&!duck)?.6:mv?1:0;
+  zMix+=(tgt-zMix)*Math.min(1,dt*(tgt>zMix?1.1:.7));
+  var oz=Z,ow=vw,oh=vh,w=window.innerWidth,h=window.innerHeight;
+  Z=ZP+(ZW-ZP)*zMix;vw=w/Z;vh=h/Z;
+  if(Math.abs(Z-oz)>1e-5){cam.x-=(vw-ow)/2;cam.y-=(vh-oh)*.45}
 }
 window.addEventListener('resize',resize);resize();
 
@@ -2852,7 +2867,8 @@ function update(dt){
     if(f.school&&f.fleeT<=0&&Math.hypot(f.x-f.school.x,f.y-f.school.y)>420){f.school.x=f.x;f.school.y=f.y}
   }
 
-  var LA=state==='play'?Math.min(vw,vh)*.3:0,under2=diver.y>16;
+  updateZoom(dt);
+  var LA=state==='play'?Math.min(vw,vh)*.3*(LAND?1-.5*zMix:1):0,under2=diver.y>16;
   var ctx0=clamp(diver.x+Math.cos(diver.ang)*LA-vw/2,0,Math.max(0,W-vw));
   var minY=-80,maxY=Math.max(minY,MAXB+170-vh);
   var cty=clamp(diver.y+(under2?Math.sin(diver.ang)*LA:0)-vh*.45,minY,maxY);
