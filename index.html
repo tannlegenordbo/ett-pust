@@ -84,6 +84,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -272,7 +274,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11j · Vraket</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11k · vraket som labyrint</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -390,7 +392,7 @@ td.n,th.n{text-align:right}
     <ul>
       <li>Et gammelt lasteskip ligger på skrå nedover skråningen: baugen ligger på rundt 15 meter, akterenden på rundt 40 meter.</li>
       <li>Bergylt står ved baugen på grunna, lyr jager over vraket, og stor torsk står langs skroget. Langa ligger inne i lasterommet nede i den dype delen.</li>
-      <li>Du kan svømme inn i lasterommet gjennom lukene og de knekte platene. Inne er det nesten helt mørkt – bare rundt deg ser du noe. En lykt fra Havguden lyser opp mer. Pass på lufta og veien ut.</li>
+      <li>Vraket er en labyrint av rom på to dekk. Du kommer inn gjennom de to lukene på dekket og må finne veien gjennom dører i skottene og åpninger i mellomdekket – du kan ikke svømme gjennom veggene. Jo lenger inn du kommer, jo større fisk står det i rommene. Det dypeste rommet nede midt i skipet når du bare via akterenden. Inne er det nesten helt mørkt, så en lykt hjelper mye. Pass på lufta og veien ut.</li>
     </ul>
     <h2>Kjempekveita</h2>
     <p>Et sted på bunnen ligger en kjempekveite. Den er for sterk for én harpun. Slipp harpunen, svøm opp til makkeren og hent hans, og sett skudd nummer to. Opp og pust, og dykk så ned igjen og dra den opp.</p>
@@ -492,10 +494,42 @@ function crabDepth(x){
 }
 function kelpNear(x){for(var i=0;i<kelp.length;i++)if(Math.abs(kelp[i].x-x)<34)return true;return false}
 var nowT=-9,nzShelter='',ROPE=720,callDone=false,PIN={x:2300,top:22},dropT=-9,fightEnd=-9,towing=false,towRun=0,pickupT=0,boatX=0;
-var WRK={x0:620,x1:2880,h:235},inWreck=false,wreckSeen=false;
+var WRK={x0:720,x1:2880,h:330},inWreck=false,wreckSeen=false;
 function wreckGeo(){var y0=bottom(WRK.x0),y1=bottom(WRK.x1),a=Math.atan2(y1-y0,WRK.x1-WRK.x0);return{x:WRK.x0,y:y0,a:a,L:Math.hypot(WRK.x1-WRK.x0,y1-y0),H:WRK.h}}
 function wreckLocal(x,y){var g=wreckGeo(),dx=x-g.x,dy=y-g.y,c=Math.cos(g.a),s2=Math.sin(g.a);return{u:dx*c+dy*s2,v:-(-dx*s2+dy*c),g:g}}
-function isInWreck(x,y){var l=wreckLocal(x,y);return l.u>20&&l.u<l.g.L-40&&l.v>8&&l.v<l.g.H-14}
+function isInWreck(x,y){var l=wreckLocal(x,y);return l.u>4&&l.u<l.g.L-4&&l.v>4&&l.v<l.g.H-4}
+/* vegger i vrakets lokale koordinater: u langs kjølen, v opp fra kjølen. h:[v,u0,u1] v:[u,v0,v1] */
+function wreckWalls(){
+  var g=wreckGeo(),L=g.L,H=g.H,M2=H*.5,w=[];
+  function hz(v,a,b){w.push({t:'h',c:v,a:a,b:b})}function vt(u,a,b){w.push({t:'v',c:u,a:a,b:b})}
+  /* dekk med to luker */
+  var hA=L*.07,hB=L*.47,hw=90;hz(H,0,hA);hz(H,hA+hw,hB);hz(H,hB+hw,L);
+  hz(0,0,L);vt(0,0,H);vt(L,0,H);
+  /* mellomdekk med åpninger */
+  var g1=L*.18,g3=L*.86,gw=80;hz(M2,0,g1);hz(M2,g1+gw,g3);hz(M2,g3+gw,L);
+  /* skott oppe med dører */
+  [L*.3,L*.6].forEach(function(u){vt(u,M2,M2+40);vt(u,M2+125,H)});
+  /* skott nede: ved .42 helt tett, ved .72 dør */
+  vt(L*.42,0,M2);vt(L*.72,0,22);vt(L*.72,105,M2);
+  return w;
+}
+function wreckRooms(){var g=wreckGeo(),L=g.L,H=g.H,M2=H*.5;return[
+  {u0:0,u1:L*.3,v0:M2,v1:H,r:.15},{u0:L*.3,u1:L*.6,v0:M2,v1:H,r:.4},{u0:L*.6,u1:L,v0:M2,v1:H,r:.6},
+  {u0:0,u1:L*.42,v0:0,v1:M2,r:.35},{u0:L*.72,u1:L,v0:0,v1:M2,r:.8},{u0:L*.42,u1:L*.72,v0:0,v1:M2,r:1}]}
+function toWorld(u,v){var g=wreckGeo(),c=Math.cos(g.a),s2=Math.sin(g.a);return{x:g.x+u*c+v*s2,y:g.y+u*s2-v*c}}
+var wPrev=null;
+function wreckCollide(){
+  var l=wreckLocal(diver.x,diver.y),g=l.g,u=l.u,v=l.v,r=15,hit=false,pu=wPrev?wPrev.u:u,pv=wPrev?wPrev.v:v;
+  if(u<-r*3||u>g.L+r*3||v<-r*3||v>g.H+r*3){wPrev={u:u,v:v};return}
+  var W=wreckWalls();
+  for(var k=0;k<3;k++)for(var i=0;i<W.length;i++){var q=W[i];
+    if(q.t==='h'){if(u>q.a-r*.5&&u<q.b+r*.5&&Math.abs(v-q.c)<r){var side=pv>=q.c?1:-1;v=q.c+side*r;hit=true}}
+    else{if(v>q.a-r*.5&&v<q.b+r*.5&&Math.abs(u-q.c)<r){var sd=pu>=q.c?1:-1;u=q.c+sd*r;hit=true}}}
+  if(hit){var p=toWorld(u,v),c=Math.cos(g.a),s2=Math.sin(g.a),vu=diver.vx*c+diver.vy*s2,vv=diver.vx*s2-diver.vy*c;
+    var l2=wreckLocal(p.x,p.y);if(Math.abs(l2.u-l.u)>.5)vu*=.2;if(Math.abs(l2.v-l.v)>.5)vv*=.2;
+    diver.x=p.x;diver.y=p.y;diver.vx=vu*c+vv*s2;diver.vy=vu*s2-vv*c}
+  wPrev={u:u,v:v};
+}
 var BOAT9=2650,pend9=[],pendT=0,quotaWait=false,bearSplash=[],coldK=0,bearT=0,bearX=-999,bearOut=0,BEAR={x:600,z:0,mode:'patrol',t:0,dir:1},surfT=0,bearAnim=0;
 function bottom(x){
   if(level===10){var d=x<500?6+11*sst(x/500):17+27*clamp((x-500)/2700,0,1);return Math.min(MAXB,M*(d+.5*Math.sin(x/37)+.3*Math.sin(x/13)))}
@@ -593,8 +627,7 @@ function pickX(kind){
   }
   if(level===10){
     if(kind==='bergylt')return rnd(650,1300);
-    if(kind==='lange')return rnd(2000,2750);
-    if(kind==='torsk')return rnd(1000,2800);
+    if(kind==='torsk')return rnd(300,700);
     return rnd(700,2600);
   }
   if(level===9){
@@ -652,7 +685,7 @@ function reset(){
   hooked=null;sharks=[];sharkT=0;landMul=1;flasher=null;flCd=0;buddyJob=null;
   holding=null;curDrift=0;
   medKg=0;medBig=false;fishKr=0;fishPts=0;strung=[];maxD=0;compWarn=false;sledRide=false;sled={y:8,state:'home'};
-  var plan=level===10?{lyr:3,torsk:5,bergylt:4,lange:2}:level===9?{laks:3,kongelaks:1,lingcod:3,stkveite:3,svartuer:2}:level===8?{king:2,snapper:7,maomao:3}:level===7?{pale:7,torsk:3,lyr:4,breiflabb:2}:level===6?{sei:4,torsk:8,lyr:4,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
+  var plan=level===10?{lyr:3,torsk:3,bergylt:4}:level===9?{laks:3,kongelaks:1,lingcod:3,stkveite:3,svartuer:2}:level===8?{king:2,snapper:7,maomao:3}:level===7?{pale:7,torsk:3,lyr:4,breiflabb:2}:level===6?{sei:4,torsk:8,lyr:4,steinbit:3,hummer:2}:level===5?{dentice:5,orata:6,sarago:3,spigola:4,ricciola:1,cernia:3}:night?{torsk:12,lyr:6,rodspette:10,steinbit:4,hummer:6,orret:2}:level===4?{mahi:3,spmak:2,tuna:2,wahoo:4,gt:2,marlin:1}:level===2?{lyr:16,torsk:5,steinbit:2,rodspette:6,orret:3,hummer:2}:level===3?{pale:7,torsk:6,lyr:5,hummer:2}:{torsk:10,lyr:7,sei:2,makrell:2,rodspette:8,steinbit:3,orret:4,hummer:3};
   for(var k in plan)for(var i=0;i<plan[k];i++)spawn(k,false);
   if(level===6){
     var bigs=[];
@@ -661,8 +694,9 @@ function reset(){
     for(var gj=0;gj<5;gj++){var bsf=makeFish('sei',bsx+rnd(-50,50),bsc.y+rnd(-25,25),bsc);bsf.cm=Math.round(rnd(100,122));bsf.px=bsf.cm*1.1;fish.push(bsf)}
     var kx=rnd(1450,1950);spawn('kveite',false);hal=fish[fish.length-1];hal.stage=0;hal.cm=Math.round(rnd(150,200));hal.px=hal.cm*.9;hal.x=kx;hal.y=bottom(kx)-(hal.px*.1+2);
   }
-  inWreck=false;wreckSeen=false;
-  if(level===10){var gl=wreckGeo();fish.forEach(function(f){if(f.kind==='lange'||(f.kind==='torsk'&&Math.random()<.4)){var uu=gl.L*rnd(.45,.85),vv=gl.H*rnd(.25,.6);f.x=gl.x+Math.cos(gl.a)*uu+Math.sin(gl.a)*vv;f.y=gl.y+Math.sin(gl.a)*uu-Math.cos(gl.a)*vv;f.hx=f.x;f.hy=f.y;f.tx=f.x;f.ty=f.y;f.inW=1}})}
+  inWreck=false;wreckSeen=false;wPrev=null;
+  if(level===10){var RM=wreckRooms();RM.forEach(function(rm,ri){var kinds=rm.v0>0?['torsk','lyr']:['lange','torsk'];for(var q=0;q<2;q++){var kd=kinds[q],uu=rnd(rm.u0+50,rm.u1-50),vv=rnd(rm.v0+35,rm.v1-35),pw=toWorld(uu,vv),f=makeFish(kd,pw.x,pw.y),rk=clamp(rm.r+rnd(-.08,.08),0,1);
+      f.cm=Math.round(kd==='lange'?95+105*rk:kd==='torsk'?60+72*rk:60+42*rk);f.px=f.cm*(kd==='lange'?1.1:1.1);f.room=rm;f.inW=1;f.hx=f.x;f.hy=f.y;f.tx=f.x;f.ty=f.y;f.school=null;fish.push(f)}})}
   duck=null;diveCd=0;towing=false;pickupT=0;towRun=0;coldK=0;bearT=0;bearOut=0;bearX=-999;surfT=0;bearSplash=[];pend9=[];pendT=0;quotaWait=false;BEAR={x:diver?diver.x-500:400,z:0,mode:'patrol',t:0,dir:1};
   if(level===7){
     for(var g7=0;g7<3;g7++){var gx7=CRAB[(crabAct+g7)%CRAB.length].c+rnd(-260,260);gx7=clamp(gx7,600,W-150);var gf7=makeFish('torsk',gx7,bottom(gx7)-28);gf7.cm=Math.round(rnd(110,138));gf7.px=gf7.cm*1.1;gf7.big=1;fish.push(gf7)}
@@ -873,32 +907,30 @@ function drawBear(){
 /* ---------- vraket ---------- */
 function drawWreck(x0,x1){
   var g=wreckGeo();if(g.x>x1+300||g.x+g.L<x0-300)return;
+  var L=g.L,H=g.H,W=wreckWalls();
   ctx.save();ctx.translate(g.x,g.y);ctx.rotate(g.a);
-  var L=g.L,H=g.H;
-  /* skrog: kjøl langs bunnen (y=0), dekk oppe (y=-H) */
-  var hg=ctx.createLinearGradient(0,-H,0,0);hg.addColorStop(0,'#4d4038');hg.addColorStop(.5,'#3a302b');hg.addColorStop(1,'#241e1b');
-  ctx.fillStyle=hg;ctx.beginPath();ctx.moveTo(-40,-H);ctx.quadraticCurveTo(-60,-H*.4,10,0);ctx.lineTo(L-30,0);ctx.lineTo(L+10,-H*.55);ctx.lineTo(L,-H-20);ctx.lineTo(L-120,-H-20);ctx.lineTo(L-120,-H);ctx.closePath();ctx.fill();
-  /* rust og plater */
-  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;for(var px=40;px<L;px+=70){ctx.beginPath();ctx.moveTo(px,-H+4);ctx.lineTo(px,-4);ctx.stroke()}
-  ctx.beginPath();ctx.moveTo(0,-H*.5);ctx.lineTo(L-40,-H*.5);ctx.stroke();
-  ctx.fillStyle='rgba(150,80,40,.35)';for(var r=0;r<40;r++){var rx=(r*97)%L,ry=-H+((r*53)%H);ctx.beginPath();ctx.ellipse(rx,ry,8+(r%5)*3,3+(r%3),0,0,6.283);ctx.fill()}
-  /* koøyer */
-  ctx.fillStyle='#0b0d0e';ctx.strokeStyle='rgba(180,170,150,.5)';ctx.lineWidth=1.5;for(var po=100;po<L-200;po+=95){ctx.beginPath();ctx.arc(po,-H*.72,6,0,6.283);ctx.fill();ctx.stroke()}
-  /* lasteluker: åpninger inn i lasterommet */
-  ctx.fillStyle='#07090a';[.18,.42,.66].forEach(function(f){ctx.fillRect(L*f,-H-6,110,30)});
-  ctx.fillStyle='rgba(7,9,10,.85)';[.3,.55,.8].forEach(function(f){ctx.beginPath();ctx.moveTo(L*f,-12);ctx.lineTo(L*f+60,-H*.45);ctx.lineTo(L*f+90,-6);ctx.closePath();ctx.fill()});
-  /* rekkverk og dekk */
-  ctx.strokeStyle='#5e5148';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,-H);ctx.lineTo(L-120,-H);ctx.stroke();
-  ctx.strokeStyle='rgba(120,105,90,.7)';ctx.lineWidth=1.5;for(var rk=-30;rk<L-130;rk+=30){ctx.beginPath();ctx.moveTo(rk,-H);ctx.lineTo(rk,-H-14);ctx.stroke()}ctx.beginPath();ctx.moveTo(-30,-H-14);ctx.lineTo(L-130,-H-14);ctx.stroke();
-  /* overbygg, knekt mast og vinsj */
-  ctx.fillStyle='#3d332d';ctx.fillRect(L-110,-H-80,95,62);ctx.fillStyle='#0b0d0e';for(var w=0;w<3;w++)ctx.fillRect(L-100+w*28,-H-70,18,14);
-  ctx.strokeStyle='#4a3f37';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(L*.35,-H);ctx.lineTo(L*.35,-H-170);ctx.lineTo(L*.35+90,-H-210);ctx.stroke();
-  ctx.lineWidth=2;ctx.strokeStyle='rgba(160,150,130,.45)';ctx.beginPath();ctx.moveTo(L*.35,-H-160);ctx.quadraticCurveTo(L*.5,-H-60,L*.62,-H);ctx.stroke();
-  ctx.fillStyle='#463b33';ctx.fillRect(L*.08,-H-26,46,22);
-  /* liv: sjøanemoner, tang og kråkeboller */
-  for(var an=0;an<26;an++){var ax=(an*131)%(L-80)+20,ay=-H-2;ctx.fillStyle='rgba(240,236,228,.85)';ctx.fillRect(ax-1.5,ay-12,3,12);ctx.beginPath();ctx.arc(ax,ay-14,5,0,6.283);ctx.fill()}
-  ctx.strokeStyle='rgba(90,120,60,.7)';ctx.lineWidth=2;for(var tg=0;tg<30;tg++){var tx=(tg*89)%L;ctx.beginPath();ctx.moveTo(tx,-H*.5+((tg*17)%30));ctx.quadraticCurveTo(tx+6,-H*.5+18,tx-4,-H*.5+34);ctx.stroke()}
-  ctx.fillStyle='#4b1f5a';for(var ur=0;ur<14;ur++){ctx.beginPath();ctx.arc((ur*157)%L,-H*.15-((ur*7)%20),4,0,6.283);ctx.fill()}
+  /* innsiden (vi ser rett inn i skroget) */
+  var ig=ctx.createLinearGradient(0,-H,0,0);ig.addColorStop(0,'#2b2420');ig.addColorStop(1,'#15110f');
+  ctx.fillStyle=ig;ctx.fillRect(0,-H,L,H);
+  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;for(var px=30;px<L;px+=60){ctx.beginPath();ctx.moveTo(px,-H+6);ctx.lineTo(px,-6);ctx.stroke()}
+  ctx.fillStyle='rgba(150,80,40,.22)';for(var r=0;r<50;r++){var rx=(r*97)%L,ry=-H+((r*53)%H);ctx.beginPath();ctx.ellipse(rx,ry,10+(r%5)*3,3+(r%3),0,0,6.283);ctx.fill()}
+  /* baug og akter utenfor */
+  ctx.fillStyle='#3a302b';ctx.beginPath();ctx.moveTo(0,-H);ctx.quadraticCurveTo(-70,-H*.4,0,0);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(L,0);ctx.lineTo(L+30,-H*.5);ctx.lineTo(L,-H);ctx.closePath();ctx.fill();
+  /* vegger, dekk og skott */
+  ctx.lineCap='butt';
+  W.forEach(function(q){ctx.strokeStyle='#5a4b40';ctx.lineWidth=14;ctx.beginPath();if(q.t==='h'){ctx.moveTo(q.a,-q.c);ctx.lineTo(q.b,-q.c)}else{ctx.moveTo(q.c,-q.a);ctx.lineTo(q.c,-q.b)}ctx.stroke();
+    ctx.strokeStyle='rgba(160,120,80,.35)';ctx.lineWidth=2;ctx.beginPath();if(q.t==='h'){ctx.moveTo(q.a,-q.c-6);ctx.lineTo(q.b,-q.c-6)}else{ctx.moveTo(q.c-6,-q.a);ctx.lineTo(q.c-6,-q.b)}ctx.stroke()});
+  /* rekkverk og overbygg */
+  ctx.strokeStyle='rgba(120,105,90,.7)';ctx.lineWidth=1.5;for(var rk=10;rk<L-20;rk+=30){ctx.beginPath();ctx.moveTo(rk,-H-7);ctx.lineTo(rk,-H-20);ctx.stroke()}
+  ctx.fillStyle='#3d332d';ctx.fillRect(L-130,-H-90,110,84);ctx.fillStyle='#0b0d0e';for(var w=0;w<3;w++)ctx.fillRect(L-118+w*32,-H-78,20,16);
+  ctx.strokeStyle='#4a3f37';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(L*.38,-H-7);ctx.lineTo(L*.38,-H-180);ctx.lineTo(L*.38+90,-H-220);ctx.stroke();
+  ctx.lineWidth=2;ctx.strokeStyle='rgba(160,150,130,.45)';ctx.beginPath();ctx.moveTo(L*.38,-H-170);ctx.quadraticCurveTo(L*.5,-H-70,L*.62,-H-7);ctx.stroke();
+  /* luker markert */
+  ctx.fillStyle='rgba(255,210,63,.18)';[L*.07,L*.47].forEach(function(u){ctx.fillRect(u,-H-8,90,16)});
+  /* liv på dekk */
+  for(var an=0;an<30;an++){var ax=(an*131)%(L-60)+20;if((ax>L*.07&&ax<L*.07+90)||(ax>L*.47&&ax<L*.47+90))continue;ctx.fillStyle='rgba(240,236,228,.85)';ctx.fillRect(ax-1.5,-H-19,3,12);ctx.beginPath();ctx.arc(ax,-H-21,5,0,6.283);ctx.fill()}
+  ctx.fillStyle='#4b1f5a';for(var ur=0;ur<16;ur++){ctx.beginPath();ctx.arc((ur*157)%L,-9-((ur*7)%6),4,0,6.283);ctx.fill()}
   ctx.restore();
 }
 function drawWreckDark(){
@@ -918,7 +950,6 @@ function buildWorld(){
   kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===10?2700:level===9?1600:level===8?2700:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
   if(level===10){
     for(var q10=0;q10<10;q10++){var bx10=rnd(150,700),br10=rnd(18,36);boul.push({x:bx10,r:br10,y:bottom(bx10)+br10*.45,c:q10%3});rocks.push({x:bx10+br10*.7,w:0,h:0,gap:true})}
-    var gw=wreckGeo();for(var hq=0;hq<8;hq++){var uu=gw.L*(.08+hq*.12),wx=gw.x+Math.cos(gw.a)*uu,wy=gw.y+Math.sin(gw.a)*uu;rocks.push({x:wx,w:0,h:0,gap:true})}
   }
   if(level===9){
     for(var q9=0;q9<14;q9++){var bx9=rnd(520,1950),br9=rnd(18,40);boul.push({x:bx9,r:br9,y:bottom(bx9)+br9*.45,c:q9%3});rocks.push({x:bx9+br9*.7,w:0,h:0,gap:true})}
@@ -2491,6 +2522,7 @@ function update(dt){
     diver.y+=diver.vy*dt;
     if(diver.y<4){diver.y=4;if(diver.vy<0)diver.vy=0}
     var b=floorY(diver.x);if(diver.y>b){diver.y=b;if(diver.vy>0)diver.vy=0}
+    if(level===10)wreckCollide();
     diver.spd=Math.hypot(diver.vx,diver.vy)/MAXS;
     var effort=lying?0:Math.max(inp.m,diver.spd);
     diver.kick+=dt*(2+Math.max(diver.spd,effort*load,boost*1.6)*10);
@@ -2517,7 +2549,7 @@ function update(dt){
     }
     updateNight(dt);
     if(level===10){var iw=isInWreck(diver.x,diver.y);if(iw&&!wreckSeen){wreckSeen=true;toast('Du er inne i lasterommet. Det er mørkt – hold øye med lufta og veien ut','bad',4000)}inWreck=iw;
-      for(var wf=0;wf<fish.length;wf++){var ff=fish[wf];if(ff.inW&&ff.fleeT<=0&&!isInWreck(ff.x,ff.y)){ff.x+=(ff.hx-ff.x)*Math.min(1,dt*2);ff.y+=(ff.hy-ff.y)*Math.min(1,dt*2)}}}
+      for(var wf=0;wf<fish.length;wf++){var ff=fish[wf];if(!ff.room){if(ff.ox!=null&&isInWreck(ff.x,ff.y)&&!isInWreck(ff.ox,ff.oy)){ff.x=ff.ox;ff.y=ff.oy;ff.tx=ff.hx;ff.ty=ff.hy;ff.retarget=0}ff.ox=ff.x;ff.oy=ff.y;continue}var fl=wreckLocal(ff.x,ff.y),rm=ff.room,cu=clamp(fl.u,rm.u0+30,rm.u1-30),cv=clamp(fl.v,rm.v0+22,rm.v1-22);if(cu!==fl.u||cv!==fl.v){var fp=toWorld(cu,cv);ff.x=fp.x;ff.y=fp.y;ff.tx=fp.x;ff.ty=fp.y;ff.retarget=0}}}
     if(level===9){
       var wm=WARM[G.suit]||0;
       if(under)coldK=clamp(coldK+dt*(1.15-wm)/90,0,1);else coldK=clamp(coldK-dt*(.35+wm*.4)/90,0,1);
@@ -3567,7 +3599,7 @@ function beginPlay(){
   state='play';lastHud='';
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===10){toast('Vraket: et gammelt lasteskip ligger på skrå fra 15 til 40 meter. Lange og stor torsk gjemmer seg i lasterommet – men inne er det mørkt','',7000);return}
+  if(level===10){toast('Vraket: et gammelt lasteskip ligger på skrå fra 15 til 40 meter. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
   if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk. Lever fisken i båten lenger ute, ellers tar bjørnen den fra flåten','',8000);return}
   if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og teller ned til båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe','',7000);return}
   if(level===7){toast('Crabmountain: røret dumper krabbeskall på fjellet, og palen står tett som en baitball. Kjempetorsken og breiflabben ligger på bunnen');return}
@@ -3617,7 +3649,7 @@ var SPOTS=[
   {lv:7,n:'Crabmountain',w:'Krabbefabrikk · fjell av krabbeskall fra 10 m',d:'Et flytende rør dumper knust krabbeskall som blir til hvite fjell på bunnen. Så mye pale at vannet blir svart – du dykker nesten i blinde. Svær lyr, kjempetorsk og breiflabb i dalene.'},
   {lv:8,n:'New Zealand',w:'Slepedykk · pinnakkel på 20–25 m',d:'Bli slept etter båten. Båtmannen roper når dere er over grunna – du beregner selv når du skal slippe for å treffe den i strømmen. Kingfish som stuper mot fjellet, og snapper mellom steinene.'},
   {lv:9,n:'Alaska',w:'Elvemunning og tareskog · 6 °C',d:'Laks på vei mot elva, lingcod i taren og stillehavskveite på sanden. Iskaldt vann, ferskvann der det ikke er lov å skyte – og en hissig bjørn som angriper når du puster i overflaten.'},
-  {lv:10,n:'Vraket',w:'Lasteskip på skrå · 15–40 m',d:'Et gammelt vrak ligger nedover skråningen. Bergylt ved baugen, lyr over vraket og lange inne i det mørke lasterommet.'},
+  {lv:10,n:'Vraket',w:'Lasteskip på skrå · 15–40 m',d:'Et gammelt vrak ligger nedover skråningen. Svøm inn i labyrinten av mørke rom – jo lenger inn, jo større fisk.'},
   {lv:1,night:1,n:'Nattdykk i tareskogen',w:'Tareskogen etter mørkets frembrudd',d:'Fisken står roligere om natten, men du ser bare det lykta lyser på. Krever lykt.'}];
 var spotImg={};
 function spotPic(k){
