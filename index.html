@@ -90,6 +90,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -278,7 +280,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11m · vraket er en gammel fiskebåt</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11o · lykt i vraket</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -396,7 +398,7 @@ td.n,th.n{text-align:right}
     <ul>
       <li>En stor gammel fiskebåt, «Havørn», ligger nesten flatt på bunnen nedenfor skråningen, på 35–40 meter: dekket på rundt 35 meter og kjølen på 40. Styrhuset, masten, nottrommelen og hekkgalgen står fortsatt, og gamle garn henger over ripa akter.</li>
       <li>Bergylt og torsk står i steinene i skråningen opp mot land, og lyr jager over vraket. Langa ligger inne i lasterommet nede i den dype delen.</li>
-      <li>Vraket er en labyrint av rom på to dekk. Du kommer inn gjennom de to lukene på dekket og må finne veien gjennom dører i skottene og åpninger i mellomdekket – du kan ikke svømme gjennom veggene. Jo lenger inn du kommer, jo større fisk står det i rommene. Det dypeste rommet nede midt i skipet når du bare via akterenden. Inne er det nesten helt mørkt, så en lykt hjelper mye. Pass på lufta og veien ut.</li>
+      <li>Vraket er en labyrint av rom på to dekk. Du kommer inn gjennom de to lukene på dekket og må finne veien gjennom dører i skottene og åpninger i mellomdekket – du kan ikke svømme gjennom veggene. Jo lenger inn du kommer, jo større fisk står det i rommene. Det dypeste rommet nede midt i skipet når du bare via akterenden. Inne er det halvmørkt, så dykkeren tar fram lykta når han svømmer inn – en bedre lykt fra Havguden lyser lenger. Pass på lufta og veien ut.</li>
     </ul>
     <h2>Kjempekveita</h2>
     <p>Et sted på bunnen ligger en kjempekveite. Den er for sterk for én harpun. Slipp harpunen, svøm opp til makkeren og hent hans, og sett skudd nummer to. Opp og pust, og dykk så ned igjen og dra den opp.</p>
@@ -922,8 +924,8 @@ function drawWreck(x0,x1){
   ctx.fillStyle='#1f2a33';ctx.beginPath();ctx.moveTo(0,-H);ctx.quadraticCurveTo(-30,-H-40,-60,-H-70);ctx.quadraticCurveTo(-75,-H*.4,0,0);ctx.closePath();ctx.fill();
   ctx.fillStyle='#6b2a22';ctx.beginPath();ctx.moveTo(-40,-H*.18);ctx.quadraticCurveTo(-20,-6,10,0);ctx.lineTo(0,-H*.18);ctx.closePath();ctx.fill();
   ctx.fillStyle='#1f2a33';ctx.beginPath();ctx.moveTo(L,0);ctx.quadraticCurveTo(L+50,-H*.35,L+40,-H);ctx.lineTo(L,-H);ctx.closePath();ctx.fill();
-  ctx.fillStyle='rgba(230,226,214,.55)';ctx.fillRect(-50,-H*.2-3,L+90,4);
-  ctx.fillStyle='rgba(120,40,30,.55)';ctx.fillRect(-30,-H*.18,L+70,H*.18-6);
+  ctx.fillStyle='#6b2a22';ctx.beginPath();ctx.moveTo(L,0);ctx.quadraticCurveTo(L+30,-H*.08,L+38,-H*.2);ctx.lineTo(L,-H*.2);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#6b2a22';ctx.fillRect(-10,-6,L+20,10);ctx.fillStyle='rgba(230,226,214,.5)';ctx.fillRect(-10,-8,L+20,3);
   ctx.fillStyle='rgba(230,226,214,.7)';ctx.font='700 22px Figtree, sans-serif';ctx.textAlign='left';ctx.fillText('HAVØRN',-40,-H-40);
   ctx.fillStyle='rgba(150,80,40,.5)';for(var rs=0;rs<14;rs++){var rsx=(rs*173)%L;ctx.fillRect(rsx,-H+8,3,30+(rs%4)*14)}
   ctx.strokeStyle='#2b363e';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(-58,-H-66);ctx.quadraticCurveTo(-20,-H-30,40,-H-24);ctx.lineTo(L*.06,-H-24);ctx.stroke();
@@ -961,16 +963,31 @@ function drawWreck(x0,x1){
 }
 function drawWreckDark(){
   if(!inWreck)return;
-  var W1=Math.ceil(vw*dpr*Z),H1=Math.ceil(vh*dpr*Z);
+  var W1=Math.ceil(vw*dpr*Z),H1=Math.ceil(vh*dpr*Z),k=dpr*Z;
   if(!crabCv){crabCv=document.createElement('canvas');crabCx=crabCv.getContext('2d')}
   if(crabCv.width!==W1||crabCv.height!==H1){crabCv.width=W1;crabCv.height=H1}
   var c=crabCx;c.setTransform(1,0,0,1,0,0);c.globalCompositeOperation='source-over';c.clearRect(0,0,W1,H1);
-  c.fillStyle='rgba(2,4,5,.93)';c.fillRect(0,0,W1,H1);
+  c.fillStyle='rgba(3,5,6,.6)';c.fillRect(0,0,W1,H1);
   c.globalCompositeOperation='destination-out';
-  var sx=(diver.x-cam.x)*dpr*Z,sy=(diver.y-cam.y)*dpr*Z,R=(85+G.mask*15+(G.lamp?[0,40,70,100][G.lamp]:0))*dpr*Z,hg=c.createRadialGradient(sx,sy,R*.35,sx,sy,R*1.4);
+  var sx=(diver.x-cam.x)*k,sy=(diver.y-cam.y)*k,R=(120+G.mask*15)*k,hg=c.createRadialGradient(sx,sy,R*.3,sx,sy,R*1.3);
   hg.addColorStop(0,'rgba(0,0,0,1)');hg.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=hg;c.fillRect(0,0,W1,H1);
+  var la=diver.ang,lx=sx+Math.cos(la)*30*k,ly=sy+Math.sin(la)*30*k,BL=(300+[0,40,90,140][G.lamp||0])*k,sp=.36+.04*(G.lamp||0);
+  c.save();c.beginPath();c.moveTo(lx,ly);c.arc(lx,ly,BL,la-sp,la+sp);c.closePath();c.clip();
+  var bg=c.createRadialGradient(lx,ly,0,lx,ly,BL);bg.addColorStop(0,'rgba(0,0,0,1)');bg.addColorStop(.7,'rgba(0,0,0,.9)');bg.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=bg;c.fillRect(0,0,W1,H1);c.restore();
   c.globalCompositeOperation='source-over';
-  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(crabCv,0,0);ctx.restore();
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(crabCv,0,0);
+  ctx.globalCompositeOperation='lighter';ctx.beginPath();ctx.moveTo(lx,ly);ctx.arc(lx,ly,BL,la-sp,la+sp);ctx.closePath();
+  var wg=ctx.createRadialGradient(lx,ly,0,lx,ly,BL);wg.addColorStop(0,'rgba(255,240,200,.16)');wg.addColorStop(1,'rgba(255,240,200,0)');ctx.fillStyle=wg;ctx.fill();
+  ctx.restore();
+}
+function drawDiveLamp(){
+  var a=diver.ang,hx=diver.x+Math.cos(a)*26,hy=diver.y+Math.sin(a)*26,nx=-Math.sin(a),ny=Math.cos(a),side=Math.cos(a)<0?-1:1;
+  hx-=nx*side*7;hy-=ny*side*7;
+  ctx.save();ctx.translate(hx,hy);ctx.rotate(a);
+  ctx.fillStyle='#15191b';ctx.fillRect(-8,-3,14,6);ctx.fillStyle='#f0b42a';ctx.fillRect(-8,-3,3,6);
+  ctx.fillStyle='#fff6d8';ctx.fillRect(5,-2.6,2.5,5.2);
+  var gl=ctx.createRadialGradient(7,0,0,7,0,14);gl.addColorStop(0,'rgba(255,246,216,.9)');gl.addColorStop(1,'rgba(255,246,216,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(7,0,14,0,6.283);ctx.fill();
+  ctx.restore();
 }
 function buildWorld(){
   kelp=[];rocks=[];motes=[];boul=[];pipes=[];MAXB=level===10?2700:level===9?1600:level===8?2700:level===7?1560:level===6?1700:level===5?2880:level===4?2200:level===3?1600:780;
@@ -2574,7 +2591,7 @@ function update(dt){
       if(slingOut&&!carry&&Math.hypot(diver.x-slingSpear.x,diver.y-slingSpear.y)<50){slingOut=false;slingSpear=null;S.tick();toast('Du har pila igjen')}
     }
     updateNight(dt);
-    if(level===10){var iw=isInWreck(diver.x,diver.y);if(iw&&!wreckSeen){wreckSeen=true;toast('Du er inne i lasterommet. Det er mørkt – hold øye med lufta og veien ut','bad',4000)}inWreck=iw;
+    if(level===10){var iw=isInWreck(diver.x,diver.y);if(iw&&!inWreck){S.tick()}if(iw&&!wreckSeen){wreckSeen=true;toast('Du tar fram lykta og svømmer inn i vraket. Hold øye med lufta og veien ut','',4000)}inWreck=iw;
       for(var wf=0;wf<fish.length;wf++){var ff=fish[wf];if(!ff.room){if(ff.ox!=null&&isInWreck(ff.x,ff.y)&&!isInWreck(ff.ox,ff.oy)){ff.x=ff.ox;ff.y=ff.oy;ff.tx=ff.hx;ff.ty=ff.hy;ff.retarget=0}ff.ox=ff.x;ff.oy=ff.y;continue}var fl=wreckLocal(ff.x,ff.y),rm=ff.room,cu=clamp(fl.u,rm.u0+30,rm.u1-30),cv=clamp(fl.v,rm.v0+22,rm.v1-22);if(cu!==fl.u||cv!==fl.v){var fp=toWorld(cu,cv);ff.x=fp.x;ff.y=fp.y;ff.tx=fp.x;ff.ty=fp.y;ff.retarget=0}}}
     if(level===9){
       var wm=WARM[G.suit]||0;
@@ -3434,6 +3451,7 @@ function render(){
     var hauling=!under&&state==='play'&&tClock-lastHaul<1.6&&(haul||(level===4&&hooked&&hooked.hp<=0));
     if(hauling)drawHauler();
     else if(carry&&carry.mount)drawRider(carry,'near');
+    else if(level===10&&inWreck){drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);drawDiveLamp()}
     else{DBEND=duck?duck.bend||0:0;drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);DBEND=0}
     }
     if(cA>0)ctx.restore();
