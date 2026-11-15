@@ -80,6 +80,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -268,7 +270,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11h · myk duck dive</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11i · duck dive etter joysticken</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -2361,7 +2363,7 @@ function update(dt){
   }
   if(state==='play'){
     var inp=inputVec(),MAXS=165*FIN[G.fin].v;
-    var rawY=inp.y*(inp.m>0?1:0),rawM=inp.m;
+    var rawY=inp.y*(inp.m>0?1:0),rawX=inp.x*(inp.m>0?1:0),rawM=inp.m;
     if(sledRide){sledSteer=inp.m>.08?clamp(inp.x/Math.max(.3,inp.m)*Math.min(1,inp.m*1.6),-1,1):0;inp={x:0,y:0,m:0};sIn.x=sIn.y=0}
     sIn.x+=(inp.x-sIn.x)*Math.min(1,dt*11);sIn.y+=(inp.y-sIn.y)*Math.min(1,dt*11);
     inp.x=sIn.x;inp.y=sIn.y;inp.m=Math.min(1,Math.hypot(sIn.x,sIn.y));if(inp.m<.03){inp.m=0;inp.x=0;inp.y=0}
@@ -2370,22 +2372,26 @@ function update(dt){
     if(load>.8)load=.8;if(beltOff)load=0;
     var th=carry&&!carry.dead&&carry.mode==='hang'?1:0;
     var canFlat=diver.y<16&&!towing&&!sledRide&&!haul&&!holding&&!(carry&&carry.mount)&&!(level===4&&hooked&&hooked.hp<=0);
-    if(!duck&&canFlat&&rawY>.25&&rawM>.25&&!carry&&diveCd<=0){duck={t:0,dir:Math.cos(diver.ang)>=0?1:-1};S.splash()}
+    if(!duck&&canFlat&&rawY>.25&&rawM>.25&&!carry&&diveCd<=0){var ja=clamp(Math.atan2(rawY,rawX),.35,2.79);var jd=Math.cos(ja)>=0?1:-1;duck={t:0,th:ja,dir:jd,a:jd>0?0:Math.PI,y:diver.y,S:0};S.splash()}
     if(diveCd>0)diveCd-=dt;
     if(duck){
-      var dpush=clamp((rawY-.12)/.8,0,1),dtarget=dpush>0?.45+1.1*dpush:-1.2;
-      duck.r=(duck.r==null?dtarget:duck.r)+(dtarget-(duck.r==null?dtarget:duck.r))*Math.min(1,dt*7);
+      var dpush=clamp((rawY-.12)/.8,0,1),dtarget=dpush>0?.4+.95*dpush:-1;
+      duck.r=(duck.r==null?dtarget*.5:duck.r)+(dtarget-(duck.r==null?dtarget*.5:duck.r))*Math.min(1,dt*4);
       duck.t=clamp(duck.t+dt*duck.r,0,1);
+      if(dpush>0){var jt=clamp(Math.atan2(rawY,rawX),.35,2.79);if(duck.t<.35){var nd=Math.cos(jt)>=0?1:-1;if(nd===duck.dir||duck.t<.08){if(nd!==duck.dir){duck.a=nd>0?0:Math.PI;duck.th=jt}duck.dir=nd}else jt=duck.dir>0?Math.min(jt,1.57):Math.max(jt,1.57)}else jt=duck.dir>0?Math.min(jt,1.57):Math.max(jt,1.57);duck.th+=(jt-duck.th)*Math.min(1,dt*5)}
       var u=duck.t,ss=function(a,b,v){v=clamp((v-a)/(b-a),0,1);return v*v*v*(v*(v*6-15)+10)};
-      var tilt=ss(0,.5,u),lift=ss(.28,.78,u),sink=Math.pow(clamp((u-.42)/.58,0,1),1.6);
-      diver.ang=duck.dir>0?tilt*1.57:Math.PI-tilt*1.57;diver.av=0;duck.bend=-1.57*tilt*(1-lift);
-      var ny=4+16*tilt+5*lift+28*sink;duck.vy=(ny-diver.y)/Math.max(dt,.001);diver.y=ny;
-      if(duck.r>0)diver.x+=duck.dir*(45*(1-tilt)+6)*dt*Math.min(1.4,duck.r);diver.vx=0;diver.vy=0;
-      duck.kick=(duck.kick||0)+dt*(2+14*ss(.55,.9,u));
+      var tilt=ss(0,.55,u),lift=ss(.25,.8,u),sink=Math.pow(clamp((u-.38)/.62,0,1),1.7);
+      var flat=duck.dir>0?0:Math.PI,ta=flat+(duck.th-flat)*tilt,da=Math.atan2(Math.sin(ta-duck.a),Math.cos(ta-duck.a));
+      duck.a+=da*Math.min(1,dt*14);diver.ang=duck.a;diver.av=0;duck.bend=-Math.abs(duck.th-flat)*tilt*(1-lift);
+      var S2=30*sink,dS=S2-duck.S;duck.S=S2;
+      var ty2=4+(15*tilt+5*lift)*Math.sin(duck.th)+S2*Math.sin(duck.th);
+      duck.y+=(ty2-duck.y)*Math.min(1,dt*14);var py=diver.y;diver.y=duck.y;duck.vy=(diver.y-py)/Math.max(dt,.001);
+      diver.x+=Math.cos(duck.th)*dS+(duck.r>0?duck.dir*36*(1-tilt)*dt*Math.min(1.3,duck.r):0);diver.vx=0;diver.vy=0;
+      duck.kick=(duck.kick||0)+dt*(2+13*ss(.5,.95,u));
       if(lift>.05&&!duck.lift){duck.lift=1;S.splash()}
       inp={x:0,y:0,m:0};sIn.x=sIn.y=0;
       if(duck.t<=0&&duck.r<0){duck=null;diver.y=4;diver.ang=Math.cos(diver.ang)>=0?0:Math.PI}
-      else if(duck.t>=1){var exv=Math.max(90,duck.vy*1.15);duck=null;diver.vy=exv;diver.vx=0;diveCd=.6;for(var db=0;db<8;db++)bubbles.push({x:diver.x+rnd(-12,12),y:rnd(8,30),r:rnd(1.5,4),v:rnd(40,80),ph:rnd(0,6)})}
+      else if(duck.t>=1){var exv=Math.max(90,Math.abs(duck.vy)/Math.max(.3,Math.sin(duck.th))*1.1);diver.vx=Math.cos(duck.th)*exv;diver.vy=Math.sin(duck.th)*exv;diver.ang=duck.th;duck=null;diveCd=.6;for(var db=0;db<8;db++)bubbles.push({x:diver.x+rnd(-12,12),y:rnd(8,30),r:rnd(1.5,4),v:rnd(40,80),ph:rnd(0,6)})}
     }
     var gz=clamp((inp.m-.1)/.25,0,1),mx=(lying||holding)?0:inp.x*gz,my=(lying||holding)?0:inp.y*gz;
     if(canFlat&&!duck&&my<0)my=0;
