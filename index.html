@@ -92,6 +92,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -185,6 +187,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .btn.alt{background:transparent;border:2px solid var(--foam);color:var(--foam);margin-top:10px}
 #lie{position:fixed;right:18px;bottom:134px;width:92px;padding:12px 4px;border-radius:12px;border:2px solid var(--foam);background:var(--warn);color:#1b1400;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer}
 #lie[hidden]{display:none}
+#beltBtn{position:fixed;right:18px;bottom:196px;width:92px;padding:11px 4px;border-radius:12px;border:2px solid #fff;background:#d42a2a;color:#fff;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer;animation:bpulse 1s ease-in-out infinite}
+#beltBtn[hidden]{display:none}
+@keyframes bpulse{50%{box-shadow:0 0 0 6px rgba(212,42,42,.35)}}
 #lie.on{background:rgba(6,34,43,.75);color:var(--foam)}
 #lie:focus-visible{outline:3px solid var(--foam);outline-offset:3px}
 #fire.wait{background:rgba(6,34,43,.7);color:var(--foam);border-color:var(--line)}
@@ -258,6 +263,7 @@ td.n,th.n{text-align:right}
 <div id="bigCount"></div>
 <button id="fire" type="button">SKYT</button>
 <button id="lie" type="button" hidden>LEGG DEG</button>
+<button id="beltBtn" type="button" hidden>SLIPP BELTET</button>
 <button id="grunt" type="button" hidden>GRYNT</button>
 <button id="kick" type="button" hidden>KICK!</button>
 <button id="flash" type="button" hidden>FLASHER</button>
@@ -280,7 +286,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="trophyBtn" type="button">Trofeer</button>
     <button class="btn alt" id="helpBtn" type="button">Spilleregler</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11o · lykt i vraket</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.11p · krabbing og nød-belte</p>
     <button class="btn alt" id="restart" type="button" hidden>Start på nytt fra nivå 1</button>
   </div>
 </div>
@@ -315,6 +321,8 @@ td.n,th.n{text-align:right}
       <li><b>Du er nøytral på 5 meter.</b> Grunnere enn det flyter du tydelig oppover. Dypere kan du slappe av og synke, men må jobbe mer for å komme opp.</li>
       <li><b>KICK!:</b> hamre på KICK!-knappen for å gi gass i den retningen du svømmer, opp eller ned. Jo fortere du trykker, jo fortere går det, men det koster luft og skremmer fisken.</li>
       <li><b>BELTE-DROPP:</b> rekker du ikke opp med fisken, kan du slippe blybeltet. Da fyker du til overflaten, mens beltet, harpunen og fisken blir liggende på bunnen. Det koster 10 000 poeng, og du må ligge i overflaten og trykke HAL! raskt for å dra alt opp med lina.</li>
+      <li><b>Lite luft?</b> Når lufta er under en tredjedel, dukker en rød SLIPP BELTET-knapp opp. Den virker alltid, også uten fisk, og koster 3 000 poeng (10 000 med fisk).</li>
+      <li><b>Krabbe langs bunnen:</b> ligger du på bunnen og er tung, drar dykkeren seg fram med armene når du styrer til siden. Det bruker lite luft.</li>
       <li><b>Kom tett på</b> før du skyter. Harpunen rekker bare et par meter.</li>
       <li><b>Fisken dingler i lina.</b> Dra den med opp til bøya, der den henges på fiskelina og gir poeng. Stor fisk drar deg ned, så du må kicke hardt, og hardt kick bruker lufta fortere.</li>
       <li><b>Sikt på hodet.</b> Treffer du lenger bak, spreller fisken i lina, og en stor fisk blir enda tyngre å få opp. Ved dårlig treff kan den sprelle seg løs, eller stikke av og sette seg fast i taren eller under en stein. Da må du ned og løsne den. Rekker ikke lufta, slipper du harpunen, puster i overflaten og svømmer ned igjen for å hente både harpun og fisk.</li>
@@ -550,7 +558,7 @@ function bottom(x){
   var t1=clamp((x-200)/(W-500),0,1);
   return Math.min(MAXB,M*(3+10*Math.pow(t1,1.15)+(.25+.75*t1)*(Math.sin(x/310)+.5*Math.sin(x/97+1)+.25*Math.sin(x/41))));
 }
-var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false;
+var introT=0,introS=0,contrT=0,contrA=0,contrTold=false,boost=0,beltOff=false,belt=null,haul=null,noBeltDraw=false,crawlV=0,crawlPh=0,DCRAWL=-1;
 var night=false;
 var level=1,nextLv=1,maxLevel=1,pipes=[],LN=['','Tareskogen','Moloen','Rørdykket','Blåvannet','Middelhavet','Saltstraumen','Crabmountain','New Zealand','Alaska','Vraket'];
 var slingOut=false,slingSpear=null,noWeaponDraw=false;
@@ -1174,6 +1182,18 @@ function toggleLie(){
   if(!carry&&diver.y>bottom(diver.x)-75){if(G.wt>0||level===8){lying=true;if(level===8)toast('Du holder deg fast i fjellet')}else toast('Uten bly flyter du opp. Kjøp blybelte i dykkerbutikken')}
 }
 $('lie').addEventListener('pointerdown',function(e){e.preventDefault();toggleLie()});
+function lowAir(){return air<35}
+function canBeltDrop(){return state==='play'&&under&&!beltOff&&G.wt>0&&!sledRide&&!towing&&!holding&&lowAir()}
+function emergencyBelt(){
+  if(!canBeltDrop())return;
+  if(carry&&carry.mode==='hang'){beltOff=true;haul={f:carry,x:carry.x,y:carry.y,gun:true};carry.rot=0;carry.dir=1;carry.dead=true;carry=null;noGun=true;score-=10000;lying=false;S.tick();toast('Beltet er sluppet, −10 000. Ligg i overflaten og trykk HAL! raskt','bad');return}
+  if(carry&&carry.mount){carry.mount=false;carry.pull=false}
+  if(carry){stuck=carry;carry=null;noGun=true}
+  beltOff=true;haul={f:null,x:diver.x,y:Math.min(diver.y+6,bottom(diver.x)-10),gun:false};score-=3000;lying=false;crawlV=0;S.tick();
+  try{if(navigator.vibrate)navigator.vibrate([60,40,60])}catch(_){}
+  toast('Beltet er sluppet, −3 000. Du flyter opp. Trykk HAL! i overflaten for å hente beltet','bad');
+}
+$('beltBtn').addEventListener('pointerdown',function(e){e.preventDefault();emergencyBelt()});
 window.addEventListener('keydown',function(e){
   keys[e.code]=true;
   if(e.code==='Space'){e.preventDefault();if(state==='play')shoot()}
@@ -2548,7 +2568,11 @@ function update(dt){
     diver.vx+=(mx*MAXS*(1-.3*load)-diver.vx)*Math.min(1,dt*2.9);
     diver.vy+=(my*MAXS*(my<0?1-(.35+.25*th)*load:EQ[G.eq].v)-diver.vy)*Math.min(1,dt*2.9);
     if(load>0&&diver.y>16){diver.vy+=load*(60+70*th)*(1+(.5+.5*th)*Math.sin(tClock*(6+5*th)))*dt;if(th)diver.vx+=load*170*Math.sin(tClock*8.3)*dt}
-    if(lying){diver.vx=0;diver.vy=0;diver.y+=(floorY(diver.x)-diver.y)*Math.min(1,dt*5)}
+    crawlV=0;
+    if(lying){
+      var hv=diver.y/M-WT[G.wt].nd-SUIT[G.suit].lift,cx=inp.x*gz;
+      if(level!==8&&!carry&&hv>1.5&&Math.abs(cx)>.15){crawlPh+=dt*(3+2.5*Math.abs(cx));crawlV=cx*(28+62*Math.max(0,Math.sin(crawlPh)));diver.ang=cx>0?0:Math.PI}
+      diver.vx=crawlV;diver.vy=0;diver.y+=(floorY(diver.x)-diver.y)*Math.min(1,dt*5)}
     if(!lying&&!sledRide&&diver.y>16){var dm=diver.y/M,bz=clamp(dm-WT[G.wt].nd-SUIT[G.suit].lift,-4.5,6);if(bz>0)bz*=1+SUIT[G.suit].comp*Math.min(1,dm/25);diver.vy+=bz*22*WT[G.wt].f*dt}
     if(sledRide||sled.state==='haul')updateSled(dt);
     if(boost>0){var ka=inp.m>.1?Math.atan2(inp.y,inp.x):diver.ang;diver.vx+=Math.cos(ka)*boost*380*dt;diver.vy+=Math.sin(ka)*boost*380*dt;boost=Math.max(0,boost-1.0*dt)}
@@ -2556,8 +2580,8 @@ function update(dt){
     if(haul){
       haul.y=Math.min(haul.y+(under?140:16)*dt,bottom(haul.x)-10);
       if(!under)haul.x+=(buoy.x-haul.x)*Math.min(1,dt*.4);
-      haul.f.x=haul.x;haul.f.y=haul.y;
-      if(haul.y<24){var hf2=haul.f;haul=null;beltOff=false;noGun=false;shotUsed=false;land(hf2)}
+      if(haul.f){haul.f.x=haul.x;haul.f.y=haul.y}
+      if(haul.y<24){var hf2=haul.f,hg=haul.gun;haul=null;beltOff=false;if(hg){noGun=false;shotUsed=false}if(hf2)land(hf2);else toast('Beltet er oppe igjen','good')}
     }
     diver.mov=!lying&&!holding&&inp.m>=.3;diver.gentle=!lying&&!holding&&inp.m>=.06&&inp.m<.3; /* svak oppdrift */
     diver.x=clamp(diver.x+diver.vx*dt,60,W-60);
@@ -2567,7 +2591,7 @@ function update(dt){
     var b=floorY(diver.x);if(diver.y>b){diver.y=b;if(diver.vy>0)diver.vy=0}
     if(level===10)wreckCollide();
     diver.spd=Math.hypot(diver.vx,diver.vy)/MAXS;
-    var effort=lying?0:Math.max(inp.m,diver.spd);
+    var effort=beltOff?.1:lying?(crawlV?.3:0):Math.max(inp.m,diver.spd);
     diver.kick+=dt*(2+Math.max(diver.spd,effort*load,boost*1.6)*10);
     if(diver.mov)stillT=0;else if(!diver.gentle)stillT+=dt;
     var tav=0;
@@ -3165,8 +3189,9 @@ function drawDiver(x,y,ang,kick,spd,surface,aim){
   ctx.fillStyle='#7fe0dc';ctx.beginPath();ctx.moveTo(31.3,-6.1);ctx.lineTo(36.1,-4.8);ctx.lineTo(36.5,-1.4);ctx.lineTo(32,-.4);ctx.closePath();ctx.fill();
   ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillRect(33.6,-5.1,1.2,2.2);
   if(surface===true){ctx.strokeStyle='#ffd23f';ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(35,4);ctx.quadraticCurveTo(25,-8,29,-23);ctx.stroke()}
-  /* arm langs siden */
-  limb(14,1,2,5.5+sw,-9,3+sw*1.6,5.6,ARM,hand);
+  /* arm langs siden – eller drar seg fram langs bunnen */
+  if(DCRAWL>=0){var cr=Math.cos(DCRAWL),hx=8+30*(cr*.5+.5),hy=9-(Math.sin(DCRAWL)<0?4*Math.abs(Math.sin(DCRAWL)):0);limb(14,1,(14+hx)/2+2,(1+hy)/2-4,hx,hy,5.6,ARM,hand)}
+  else limb(14,1,2,5.5+sw,-9,3+sw*1.6,5.6,ARM,hand);
   if(su===3){ctx.fillStyle='#9aa5a8';ctx.fillRect(-6.6,1.4+sw*1.5,2.2,4.6)}
   ctx.restore();
   if(aim!=null){
@@ -3430,7 +3455,7 @@ function render(){
   }
   if(haul){
     ctx.strokeStyle='rgba(255,210,63,.6)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(buoy.x,2);ctx.lineTo(haul.x,haul.y-8);ctx.stroke();
-    drawFish(haul.f);
+    if(haul.f)drawFish(haul.f);
     ctx.lineCap='round';ctx.strokeStyle='#a8743f';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(haul.x-40,haul.y-10);ctx.lineTo(haul.x+12,haul.y-10);ctx.stroke();
     ctx.strokeStyle='#ff6a2b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(haul.x-34,haul.y-12);ctx.lineTo(haul.x-10,haul.y-12);ctx.stroke();
     ctx.fillStyle='#c9a227';ctx.fillRect(haul.x-9,haul.y+4,18,6);
@@ -3451,7 +3476,8 @@ function render(){
     var hauling=!under&&state==='play'&&tClock-lastHaul<1.6&&(haul||(level===4&&hooked&&hooked.hp<=0));
     if(hauling)drawHauler();
     else if(carry&&carry.mount)drawRider(carry,'near');
-    else if(level===10&&inWreck){drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);drawDiveLamp()}
+    else if(level===10&&inWreck){DCRAWL=lying&&crawlV?crawlPh:-1;drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,noGun?2:false,(lying&&!noGun&&!crawlV)?diver.ang:null);DCRAWL=-1;drawDiveLamp()}
+    else if(lying&&crawlV){DCRAWL=crawlPh;drawDiver(diver.x,diver.y,bang,0,0,false,null);DCRAWL=-1}
     else{DBEND=duck?duck.bend||0:0;drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);DBEND=0}
     }
     if(cA>0)ctx.restore();
@@ -3587,8 +3613,9 @@ function hud(){
   if(!ci.hidden){var lc=curAt(diver.x,diver.y),kn=Math.abs(lc)/60*1.944,ns=nextSlack(),ar=lc>3?'→':lc<-3?'←':'·';
     var si=slackInfo(),mm=function(v){v=Math.max(0,Math.floor(v));return Math.floor(v/60)+':'+('0'+v%60).slice(-2)};
     ci.innerHTML=(si.on?'<b>Stillstrøm – '+mm(si.rem)+' igjen</b><br>Ned under broa nå!':'Strøm '+ar+' '+kn.toFixed(1).replace('.',',')+' knop'+(holding?' · du holder deg fast':'')+'<br>Stillstrøm om '+mm(si.rem))}
+  var bb=$('beltBtn');bb.hidden=!canBeltDrop();
   var lb=$('lie');lb.hidden=!nearB;lb.className=lying?'on':'';lb.textContent=level===8?(lying?'SLIPP TAKET':'HOLD FAST'):lying?'SVØM':'LEGG DEG';
-  var fb=$('fire');var drag=carry&&carry.mode==='drag',cut=carry&&carry.mode!=='hang';var cs2=canString(),bd2=!cs2&&carry&&!cut&&under&&!beltOff&&G.wt>0;fb.className=(haul?under:(!cut&&!bd2&&!cs2&&(shotUsed||carry||noGun||(slingOut&&G.gun===0))))?'wait':'';var hb4=level===4&&hooked&&hooked.hp<=0&&!under;if(hb4||(level===8&&(towing||(!under&&!carry&&!haul)))||(carry&&carry.mode==='fight'))fb.className='';fb.textContent=level===8&&towing?'SLIPP TAUET':carry&&carry.mode==='fight'?'HOLD!':level===8&&state==='play'&&!under&&!carry&&!haul&&!noGun&&tClock-dropT>2.5?(pickupT>0?'VENT …':'HENT MEG'):hb4?'HAL!':haul?(under?'OPP OG HAL':'HAL!'):noGun?'HENT HARPUN':cut?'SLIPP HARPUN':cs2?'STRINGER':bd2?'BELTE-DROPP':carry?'TIL BØYA':(shotUsed?'OPP OG LAD':(slingOut&&G.gun===0)?'HENT PILA':'SKYT');
+  var fb=$('fire');var drag=carry&&carry.mode==='drag',cut=carry&&carry.mode!=='hang';var cs2=canString(),bd2=!cs2&&carry&&!cut&&under&&!beltOff&&G.wt>0&&!lowAir();fb.className=(haul?under:(!cut&&!bd2&&!cs2&&(shotUsed||carry||noGun||(slingOut&&G.gun===0))))?'wait':'';var hb4=level===4&&hooked&&hooked.hp<=0&&!under;if(hb4||(level===8&&(towing||(!under&&!carry&&!haul)))||(carry&&carry.mode==='fight'))fb.className='';fb.textContent=level===8&&towing?'SLIPP TAUET':carry&&carry.mode==='fight'?'HOLD!':level===8&&state==='play'&&!under&&!carry&&!haul&&!noGun&&tClock-dropT>2.5?(pickupT>0?'VENT …':'HENT MEG'):hb4?'HAL!':haul?(under?'OPP OG HAL':'HAL!'):noGun?'HENT HARPUN':cut?'SLIPP HARPUN':cs2?'STRINGER':bd2?'BELTE-DROPP':carry?'TIL BØYA':(shotUsed?'OPP OG LAD':(slingOut&&G.gun===0)?'HENT PILA':'SKYT');
 }
 function finish(why){
   if(state!=='play'&&state!=='blackout'&&state!=='bear')return;
