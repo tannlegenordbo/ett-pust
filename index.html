@@ -124,6 +124,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -364,7 +366,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.13a · karrierer</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 15.13b · riktig oppdrift i drakter</p>
   </div>
 </div>
 
@@ -1676,17 +1678,21 @@ var FIN=[
   {n:'Lange plastfinner',v:.9,a:1,p:3000,d:'God fart på vei ned og opp.'},
   {n:'Røde karbonfinner',v:1,a:.85,p:9000,d:'Full fart og mindre luft per spark.'}];
 var SUIT=[
-  {n:'Badebukse',b:0,bw:12,lift:0,comp:0,p:0,d:'Kaldt i Norge. Kort pust.'},
-  {n:'Våtdrakt 3 mm',b:6,bw:18,lift:.5,comp:.15,p:1200,d:'+6 sekunder pust i kaldt vann.'},
-  {n:'Åpen-celle 5 mm',b:12,bw:18,lift:1.5,comp:.4,p:4000,d:'+12 sekunder pust i kaldt vann. Mister mye oppdrift på dypet.'},
-  {n:'Kamuflasjedrakt 7 mm',b:18,bw:16,lift:3,comp:.8,sneak:.8,p:10000,d:'+18 sekunder pust i kaldt vann, og fisken ser deg dårligere. Tung å få opp fra dypet.'},
-  {n:'Glatthud 1,5 mm',b:3,bw:18,lift:0,comp:.05,p:3500,d:'Tynn drakt for varmt vann. Mister nesten ikke oppdrift, så den er best til dypdykk i Middelhavet.'}];
+  {n:'Badebukse',b:0,bw:12,lift:0,bk:0,comp:0,p:0,d:'Kaldt i Norge. Kort pust. Uten drakt synker du av deg selv fra rundt 10 meter.'},
+  {n:'Våtdrakt 3 mm',b:6,bw:18,lift:.5,bk:2.5,comp:.15,p:1200,d:'+6 sekunder pust i kaldt vann. Gir oppdrift – du trenger blybelte for å dykke greit.'},
+  {n:'Åpen-celle 5 mm',b:12,bw:18,lift:1.5,bk:4,comp:.4,p:4000,d:'+12 sekunder pust i kaldt vann. Mye oppdrift i overflaten – uten blybelte kommer du nesten ikke ned.'},
+  {n:'Kamuflasjedrakt 7 mm',b:18,bw:16,lift:3,bk:6,comp:.8,sneak:.8,p:10000,d:'+18 sekunder pust i kaldt vann, og fisken ser deg dårligere. Svært mye oppdrift – du er helt avhengig av bly.'},
+  {n:'Glatthud 1,5 mm',b:3,bw:18,lift:0,bk:1.5,comp:.05,p:3500,d:'Tynn drakt for varmt vann. Litt oppdrift, så uten bly er det tungt å komme ned. Best til dypdykk i Middelhavet.'}];
+/* oppdrift: drakt og lunger trykkes sammen med dybden, blyet gjør det ikke */
+function buoyF(dm,su,wt){return (SUIT[su].bk+3)/(1+dm/10)-1.5-WT[wt].kg}
+function buoyBz(dm,su,wt){return clamp(-3.2*buoyF(dm,su,wt),-12,6)}
+function ndOf(su,wt){var r=(SUIT[su].bk+3)/(1.5+WT[wt].kg);return r<=1?0:10*(r-1)}
 var WT=[
-  {n:'Ingen vekter',nd:1.5,f:.35,p:0,d:'Du flyter opp og kan ikke legge deg på bunnen.'},
-  {n:'Blybelte',nd:5,f:1,p:600,d:'Nøytral på 5 meter. Du kan legge deg på bunnen og gjøre beltedropp.'},
-  {n:'Blybelte og sele',nd:4,f:1.15,p:2500,d:'Nøytral på 4 meter og synker lettere på dypet.'},
-  {n:'Lett belte for dypdykk',nd:11,f:.85,p:3000,d:'Nøytral på rundt 11 meter. Du må svømme deg ned, men kommer mye lettere opp fra 30–40 meter.'},
-  {n:'Vrakbelte',nd:34,f:.7,p:6000,d:'Nesten ikke bly. Nøytral på rundt 34–37 meter med tykk drakt, perfekt inne i vraket. Du må svømme hele veien ned, men sparer luft når du er der.'}];
+  {n:'Ingen vekter',nd:1.5,kg:0,f:.35,p:0,d:'Med drakt flyter du opp og kommer nesten ikke ned. Du kan ikke legge deg på bunnen.'},
+  {n:'Blybelte',nd:5,kg:3.2,f:1,p:600,d:'3,2 kg bly. Med 5 mm drakt er du nøytral på rundt 5 meter. Du kan legge deg på bunnen og gjøre beltedropp.'},
+  {n:'Blybelte og sele',nd:4,kg:3.5,f:1.15,p:2500,d:'3,5 kg bly i sele. Nøytral på rundt 4 meter med 5 mm drakt, og synker lettere på dypet.'},
+  {n:'Lett belte for dypdykk',nd:11,kg:1.8,f:.85,p:3000,d:'1,8 kg bly. Nøytral på rundt 11 meter med 5 mm drakt. Du må svømme deg ned, men kommer mye lettere opp fra 30–40 meter.'},
+  {n:'Vrakbelte',nd:34,kg:.5,f:.7,p:6000,d:'Bare 0,5 kg bly. Med 7 mm drakt er du nøytral på rundt 35 meter, perfekt inne i vraket. Du må svømme hele veien ned, men sparer luft når du er der.'}];
 var LUNG=[
   {n:'Utrent',b:0,p:0,d:'Ingen pustetrening.'},
   {n:'Pustetrening 1',b:8,p:1000,d:'+8 sekunder pust.'},
@@ -2723,10 +2729,10 @@ function update(dt){
     if(load>0&&diver.y>16){diver.vy+=load*(60+70*th)*(1+(.5+.5*th)*Math.sin(tClock*(6+5*th)))*dt;if(th)diver.vx+=load*170*Math.sin(tClock*8.3)*dt}
     crawlV=0;
     if(lying){
-      var hv=diver.y/M-WT[G.wt].nd-SUIT[G.suit].lift,cx=inp.x*gz;
+      var hv=buoyBz(diver.y/M,G.suit,G.wt),cx=inp.x*gz;
       if(level!==8&&!carry&&hv>1.5&&inp.m>.5&&Math.abs(inp.y)<.6*Math.abs(inp.x)){crawlPh+=dt*(3+2.5*Math.abs(cx));crawlV=cx*(28+62*Math.max(0,Math.sin(crawlPh)))}
       diver.vx=crawlV;diver.vy=0;diver.y+=(lieFloor()-diver.y)*Math.min(1,dt*5)}
-    if(!lying&&!sledRide&&diver.y>16){var dm=diver.y/M,bz=clamp(dm-WT[G.wt].nd-SUIT[G.suit].lift,-4.5,6);if(bz>0)bz*=1+SUIT[G.suit].comp*Math.min(1,dm/25);diver.vy+=bz*22*WT[G.wt].f*dt}
+    if(!lying&&!sledRide&&diver.y>16){var dm=diver.y/M,bz=buoyBz(dm,G.suit,G.wt);diver.vy+=bz*22*dt}
     if(sledRide||sled.state==='haul')updateSled(dt);
     if(boost>0){var ka=inp.m>.1?Math.atan2(inp.y,inp.x):diver.ang;diver.vx+=Math.cos(ka)*boost*380*dt;diver.vy+=Math.sin(ka)*boost*380*dt;boost=Math.max(0,boost-1.0*dt)}
     if(beltOff&&diver.y>16)diver.vy+=(-300-diver.vy)*Math.min(1,dt*4);
@@ -2816,7 +2822,7 @@ function update(dt){
       }
     }else if(!under){contrT=.8;contrTold=false}
     trimF=1;trimS=9;
-    if(under&&G.wt>0&&!beltOff&&!sledRide&&!towing){var tb=diver.y/M-WT[G.wt].nd-SUIT[G.suit].lift,ab=Math.abs(tb);trimS=ab<2?0:tb>0?1:-1;
+    if(under&&G.wt>0&&!beltOff&&!sledRide&&!towing){var tb=buoyBz(diver.y/M,G.suit,G.wt),ab=Math.abs(tb);trimS=ab<2?0:tb>0?1:-1;
       if(!lying&&!holding){var free=(tb>0&&diver.vy>20)||(tb<0&&diver.vy<-20);trimF=ab<2?.8:free?1:Math.min(1.2,.8+.07*ab)}}
     if(under){diveT+=dt;maxD=Math.max(maxD,diver.y/M);air-=trimF*100/cap()*(1+.8*FIN[G.fin].a*effort*effort+(.54+.36*th)*load*effort+.5*boost)*(1-RELAX[G.relax].r*(1-Math.min(1,effort*3)))*dt}
     else{
@@ -3881,7 +3887,7 @@ function apOpen(res){
 }
 $('apList').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;apSel=+b.dataset.d;
   var o=$('apList').querySelectorAll('button');for(var i=0;i<o.length;i++)o[i].classList.toggle('sel',o[i]===b);$('apGo').textContent='Start dykket til '+apSel+' m'});
-function apNdUpd(){if(AP.nd==null){var g0=apGear();AP.nd=g0.wt>0?Math.round(WT[g0.wt].nd+SUIT[g0.suit].lift):10}
+function apNdUpd(){if(AP.nd==null){var g0=apGear();AP.nd=g0.wt>0?Math.min(30,Math.round(ndOf(g0.suit,g0.wt))):10}
   var n=AP.nd;$('apNd').textContent=n+' m';
   $('apNdTxt').textContent=n<=4?'Tung vekting: du synker raskt fra få meter, men det er tungt å komme opp fra dypet.':n<=12?'Middels vekting: du må svømme de første metrene, så synker du i fritt fall. Grei balanse.':'Lett vekting: du må svømme langt ned før du synker, men du flyter lettere opp igjen.'}
 $('apNdM').addEventListener('click',function(){AP.nd=Math.max(0,(AP.nd||0)-1);apNdUpd();saveAP()});
