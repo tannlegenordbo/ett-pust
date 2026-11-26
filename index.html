@@ -148,6 +148,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -400,7 +402,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0j · kroken i øyet</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0k · lengre kranwire</p>
   </div>
 </div>
 
@@ -3553,10 +3555,10 @@ function render(){
   for(i=0;i<kelp.length;i++){var kp=kelp[i];if(kp.x<x0||kp.x>x1||!kp.c)continue;drawKelp(kp,level===5?'#2c5a35':'#3d4a22',.75)}
   if(level===7)drawCrabBall(x0,x1);
   /* bunn */
-  ctx.fillStyle='#0b1a1c';ctx.beginPath();ctx.moveTo(x0,MAXB+500);
+  ctx.fillStyle=level===11?'#1c2622':'#0b1a1c';ctx.beginPath();ctx.moveTo(x0,MAXB+500);
   for(var bx=Math.floor(x0/14)*14;bx<=x1+14;bx+=14)ctx.lineTo(bx,bottom(bx));
   ctx.lineTo(x1+14,MAXB+500);ctx.fill();
-  ctx.strokeStyle='#2c4a46';ctx.lineWidth=3;ctx.beginPath();
+  ctx.strokeStyle=level===11?'#4e5d50':'#2c4a46';ctx.lineWidth=3;ctx.beginPath();
   for(bx=Math.floor(x0/14)*14;bx<=x1+14;bx+=14){var by=bottom(bx);if(bx<=x0)ctx.moveTo(bx,by);else ctx.lineTo(bx,by)}
   if(level!==2)ctx.stroke();
   if(level===2&&x1>W-850){
@@ -3747,7 +3749,9 @@ function render(){
   if(level===9){ctx.save();ctx.setTransform(dpr*Z,0,0,dpr*Z,-cam.x*dpr*Z,-cam.y*dpr*Z);var rp=ctx.createLinearGradient(0,0,420,0);rp.addColorStop(0,'rgba(150,170,150,.45)');rp.addColorStop(1,'rgba(150,170,150,0)');ctx.fillStyle=rp;ctx.fillRect(-100,0,520,M*4);ctx.fillStyle='rgba(230,236,230,.85)';ctx.font='700 12px Figtree, sans-serif';ctx.textAlign='left';if(cam.x<500)ctx.fillText('FERSKVANN – IKKE SKYT',40,M*1.2);ctx.restore()}
   /* sikt: grumset vann lukker seg rundt dykkeren */
   if((state==='play'||state==='blackout'||state==='intro')&&WX.vis<26&&!(level===7&&diver.y>M*2)){
-    var syS=(0-cam.y),dsx=diver.x-cam.x,dsy=diver.y-cam.y,vr=visPx()*.55,va=clamp((26-WX.vis)/20,0,1)*(night?.5:.82);
+    var syS=(0-cam.y),dsx=diver.x-cam.x,dsy=diver.y-cam.y,vr=visPx()*.55;
+    if(level===11&&(H.camHold||(C.load&&(C.st==='lift'||C.st==='swing')))){dsx=vw/2;dsy=vh/2;vr=Math.max(vr,vh*.6)}
+    var va=clamp((26-WX.vis)/20,0,1)*(night?.5:.82);
     var mg2=ctx.createRadialGradient(dsx,dsy,vr*.35,dsx,dsy,vr*1.25),mc=level===4||level===5?'8,40,70':'10,44,46';
     mg2.addColorStop(0,'rgba('+mc+',0)');mg2.addColorStop(1,'rgba('+mc+','+va+')');
     ctx.save();ctx.setTransform(dpr*Z,0,0,dpr*Z,0,0);ctx.fillStyle=mg2;ctx.fillRect(0,Math.max(0,syS+3),vw,vh);ctx.restore();
@@ -4388,7 +4392,7 @@ $('crRestore').addEventListener('click',function(){
   crClear(o.cur&&o.cur.id?o.cur:null);for(var k in o.d){try{localStorage.setItem(k,o.d[k])}catch(_){}}location.reload();
 });
 /* ---------- nivå 11: ryddeaksjon langs kaia ---------- */
-var QX=0,QY=-70,HGOAL=5000,WIRE=7.5,LAD=[260,980,1700,2420,3140];
+var QX=0,QY=-70,HGOAL=5000,WIRE=13,LAD=[260,980,1700,2420,3140];
 var HT={
   flaske:{n:'Glassflaske',kg:.4,wf:.6,s:8},boks:{n:'Brusboks',kg:.1,wf:.5,s:6},pose:{n:'Plastpose',kg:.2,wf:.2,s:9},mobil:{n:'Mobiltelefon',kg:.2,wf:.6,s:5},
   sko:{n:'Sko',kg:.6,wf:.3,s:8},glass:{n:'Ølglass',kg:.3,wf:.6,s:6},kasse:{n:'Ølkasse',kg:2,wf:.3,s:14},kjegle:{n:'Trafikkjegle',kg:3,wf:.4,s:14},stol:{n:'Kafestol',kg:4,wf:.5,s:16},
@@ -4488,7 +4492,7 @@ function hActInfo(){
   if(hd&&hd.k==='bag'){it=hNear(52,function(o){return o.kg>30&&!hIsBB(o)&&o.bags.length<6&&o.st!=='float'});return it?{k:'bag',t:'FEST LØFTEBAGEN',it:it}:null}
   if(hd&&hd.k==='strap'){it=hNear(52,function(o){return o.kg>3&&!o.strap&&!hIsBB(o)});return it?{k:'strap',t:'FEST STROPPEN',it:it}:null}
   if(hd&&hd.k==='bigbag'){if(under&&diver.y>bottom(diver.x)-110)return {k:'layout',t:'LEGG UT BIGBAGEN'};return null}
-  if(hd&&hd.k==='hook'){it=hNear(56,function(o){return o.kg>3});if(it){if(it.strap||hIsBB(it))return {k:'hookon',t:'FEST KROKEN',it:it};return {k:'nostrap',t:'FEST KROKEN',it:it}}return {k:'unhook',t:'SLIPP KROKEN'}}
+  if(hd&&hd.k==='hook'){it=hNear(64,function(o){return o.kg>3&&(o.strap||hIsBB(o))})||hNear(56,function(o){return o.kg>3});if(it){if(it.strap||hIsBB(it))return {k:'hookon',t:'FEST KROKEN',it:it};return {k:'nostrap',t:'FEST KROKEN',it:it}}return {k:'unhook',t:'SLIPP KROKEN'}}
   if(C.st==='hooked'&&C.load&&Math.hypot(C.load.x-diver.x,C.load.y-diver.y)<70&&!hd)return {k:'unhookload',t:'LØS KROKEN'};
   if(H.net>0&&bb&&!hd)return {k:'netin',t:'TØM NETTET I BIGBAGEN',it:bb};
   it=hNear(52,function(o){return o.kg>3&&!hIsBB(o)});if(!it)return null;
@@ -4836,8 +4840,9 @@ function drawHarbour(x0,x1){
   if(level!==11)return;var c=ctx,i;
   /* kaiveggen bak – vi svømmer langs den */
   var gw=c.createLinearGradient(0,QY,0,MAXB+60);gw.addColorStop(0,'#8a8c86');gw.addColorStop(.09,'#7f827c');gw.addColorStop(.12,'#4e6662');gw.addColorStop(.45,'#1f3b3d');gw.addColorStop(1,'#0c1c1f');
+  c.save();c.beginPath();c.moveTo(x0-60,QY-10);c.lineTo(x1+74,QY-10);for(var cbx=Math.floor((x1+74)/14)*14;cbx>=x0-74;cbx-=14)c.lineTo(cbx,bottom(cbx)+1);c.closePath();c.clip();
   c.fillStyle=gw;c.fillRect(x0-60,QY,x1-x0+120,MAXB+60-QY);
-  c.fillStyle='rgba(0,0,0,.12)';for(var jx=Math.floor((x0-60)/220)*220;jx<x1+60;jx+=220)c.fillRect(jx,QY,3,MAXB+60-QY);for(var jy=QY+40;jy<MAXB;jy+=60)c.fillRect(x0-60,jy,x1-x0+120,2);
+  c.fillStyle='rgba(0,0,0,.12)';for(var jx=Math.floor((x0-60)/220)*220;jx<x1+60;jx+=220)c.fillRect(jx,QY,3,MAXB+60-QY);for(var jy=QY+40;jy<MAXB;jy+=60)c.fillRect(x0-60,jy,x1-x0+120,2);c.restore();
   c.fillStyle='rgba(60,90,50,.55)';c.fillRect(x0-60,-6,x1-x0+120,30);c.fillStyle='rgba(30,30,40,.45)';for(var mx=Math.floor(x0/14)*14;mx<x1;mx+=14)c.fillRect(mx,6+(mx*7%9),6,5);
   c.fillStyle='#9a9c96';c.fillRect(x0-60,QY-6,x1-x0+120,8);
   /* stiger og fendere */
