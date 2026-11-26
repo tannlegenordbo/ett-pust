@@ -136,6 +136,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -230,9 +232,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 #lie{position:fixed;right:18px;bottom:134px;width:92px;padding:12px 4px;border-radius:12px;border:2px solid var(--foam);background:var(--warn);color:#1b1400;font-family:var(--display);font-weight:700;font-size:12px;touch-action:none;cursor:pointer}
 #lie[hidden]{display:none}
 #hAct{position:fixed;right:18px;bottom:26px;width:96px;height:96px;border-radius:50%;border:3px solid var(--foam);background:var(--buoy);color:#1b0c04;font-family:var(--display);font-weight:800;font-size:13px;line-height:1.1;padding:6px;touch-action:none;cursor:pointer;z-index:5}
-#hMenu{position:fixed;right:18px;bottom:200px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;z-index:5}
+#hMenu{position:fixed;right:14px;bottom:200px;display:grid;grid-template-columns:auto auto;gap:7px;justify-items:end;z-index:5;max-width:290px}
 #hMenu[hidden]{display:none}
-#hMenu button{padding:11px 14px;min-width:120px;border-radius:12px;border:2px solid var(--foam);background:#ffd23f;color:#1b1400;font-family:var(--display);font-weight:800;font-size:12.5px;touch-action:none;cursor:pointer}
+#hMenu button{padding:10px 10px;min-width:128px;border-radius:12px;border:2px solid var(--foam);background:#ffd23f;color:#1b1400;font-family:var(--display);font-weight:800;font-size:12.5px;touch-action:none;cursor:pointer}
 #hFill{position:fixed;right:122px;bottom:38px;width:72px;height:72px;border-radius:50%;border:2px solid var(--foam);background:#ffb21f;color:#1b1400;font-family:var(--display);font-weight:800;font-size:11px;line-height:1.1;touch-action:none;cursor:pointer;z-index:5}
 #hVent{position:fixed;right:200px;bottom:38px;width:72px;height:72px;border-radius:50%;border:2px solid var(--foam);background:rgba(6,34,43,.85);color:var(--foam);font-family:var(--display);font-weight:800;font-size:11px;line-height:1.1;touch-action:none;cursor:pointer;z-index:5}
 #hFill.on,#hVent.on{filter:brightness(1.25);transform:scale(.94)}
@@ -388,7 +390,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0d · stor henger med haug</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0e · stropper, bigbag og sleping</p>
   </div>
 </div>
 
@@ -483,7 +485,7 @@ td.n,th.n{text-align:right}
       <li><b>Du er nøytral på 5 meter.</b> Grunnere enn det flyter du tydelig oppover. Dypere kan du slappe av og synke, men må jobbe mer for å komme opp.</li>
       <li><b>KICK!:</b> hamre på KICK!-knappen for å gi gass i den retningen du svømmer, opp eller ned. Jo fortere du trykker, jo fortere går det, men det koster luft og skremmer fisken.</li>
       <li><b>BELTE-DROPP:</b> rekker du ikke opp med fisken, kan du slippe blybeltet. Da fyker du til overflaten, mens beltet, harpunen og fisken blir liggende på bunnen. Det koster 10 000 poeng, og du må ligge i overflaten og trykke HAL! raskt for å dra alt opp med lina.</li>
-      <li><b>Havna (nivå 11):</b> ryddeaksjon – du svømmer langs kaia, og det er ingen jakt. Småsøppel (flasker, bokser, mobiler) havner i nettet når du svømmer over det. Middels ting (bildekk, handlevogner, sykler, el-sparkesykler, batterier) tar du med (TA MED), svømmer opp og trykker LEVER TIL KAIA – da kommer mannskapet og hiver det opp. Tunge ting løfter du slik: i overflaten trykker du BE OM LØFTEBAG, mannskapet firer den ned til deg, du dykker ned og FESTER LØFTEBAGEN (hver løfter 200 kg). Så svømmer du opp, BER OM LUFTFLASKE, tar den med ned og holder FYLL LUFT. Slipp luft på vei opp, ellers skyter bagen opp og velter. Kranbilen kan også hjelpe: trykk KROK HIT, så kjører den langs kaia til deg. Ta kroken, FEST KROKEN i lasten, kom deg unna og trykk HIV OPP! Wiren rekker bare 7,5 meter ned – dypere ting må flyte opp med løftebager først. Til slutt styrer du kranen med joysticken og SLIPP LASTEN i containeren på lastebilen. Målet er 5 tonn, og det du har ryddet, blir liggende til neste dag.</li>
+      <li><b>Havna (nivå 11):</b> ryddeaksjon – du svømmer langs kaia med armene foran deg, og det er ingen jakt. Du griper når hendene er over tingen. Småsøppel havner i nettet. Ting opp til 30 kg kan du bære opp (TA MED) – det er tungt, og raske kick koster mye luft. I overflaten drar det ikke lenger, og du trykker LEVER TIL KAIA. Tyngre ting (opptil 200 kg) kan du TA TAK OG DRA: du går på kne og drar dem langs bunnen. I overflaten kan du be mannskapet om utstyr: LØFTEBAG og LUFTFLASKE (fest bagen, hent flaska og hold FYLL LUFT – slipp luft på vei opp), STROPP (må festes rundt alt kranen skal løfte) og BIGBAG (legg den ut på bunnen, legg eller dra søppel oppi, og løft hele sekken med kranen). Kranbilen kommer når du trykker KROK HIT – ta kroken, fest den i stroppen eller bigbagen, kom deg unna og trykk HIV OPP! Wiren rekker 7,5 meter ned. Til slutt styrer du kranen og slipper lasten i hengeren, der søppelet stables. Målet er 5 tonn.</li>
       <li><b>Lite luft?</b> Når lufta er under en tredjedel, dukker en rød SLIPP BELTET-knapp opp. Den virker alltid, også uten fisk, og koster 3 000 poeng (10 000 med fisk).</li>
       <li><b>Vekting og luft:</b> er du nøytral (verken tung eller lett) på dybden du svømmer, bruker du 20 % mindre luft. Er du mye for tung eller lett, må du jobbe for å holde dybden og bruker opptil 20 % mer. Merket ⚖️ viser hvordan du ligger an. Velg belte og drakt etter hvor dypt du skal.</li>
       <li><b>Krabbe langs bunnen:</b> ligger du på bunnen og er tung, drar dykkeren seg fram med armene når du trykker joysticken godt ut til siden. Harpunen peker dit joysticken peker, så du kan sikte mens du krabber. Et lite trykk sikter uten å krabbe.</li>
@@ -3689,7 +3691,7 @@ function render(){
     else if(carry&&carry.mount)drawRider(carry,'near');
     else if(level===10&&inWreck){DCRAWL=lying&&crawlV?crawlPh:-1;drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,noGun?2:false,(lying&&!noGun)?diver.ang:null);DCRAWL=-1;drawDiveLamp()}
     else if(lying&&crawlV){DCRAWL=crawlPh;drawDiver(diver.x,diver.y,bang,0,0,noGun?2:false,noGun?null:diver.ang);DCRAWL=-1}
-    else{DBEND=duck?duck.bend||0:0;drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);DBEND=0}
+    else{DBEND=duck?duck.bend||0:(level===11&&H.drag?1.15+Math.sin(H.walk||0)*.3:0);drawDiver(diver.x,diver.y,bang,duck?(duck.kick||0):diver.kick,duck?.8:diver.spd,(diver.y<22&&state==='play'&&!lying)?true:noGun?2:false,(lying&&!noGun)?diver.ang:null);DBEND=0}
     }
     if(cA>0)ctx.restore();
   }
@@ -4396,7 +4398,7 @@ function hBuild(){
   H.items=L.filter(function(it){return H.save.done.indexOf(it.id)<0}).map(function(it){var d=HT[it.t];it.kg=d.kg;it.wet=d.kg*d.wf;it.s={bil:200,jolle:125,henger:105,tdekk:72,lodd:46}[it.t]||Math.round(d.s*1.6);it.st='bottom';it.y=bottom(it.x)-d.s*.35;it.vy=0;it.strap=false;it.bags=[];it.stuck=d.kg>25?1:0;return it});
 }
 function hReset(){
-  H.log=[];H.net=0;H.netList=[];H.bags=6;H.tow=null;H.hand=null;H.gear=null;H.anim=null;H.fill=false;H.vent=false;H.lastFit=null;
+  H.log=[];H.net=0;H.netList=[];H.bags=6;H.bigbags=2;H.drag=null;H.bbN=0;H.tow=null;H.hand=null;H.gear=null;H.anim=null;H.fill=false;H.vent=false;H.lastFit=null;
   H.crew={x:diver.x-60,tx:diver.x-60,st:'idle',t:0,walk:0};K={x:diver.x+360,tx:diver.x+360,st:'park',out:1,wheel:0};TK={x:K.x-TOFF,wheel:0};
   C={st:'idle',r:-60,L:60,th:0,w:0,load:null,t:0,hx:0,hy:0};
   if(testBak)H.save={kg:0,done:[],days:0,fin:0};else hLoad();
@@ -4408,10 +4410,14 @@ function tipY(){return QY-200}
 function CTY(){return QY-24-CH}
 function BED(){return QY-24}
 function hFloatY(o){return o.s*.5+38}
-function hClass(it){return it.kg<=3?'small':it.kg<=60?'med':'heavy'}
+function hClass(it){return it.kg<=3?'small':it.kg<=30?'med':'heavy'}
 function bagLift(it,dm){var s=0;for(var i=0;i<it.bags.length;i++)s+=Math.min(200,it.bags[i].air/(1+Math.max(0,dm)/10));return s}
 function hPts(it){return Math.round(it.kg*20*(HT[it.t].haz?2:1))}
 function hDeliver(it,drop){
+  if(it.t==='bigbag'){var dd=drop||{x:0,y:-CH-60,vx:0,vy:0};var ii0=H.items.indexOf(it);if(ii0>=0)H.items.splice(ii0,1);H.bigbags++;var tot=0;
+    it.contents.forEach(function(c,k){tot+=c.kg;hDeliver(c,{x:dd.x+rnd(-40,40),y:dd.y-k*22,vx:dd.vx*.5+rnd(-40,40),vy:-rnd(0,60)})});
+    it.net.forEach(function(c){tot+=c.kg;hDeliver(c,false)});if(it.net.length)hPileAdd('sekk',30,{x:dd.x,y:dd.y-90,vx:0,vy:0},false);
+    toast('Bigbagen tømmes i hengeren: '+fmt(tot)+' kg','good',2600);return}
   if(drop!==false)hPileAdd(it.t,it.s,drop||null,it.flip);
   H.save.kg+=it.kg;H.save.done.push(it.id);H.bags+=it.bags.length;it.bags=[];
   var p=hPts(it);score+=p;H.log.push({t:it.t,kg:it.kg,p:p+(it.life?300:0)});var i=H.items.indexOf(it);if(i>=0)H.items.splice(i,1);
@@ -4424,25 +4430,34 @@ function hDeliver(it,drop){
 function hNear(r,pred){
   var best=null,bd=1e9;r=r||46;
   var hp=hHand();
-  for(var i=0;i<H.items.length;i++){var it=H.items[i];if(pred&&!pred(it))continue;if(H.hand&&H.hand.it===it)continue;if(it.st==='crane'||it.st==='hooked')continue;var d=Math.hypot(it.x-hp.x,it.y-it.s*.25-hp.y)-it.s*.5;if(d<r&&d<bd){bd=d;best=it}}
+  for(var i=0;i<H.items.length;i++){var it=H.items[i];if(pred&&!pred(it))continue;if(H.hand&&H.hand.it===it)continue;if(it.st==='crane'||it.st==='hooked'||it.st==='drag'||it.st==='inbag')continue;var d=Math.hypot(it.x-hp.x,it.y-it.s*.25-hp.y)-it.s*.5;if(d<r&&d<bd){bd=d;best=it}}
   return best;
 }
 function hHand(){var cs=Math.cos(diver.ang),sn=Math.sin(diver.ang),lx=50,ly=6,lyw=cs<0?-ly:ly;return {x:diver.x+lx*cs-lyw*sn,y:diver.y+lx*sn+lyw*cs}}
 function hUnderLoad(it){return under&&Math.abs(diver.x-it.x)<70&&diver.y>it.y-10}
 function hAnim(k,d,o){H.anim={k:k,t:0,d:d,o:o||{}};S.tick()}
 /* ---------- hovedknapp under vann ---------- */
+function hIsBB(o){return o&&o.t==='bigbag'}
+function hBBNear(){var hp=hHand(),best=null;for(var i=0;i<H.items.length;i++){var o=H.items[i];if(o.t==='bigbag'&&o.st==='bottom'&&Math.hypot(o.x-hp.x,o.y-o.s*.3-hp.y)<o.s*.7+30)best=o}return best}
 function hActInfo(){
   if(state!=='play'||H.anim)return null;
   if(C.st==='swing')return {k:'drop',t:'SLIPP LASTEN'};
-  var hd=H.hand,it=hNear(52,hd&&hd.k==='bag'?function(o){return hClass(o)==='heavy'&&o.bags.length<6&&o.st!=='float'}:hd&&hd.k==='hook'?function(o){return hClass(o)!=='small'}:function(o){return hClass(o)!=='small'});
+  var hd=H.hand,bb=hBBNear();
   if(H.tow)return {k:'untow',t:'SLIPP TAKET'};
-  if(hd&&hd.k==='item')return {k:'dropitem',t:'SLIPP'};
-  if(hd&&hd.k==='bag'){if(it&&hClass(it)==='heavy'&&it.bags.length<6&&it.st!=='float')return {k:'bag',t:'FEST LØFTEBAGEN',it:it};return null}
-  if(hd&&hd.k==='hook'){if(it&&hClass(it)!=='small')return {k:'hookon',t:'FEST KROKEN',it:it};return {k:'unhook',t:'SLIPP KROKEN'}}
-  if(C.st==='hooked'&&C.load&&Math.hypot(C.load.x-diver.x,C.load.y-diver.y)<60&&!hd)return {k:'unhookload',t:'LØS KROKEN'};
-  if(!it)return null;
+  if(H.drag){if(bb&&bb.kg+H.drag.kg<=1000)return {k:'dragin',t:'DRA INN I BIGBAGEN',it:bb};return {k:'undrag',t:'SLIPP'}}
+  if(hd&&hd.k==='item'){if(bb&&under)return {k:'putin',t:'LEGG I BIGBAGEN',it:bb};return {k:'dropitem',t:'SLIPP'}}
+  var it;
+  if(hd&&hd.k==='bag'){it=hNear(52,function(o){return o.kg>30&&!hIsBB(o)&&o.bags.length<6&&o.st!=='float'});return it?{k:'bag',t:'FEST LØFTEBAGEN',it:it}:null}
+  if(hd&&hd.k==='strap'){it=hNear(52,function(o){return o.kg>3&&!o.strap&&!hIsBB(o)});return it?{k:'strap',t:'FEST STROPPEN',it:it}:null}
+  if(hd&&hd.k==='bigbag'){if(under&&diver.y>bottom(diver.x)-110)return {k:'layout',t:'LEGG UT BIGBAGEN'};return null}
+  if(hd&&hd.k==='hook'){it=hNear(56,function(o){return o.kg>3});if(it){if(it.strap||hIsBB(it))return {k:'hookon',t:'FEST KROKEN',it:it};return {k:'nostrap',t:'FEST KROKEN',it:it}}return {k:'unhook',t:'SLIPP KROKEN'}}
+  if(C.st==='hooked'&&C.load&&Math.hypot(C.load.x-diver.x,C.load.y-diver.y)<70&&!hd)return {k:'unhookload',t:'LØS KROKEN'};
+  if(H.net>0&&bb&&!hd)return {k:'netin',t:'TØM NETTET I BIGBAGEN',it:bb};
+  it=hNear(52,function(o){return o.kg>3&&!hIsBB(o)});if(!it)return null;
   if(it.st==='float'&&!under&&!hd)return {k:'tow',t:'TA TAK OG SLEP',it:it};
-  if(hClass(it)==='med'&&!hd)return {k:'take',t:'TA MED',it:it};
+  if(hd)return null;
+  if(it.kg<=30)return {k:'take',t:'TA MED',it:it};
+  if(it.kg<=200&&it.st==='bottom'&&!it.bags.length)return {k:'drag',t:'TA TAK OG DRA',it:it};
   return null;
 }
 function hAct(){
@@ -4450,9 +4465,17 @@ function hAct(){
   if(a.k==='take')hAnim('pickup',.55,{it:it});
   else if(a.k==='dropitem'){var c=H.hand.it;H.hand=null;c.st='bottom';c.vy=0;S.tick()}
   else if(a.k==='bag')hAnim('bag',1.5,{it:it});
-  else if(a.k==='hookon'){if(it.y>WIRE*M+8){toast('Kranwiren rekker bare '+WIRE+' meter ned. Løft den med løftebager først','bad',3000);return}hAnim('hook',1.3,{it:it})}
+  else if(a.k==='strap')hAnim('strap',1.3,{it:it});
+  else if(a.k==='layout')hAnim('layout',1.4,{});
+  else if(a.k==='putin')hAnim('putin',.7,{it:it});
+  else if(a.k==='netin')hAnim('netin',.9,{it:it});
+  else if(a.k==='drag'){H.drag=it;it.st='drag';it.stuck=0;S.tick();toast(HT[it.t].n+' ('+fmt(it.kg)+' kg) er for tung å svømme opp med – du går på kne og drar den langs bunnen','',3000)}
+  else if(a.k==='undrag'){H.drag.st='bottom';H.drag=null;diver.ang=(H.dragDir||1)>0?0:Math.PI;S.tick()}
+  else if(a.k==='dragin'){var d=H.drag;H.drag=null;d.st='bottom';diver.ang=(H.dragDir||1)>0?0:Math.PI;hAnim('putin',.8,{it:it,obj:d})}
+  else if(a.k==='hookon'){if(it.y>WIRE*M+8){toast('Kranwiren rekker bare '+WIRE+' meter ned. Løft den med løftebager eller dra den grunnere','bad',3000);return}hAnim('hook',1.1,{it:it})}
+  else if(a.k==='nostrap'){toast('Kroken trenger en stropp rundt lasten. Svøm opp og BE OM STROPP','bad',2800)}
   else if(a.k==='unhook'){H.hand=null;C.st='wait';C.hx=diver.x;C.hy=Math.min(diver.y,WIRE*M);S.tick()}
-  else if(a.k==='unhookload'){var l=C.load;C.load=null;C.st='wait';C.hx=l.x;C.hy=Math.max(4,l.y-20);l.st=l.bags.length&&l.y<20?'float':'bottom';S.tick()}
+  else if(a.k==='unhookload'){var l=C.load;C.load=null;C.st='wait';C.hx=l.x;C.hy=Math.max(4,l.y-20);l.st=l.bags.length&&l.y<60?'float':'bottom';S.tick()}
   else if(a.k==='tow'){H.tow=it;S.tick();toast('Du sleper '+HT[it.t].n.toLowerCase()+'. Be om kroken når du er klar','',2400)}
   else if(a.k==='untow'){H.tow=null;S.tick()}
   else if(a.k==='drop')hDrop();
@@ -4466,18 +4489,21 @@ function hMenuList(){
   var busy=H.crew.st!=='idle';
   if((H.hand&&H.hand.k==='item')||H.net>0)L.push({k:'deliver',t:'LEVER TIL KAIA'});
   if(!H.hand&&!H.gear&&!busy){
-    if(H.bags>0)L.push({k:'reqbag',t:'BE OM LØFTEBAG'});
-    L.push({k:'reqbottle',t:'BE OM LUFTFLASKE'});
+    if(H.bags>0)L.push({k:'req:bag',t:'BE OM LØFTEBAG'});
+    L.push({k:'req:bottle',t:'BE OM LUFTFLASKE'});
+    L.push({k:'req:strap',t:'BE OM STROPP'});
+    if(H.bigbags>0)L.push({k:'req:bigbag',t:'BE OM BIGBAG'});
     if(C.st==='idle'&&K.st==='park')L.push({k:'call',t:'KROK HIT'});
   }
-  if(H.hand&&(H.hand.k==='bottle'||H.hand.k==='bag')&&!busy)L.push({k:'return',t:'LEVER TILBAKE '+(H.hand.k==='bottle'?'FLASKEN':'BAGEN')});
+  if(H.hand&&H.hand.k!=='item'&&H.hand.k!=='hook'&&!busy)L.push({k:'return',t:'LEVER TILBAKE UTSTYRET'});
   return L;
 }
+var GEARTXT={bag:'en løftebag',bottle:'en luftflaske til løftebagene',strap:'en løftestropp til kranen',bigbag:'en bigbag til å samle søppel i på bunnen'};
 function hMenu(k){
   if(k==='heave'){var it=C.load;if(hUnderLoad(it)){toast('Stopp! Aldri vær under hengende last – svøm til siden først','bad',2600);return}C.st='lift';S.tick();toast('Signal gitt – kranen hiver','',1400)}
   else if(k==='deliver'){H.crew.tx=diver.x-10;H.crew.st='toRecv';S.tick();toast('Ryddemannskapet kommer for å ta imot','',1600)}
-  else if(k==='reqbag'||k==='reqbottle'){if(k==='reqbag')H.bags--;H.crew.tx=diver.x+18;H.crew.st='toLower';H.crew.what=k==='reqbag'?'bag':'bottle';S.tick();toast(k==='reqbag'?'Du ber om en løftebag – mannskapet fira den ned til deg':'Du ber om en luftflaske til løftebagene','',1800)}
-  else if(k==='call'){K.tx=clamp(diver.x-40,320,W-200);K.st='pack';S.tick();toast('Kranbilen kjører bort til deg langs kaia','',1800)}
+  else if(k.indexOf('req:')===0){var w=k.slice(4);if(w==='bag')H.bags--;if(w==='bigbag')H.bigbags--;H.crew.tx=diver.x+18;H.crew.st='toLower';H.crew.what=w;S.tick();toast('Du ber om '+GEARTXT[w]+' – mannskapet firer den ned til deg','',1900)}
+  else if(k==='call'){K.tx=clamp(diver.x-40,520,W-200);K.st='pack';S.tick();toast('Kranbilen kjører bort til deg langs kaia','',1800)}
   else if(k==='return'){H.crew.tx=diver.x-10;H.crew.st='toTakeGear';S.tick()}
 }
 function hDrop(){
@@ -4523,8 +4549,12 @@ function hUpdate(dt){
     if(A.t>=A.d){H.anim=null;
       if(A.k==='pickup'){o.st='carry';H.hand={k:'item',it:o};toast(HT[o.t].n+' ('+fmt(o.kg)+' kg) – svøm opp og lever den til kaia','',2000)}
       else if(A.k==='bag'){o.strap=true;o.bags.push({air:0});H.hand=null;S.tick();toast('Løftebagen er festet ('+o.bags.length+' på '+HT[o.t].n.toLowerCase()+'). Svøm opp og be om luftflaske for å fylle den','',3200)}
-      else if(A.k==='hook'){o.strap=true;H.hand=null;C.st='hooked';C.load=o;o.st='hooked';S.tick();toast('Kroken sitter i stroppen. Kom deg unna lasten og gi signal: HIV OPP!','',2800)}
-      else if(A.k==='grab'){var g=H.gear;H.gear=null;H.hand=g.k==='bottle'?{k:'bottle',air:1500}:{k:g.k};if(g.k==='hook')C.st='held';S.tick();toast(g.k==='bag'?'Du har løftebagen – dykk ned og fest den på noe tungt':g.k==='bottle'?'Du har luftflasken (1 500 liter) – dykk ned til bagen og hold FYLL LUFT':'Du har kroken – dykk ned og fest den','',2600)}
+      else if(A.k==='hook'){H.hand=null;C.st='hooked';C.load=o;o.st='hooked';S.tick();toast(hIsBB(o)?'Kroken sitter i løkkene på bigbagen. Kom deg unna og gi signal: HIV OPP!':'Kroken sitter i stroppen. Kom deg unna lasten og gi signal: HIV OPP!','',2800)}
+      else if(A.k==='strap'){o.strap=true;H.hand=null;S.tick();toast('Stroppen er festet rundt '+HT[o.t].n.toLowerCase()+'. Nå kan kranen ta den','',2600)}
+      else if(A.k==='layout'){H.hand=null;var bx=diver.x+Math.cos(diver.ang)*40;H.bbN++;H.items.push({id:'bb'+H.bbN,t:'bigbag',x:bx,y:bottom(bx)-2,rot:0,flip:false,kg:15,wet:5,s:78,st:'bottom',bags:[],strap:false,stuck:0,vy:0,contents:[],net:[]});S.tick();toast('Bigbagen er lagt ut på bunnen. Legg søppel oppi den – kranen løfter hele sekken','',3000)}
+      else if(A.k==='putin'){var bbx=o,thing=A.o.obj||(H.hand&&H.hand.it);if(!A.o.obj)H.hand=null;var ii=H.items.indexOf(thing);if(ii>=0)H.items.splice(ii,1);thing.st='inbag';bbx.contents.push(thing);bbx.kg+=thing.kg;bbx.wet+=thing.wet;S.tick();toast(HT[thing.t].n+' er i bigbagen ('+fmt(bbx.kg-15)+' kg)','',1600)}
+      else if(A.k==='netin'){var bb2=o;H.netList.forEach(function(x){bb2.net.push(x)});bb2.kg+=H.net;bb2.wet+=H.net*.5;H.net=0;H.netList=[];S.tick();toast('Nettet er tømt i bigbagen','',1400)}
+      else if(A.k==='grab'){var g=H.gear;H.gear=null;H.hand=g.k==='bottle'?{k:'bottle',air:1500}:{k:g.k};if(g.k==='hook')C.st='held';S.tick();toast({bag:'Du har løftebagen – dykk ned og fest den på noe tungt',bottle:'Du har luftflasken (1 500 liter) – dykk ned til bagen og hold FYLL LUFT',strap:'Du har stroppen – fest den rundt noe kranen skal løfte',bigbag:'Du har bigbagen – legg den ut på bunnen der det er mye søppel',hook:'Du har kroken – dykk ned og fest den i en stropp eller bigbag'}[g.k],'',2600)}
     }
   }
   /* utstyr som flyter i overflaten: grip automatisk */
@@ -4535,15 +4565,19 @@ function hUpdate(dt){
     if(Math.hypot(it.x-hp.x,it.y-it.s*.2-hp.y)<it.s*.6+14){if(H.net+it.kg>H.netMax){if(tClock-(H.msgT||0)>4){H.msgT=tClock;toast('Nettet er fullt – svøm opp og lever til kaia','bad',2000)}continue}
       H.net+=it.kg;H.netList.push(it);H.items.splice(i,1);S.tick()}}}
   /* bære tynger */
-  if(H.hand&&H.hand.k==='item'){var cw=H.hand.it.wet,fp=FIN[G.fin].v;diver.vy+=cw*13/fp*dt;diver.vx*=1-Math.min(1,dt*cw*.04);air-=100/cap()*cw*(.03+.12*boost)*dt;
-    if(under&&diver.vy>10&&cw*13/fp>480&&tClock-(H.msgT||0)>3){H.msgT=tClock;toast(HT[H.hand.it.t].n+' er for tung å svømme opp med – slipp den og bruk løftebag','bad',2600)}
+  if(H.hand&&H.hand.k==='item'&&diver.y>16){var cw=H.hand.it.wet,fp=FIN[G.fin].v;diver.vy+=cw*20/fp*dt;diver.vx*=1-Math.min(1,dt*cw*.04);air-=100/cap()*cw*(.03+.12*boost)*dt;
+    if(under&&diver.vy>10&&cw*20/fp>480&&tClock-(H.msgT||0)>3){H.msgT=tClock;toast(HT[H.hand.it.t].n+' er for tung å svømme opp med – slipp den og bruk løftebag','bad',2600)}
     else if(under&&diver.vy>25&&tClock-(H.msgT||0)>4){H.msgT=tClock;toast('Tungt! Kick raskt for å komme opp – det koster mye luft','bad',2000)}}
   if(H.hand&&H.hand.k==='bottle')diver.vy+=6*dt;
+  if(H.drag){var dg=H.drag,fb=bottom(diver.x)-44;diver.y+=(fb-diver.y)*Math.min(1,dt*4);diver.vy=0;var vmax=70*120/(dg.kg+90);diver.vx=clamp(diver.vx,-vmax,vmax);
+    var dd=diver.vx>3?1:diver.vx<-3?-1:(H.dragDir||1);H.dragDir=dd;dg.x+=(diver.x+dd*(dg.s*.5+26)-dg.x)*Math.min(1,dt*5);dg.y=bottom(dg.x)-dg.s*.35;diver.ang=dd>0?-1.5808:-1.5608;H.walk=(H.walk||0)+Math.abs(diver.vx)*dt*.12;
+    air-=100/cap()*(.3+dg.kg/250)*Math.min(1,Math.abs(diver.vx)/20)*dt;if(Math.random()<dt*Math.abs(diver.vx)*.05)bubbles.push({x:dg.x+rnd(-dg.s*.4,dg.s*.4),y:dg.y+4,r:rnd(1,2.5),v:rnd(15,30),ph:rnd(0,6)});
+    var iv=inputVec();if(iv.y<-.6&&tClock-(H.msgT||0)>3){H.msgT=tClock;toast('For tungt å svømme opp med – dra den til en bigbag eller slipp den','bad',2200)}}
   /* mannskapet på kaia */
-  var cr=H.crew,dx=cr.tx-cr.x;if(Math.abs(dx)>3){cr.x+=Math.sign(dx)*Math.min(Math.abs(dx),150*dt);cr.walk+=dt*9}else{cr.x=cr.tx;
+  var cr=H.crew;if(cr.st==='idle'&&Math.abs(diver.x-cr.x)>320)cr.tx=diver.x-Math.sign(diver.x-cr.x)*140;var dx=cr.tx-cr.x;if(Math.abs(dx)>3){cr.x+=Math.sign(dx)*Math.min(Math.abs(dx),(cr.st==='idle'?150:230)*dt);cr.walk+=dt*9}else{cr.x=cr.tx;
     if(cr.st==='toLower'){cr.st='lower';cr.t=0;H.gear={k:cr.what,x:cr.x+16,y:QY,st:'lower'}}
     else if(cr.st==='toRecv'){if(!under&&Math.abs(diver.x-cr.x)<90){cr.st='recv';cr.t=0;cr.load={net:H.net,list:H.netList,item:H.hand&&H.hand.k==='item'?H.hand.it:null};H.net=0;H.netList=[];if(cr.load.item){H.hand=null;cr.load.item.st='carry'}}else{cr.st='idle';cr.tx=cr.x}}
-    else if(cr.st==='toTakeGear'){if(H.hand&&!under&&Math.abs(diver.x-cr.x)<90){if(H.hand.k==='bag')H.bags++;H.hand=null;cr.st='idle';S.tick();toast('Utstyret er levert tilbake','',1400)}else cr.st='idle'}}
+    else if(cr.st==='toTakeGear'){if(H.hand&&!under&&Math.abs(diver.x-cr.x)<90){if(H.hand.k==='bag')H.bags++;if(H.hand.k==='bigbag')H.bigbags++;H.hand=null;cr.st='idle';S.tick();toast('Utstyret er levert tilbake','',1400)}else cr.st='idle'}}
   if(cr.st==='lower'){cr.t+=dt;var g2=H.gear;g2.y=QY+(4-QY)*clamp(cr.t/1.2,0,1);if(cr.t>=1.2){g2.st='float';g2.y=4;cr.st='idle';cr.tx=cr.x;S.splash()}}
   if(cr.st==='recv'){cr.t+=dt;if(cr.t>=1.3){var ld=cr.load,kg=0;if(ld.item){kg+=ld.item.kg;hDeliver(ld.item)}ld.list.forEach(function(x){hDeliver(x,false)});if(ld.list.length)hPileAdd('sekk',30,null,false);kg+=ld.net;cr.load=null;cr.st='idle';S.chime();toast('Mannskapet tok imot '+fmt(kg)+' kg og bar det til containeren','good',2200)}}
   if(H.gear&&H.gear.st==='float'){H.gear.y=4+Math.sin(tClock*2)*2}
@@ -4603,6 +4637,7 @@ function hPose(){
     if(A.k==='pickup'){var r=p<.6?p/.6:1;tx=diver.x+(o.x-diver.x)*r;ty=diver.y+(o.y-o.s*.3-diver.y)*r}
     else if(A.k==='bag'||A.k==='hook'){var an=p*Math.PI*4;tx=o.x+Math.cos(an)*o.s*.45;ty=o.y-o.s*.25+Math.sin(an)*o.s*.25}
     else if(A.k==='grab'){var g=H.gear||{x:C.hx,y:C.hy};tx=diver.x+(g.x-diver.x)*Math.min(1,p*1.6);ty=diver.y+(g.y-diver.y)*Math.min(1,p*1.6)}}
+  else if(H.drag){var dq=H.drag;tx=dq.x-(H.dragDir||1)*dq.s*.35;ty=dq.y-dq.s*.4}
   else if(H.filling&&H.fit){tx=H.fit.x+(diver.x<H.fit.x?-8:8);ty=H.fit.y-H.fit.s*.5-12}
   else if(H.venting&&H.fit){tx=H.fit.x;ty=H.fit.y-H.fit.s*.5-58}
   else if(H.hand){var ca=Math.cos(diver.ang),sa=Math.sin(diver.ang);tx=diver.x+ca*34-sa*8;ty=diver.y+sa*34+ca*8}
@@ -4619,11 +4654,18 @@ function hDrawBagShape(bx,by,f,folded){
   var c=ctx;if(folded){c.fillStyle='#ffb21f';c.beginPath();if(c.roundRect)c.roundRect(bx-7,by-5,14,10,3);else c.rect(bx-7,by-5,14,10);c.fill();c.strokeStyle='#c07a00';c.lineWidth=1;c.stroke();c.strokeStyle='#333';c.beginPath();c.moveTo(bx,by+5);c.lineTo(bx,by+10);c.stroke();return}
   var bw=6+8*f,bh=10+20*f;c.fillStyle='#ffb21f';c.beginPath();c.moveTo(bx-bw*.7,by+12);c.quadraticCurveTo(bx-bw,by-bh*.2,bx-bw*.4,by-bh);c.quadraticCurveTo(bx,by-bh*1.12,bx+bw*.4,by-bh);c.quadraticCurveTo(bx+bw,by-bh*.2,bx+bw*.7,by+12);c.closePath();c.fill();c.strokeStyle='#c07a00';c.lineWidth=1;c.stroke();
 }
+function hDrawGear(k,x,y){var c=ctx;if(k==='bag')hDrawBagShape(x,y,0,true);else if(k==='bottle')hDrawBottle(x,y,0,1500);else if(k==='strap'){c.strokeStyle='#ff8a1f';c.lineWidth=3;for(var q=0;q<3;q++){c.beginPath();c.ellipse(x,y,9-q*2,5-q,.3,0,6.283);c.stroke()}}else if(k==='bigbag'){c.fillStyle='#e9e4d6';c.fillRect(x-11,y-7,22,14);c.strokeStyle='#b9b19b';c.lineWidth=1;c.strokeRect(x-11,y-7,22,14);c.strokeStyle='#3a6fb0';c.lineWidth=2;c.beginPath();c.moveTo(x-8,y-7);c.lineTo(x-8,y-12);c.moveTo(x+8,y-7);c.lineTo(x+8,y-12);c.stroke()}}
 function hDrawBottle(x,y,a,air){var c=ctx;c.save();c.translate(x,y);c.rotate(a||0);c.fillStyle='#e9eef0';c.fillRect(-13,-4,22,8);c.fillStyle='#1d6fb0';c.fillRect(-13,-4,5,8);c.fillStyle='#333';c.fillRect(9,-2,5,4);c.fillStyle=air>300?'#7ed49a':'#ff6b6b';c.fillRect(-6,-2,12*clamp(air/1500,0,1),1.6);c.restore()}
 function hDrawItem(it){
   var t=it.t,s=it.s,c=ctx;c.save();c.translate(it.x,it.y);c.rotate(it.st==='bottom'?it.rot*.4:it.st==='pile'?it.rot:0);if(it.flip)c.scale(-1,1);
   c.lineCap='round';c.lineJoin='round';
-  if(t==='dekk'||t==='ldekk'||t==='tdekk'){c.fillStyle='#16191a';c.beginPath();c.ellipse(0,0,s*.55,s*.55*.42,0,0,6.283);c.fill();c.fillStyle='#2b3133';c.beginPath();c.ellipse(0,-s*.06,s*.3,s*.3*.4,0,0,6.283);c.fill();c.strokeStyle='#3a4244';c.lineWidth=1.5;for(var k=-3;k<=3;k++){c.beginPath();c.moveTo(k*s*.13,-s*.22);c.lineTo(k*s*.13+2,-s*.16);c.stroke()}}
+  if(t==='bigbag'){var bw2=s*.9,bh2=s*.62,fill=clamp((it.kg-15)/1000,0,1);
+    (it.contents||[]).slice(-4).forEach(function(cn,k){c.save();c.translate(-bw2*.28+k*bw2*.18,-bh2*.82-fill*14);c.scale(.6,.6);var o={t:cn.t,s:cn.s,x:0,y:0,rot:0,flip:false,st:'pile',bags:[],strap:false};c.translate(-0,0);hDrawItem(o);c.restore()});
+    if(it.net&&it.net.length){c.fillStyle='#1c1f21';c.beginPath();c.arc(bw2*.25,-bh2*.6-fill*10,8,0,6.283);c.fill()}
+    c.fillStyle='rgba(233,228,214,.95)';c.fillRect(-bw2/2,-bh2,bw2,bh2);c.strokeStyle='rgba(150,140,120,.6)';c.lineWidth=1;for(var wv=-bw2/2+6;wv<bw2/2;wv+=7){c.beginPath();c.moveTo(wv,-bh2);c.lineTo(wv,0);c.stroke()}
+    c.strokeStyle='#3a6fb0';c.lineWidth=3;[-bw2*.38,bw2*.38].forEach(function(lx2){c.beginPath();c.moveTo(lx2-5,-bh2);c.quadraticCurveTo(lx2,-bh2-16,lx2+5,-bh2);c.stroke()});
+    c.fillStyle='#3a6fb0';c.font='700 9px system-ui,sans-serif';c.textAlign='center';c.fillText('BIGBAG',0,-bh2*.4)}
+  else if(t==='dekk'||t==='ldekk'||t==='tdekk'){c.fillStyle='#16191a';c.beginPath();c.ellipse(0,0,s*.55,s*.55*.42,0,0,6.283);c.fill();c.fillStyle='#2b3133';c.beginPath();c.ellipse(0,-s*.06,s*.3,s*.3*.4,0,0,6.283);c.fill();c.strokeStyle='#3a4244';c.lineWidth=1.5;for(var k=-3;k<=3;k++){c.beginPath();c.moveTo(k*s*.13,-s*.22);c.lineTo(k*s*.13+2,-s*.16);c.stroke()}}
   else if(t==='vogn'){c.strokeStyle='#9aa3a5';c.lineWidth=1.4;c.strokeRect(-s*.5,-s*.55,s,s*.55);for(var v=-s*.5;v<=s*.5;v+=5){c.beginPath();c.moveTo(v,-s*.55);c.lineTo(v,0);c.stroke()}c.beginPath();c.moveTo(s*.5,-s*.55);c.lineTo(s*.68,-s*.7);c.stroke();c.fillStyle='#1d2224';[-s*.38,s*.38].forEach(function(wx){c.beginPath();c.arc(wx,s*.12,3,0,6.283);c.fill()});c.strokeStyle='#c43b2f';c.lineWidth=2.5;c.beginPath();c.moveTo(s*.6,-s*.68);c.lineTo(s*.76,-s*.68);c.stroke()}
   else if(t==='sykkel'||t==='sparke'||t==='moped'){var r=t==='sparke'?s*.14:s*.24;c.strokeStyle='#1d2224';c.lineWidth=2.4;[-s*.4,s*.4].forEach(function(wx){c.beginPath();c.arc(wx,0,r,0,6.283);c.stroke()});
     if(t==='sykkel'){c.strokeStyle='#2f6d9a';c.lineWidth=2;c.beginPath();c.moveTo(-s*.4,0);c.lineTo(-s*.05,-s*.36);c.lineTo(s*.28,-s*.36);c.lineTo(s*.4,0);c.moveTo(-s*.05,-s*.36);c.lineTo(0,0);c.lineTo(s*.28,-s*.36);c.moveTo(s*.28,-s*.36);c.lineTo(s*.24,-s*.52);c.stroke()}
@@ -4714,14 +4756,14 @@ function drawHarbourFront(){
   if(cr.st==='recv'&&cr.load){var p=clamp(cr.t/1.3,0,1),ry=6+(QY-12-6)*p,rx=cr.x+14;c.strokeStyle='#c9b48a';c.lineWidth=1.4;c.beginPath();c.moveTo(cr.x+10,QY-20);c.lineTo(rx,ry);c.stroke();
     if(cr.load.item){var it=cr.load.item;it.x=rx;it.y=ry+it.s*.3;hDrawItem(it)}if(cr.load.net>0){c.fillStyle='rgba(255,255,255,.25)';c.strokeStyle='rgba(255,255,255,.8)';c.beginPath();c.arc(rx-10,ry+6,9,0,6.283);c.fill();c.stroke()}}
   /* utstyr som fires ned eller flyter */
-  var g=H.gear;if(g&&g.k!=='hook'){if(g.k==='bag')hDrawBagShape(g.x,g.y,0,true);else hDrawBottle(g.x,g.y,0,1500);if(g.st==='float'){c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=1;c.beginPath();c.ellipse(g.x,6,16,3,0,0,6.283);c.stroke()}}
+  var g=H.gear;if(g&&g.k!=='hook'){hDrawGear(g.k,g.x,g.y);if(g.st==='float'){c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=1;c.beginPath();c.ellipse(g.x,6,16,3,0,0,6.283);c.stroke()}}
   /* wire og krok */
   var tx=tipX(),ty=tipY();c.strokeStyle='#d0d4d6';c.lineWidth=1.4;c.beginPath();c.moveTo(tx,ty);c.lineTo(C.hx,C.hy);c.stroke();
   c.fillStyle='#ffd23f';c.fillRect(C.hx-6,C.hy-10,12,10);c.strokeStyle='#3a3e40';c.lineWidth=3;c.beginPath();c.arc(C.hx,C.hy+6,6,-.3,Math.PI*1.2);c.stroke();
   if(C.load&&(C.st==='hooked'||C.st==='lift'||C.st==='swing')){var L=C.load;c.strokeStyle='#ff8a1f';c.lineWidth=2;c.beginPath();c.moveTo(C.hx,C.hy+10);c.lineTo(L.x-L.s*.3,L.y-L.s*.25);c.moveTo(C.hx,C.hy+10);c.lineTo(L.x+L.s*.3,L.y-L.s*.25);c.stroke();hDrawItem(L)}
   /* det dykkeren holder */
   var hw=H.handW||{x:diver.x,y:diver.y};
-  if(H.hand){if(H.hand.k==='item'){var hi=H.hand.it;hi.x=hw.x;hi.y=hw.y+hi.s*.3;hDrawItem(hi)}else if(H.hand.k==='bag')hDrawBagShape(hw.x,hw.y,0,true);else if(H.hand.k==='bottle')hDrawBottle(hw.x,hw.y,H.filling?-1.2:diver.ang,H.hand.air)}
+  if(H.hand){if(H.hand.k==='item'){var hi=H.hand.it;hi.x=hw.x;hi.y=hw.y+hi.s*.3;hDrawItem(hi)}else if(H.hand.k==='bag'||H.hand.k==='strap'||H.hand.k==='bigbag')hDrawGear(H.hand.k,hw.x,hw.y);else if(H.hand.k==='bottle')hDrawBottle(hw.x,hw.y,H.filling?-1.2:diver.ang,H.hand.air)}
   if(H.anim&&H.anim.k==='hook'){var a=H.anim,p2=clamp(a.t/a.d,0,1),o=a.o.it;c.strokeStyle='#ff8a1f';c.lineWidth=3;c.beginPath();c.ellipse(o.x,o.y-o.s*.25,o.s*.45,o.s*.28,0,0,6.283*p2);c.stroke()}
   if(H.anim&&H.anim.k==='pickup'&&H.handW){var pi=H.anim.o.it;if(H.anim.t>.33){pi.x+=(H.handW.x-pi.x)*.3;pi.y+=(H.handW.y+pi.s*.3-pi.y)*.3}}
   /* fyllingen: bobler fra flaska inn i bagen */
@@ -4730,14 +4772,15 @@ function drawHarbourFront(){
   /* nettet på hofta */
   if(H.net>0){c.fillStyle='rgba(255,255,255,.18)';c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1;var nx=diver.x-Math.cos(diver.ang)*6,ny=diver.y+12,nr=4+8*H.net/H.netMax;c.beginPath();c.arc(nx,ny,nr,0,6.283);c.fill();c.stroke()}
   /* merkelapp på søppel du er nær */
-  var na=hActInfo();if(na&&na.it&&under){c.fillStyle='rgba(255,255,255,.92)';c.font='700 12px system-ui,sans-serif';c.textAlign='center';c.fillText(HT[na.it.t].n+' · '+fmt(na.it.kg)+' kg',na.it.x,na.it.y-na.it.s-14)}
+  var na=hActInfo();if(na&&na.it&&under){c.fillStyle='rgba(255,255,255,.92)';c.font='700 12px system-ui,sans-serif';c.textAlign='center';c.fillText((hIsBB(na.it)?'Bigbag':HT[na.it.t].n)+' · '+fmt(na.it.kg)+' kg',na.it.x,na.it.y-na.it.s-14)}
 }
 function hHud(){
   if(level!==11)return '';
   var s='<span class="wx" style="color:#7ed49a">♻️ '+fmt(H.save.kg)+' / '+fmt(HGOAL)+' kg ryddet</span>';
   s+='<span class="wx">🧺 Nett '+Math.round(H.net)+'/'+H.netMax+' kg</span>';
   s+='<span class="wx">🎈 Løftebager på kaia: '+H.bags+'</span>';
-  if(H.hand)s+='<span class="wx" style="color:#ffd23f">✋ '+(H.hand.k==='item'?HT[H.hand.it.t].n:H.hand.k==='bag'?'Løftebag':H.hand.k==='bottle'?'Luftflaske '+Math.round(H.hand.air)+' l':'Kranens krok')+'</span>';
+  if(H.hand)s+='<span class="wx" style="color:#ffd23f">✋ '+(H.hand.k==='item'?HT[H.hand.it.t].n:{bag:'Løftebag',strap:'Løftestropp',bigbag:'Bigbag',hook:'Kranens krok'}[H.hand.k]||('Luftflaske '+Math.round(H.hand.air)+' l'))+'</span>';
+  if(H.drag)s+='<span class="wx" style="color:#ffd23f">🧎 Drar '+HT[H.drag.t].n.toLowerCase()+' langs bunnen</span>';
   if(C.st!=='idle'||K.st!=='park')s+='<span class="wx" style="color:#ffd23f">🏗️ '+(K.st!=='park'?'Kranbilen kjører':C.st==='move'?'Kroken kommer':C.st==='wait'?'Kroken venter i vannet':C.st==='held'?'Du har kroken':C.st==='hooked'?'Lasten er festet':C.st==='lift'?'Kranen hiver':C.st==='swing'?'Du styrer kranen':'')+'</span>';
   return s;
 }
