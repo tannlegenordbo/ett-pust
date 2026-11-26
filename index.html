@@ -152,6 +152,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -404,7 +406,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0l · hal opp beltet i havna</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0m · kjøp ryddeutstyr</p>
   </div>
 </div>
 
@@ -1834,8 +1836,13 @@ var SHOP=[
   {k:'relax',g:'Trening',t:'Avspenning',items:RELAX},{k:'food',g:'Trening',t:'Forbruk',items:FOOD,cons:1},
   {k:'buoy',g:'Båt',t:'Bøye',items:BUOY},{k:'boat',g:'Båt',t:'Båt',items:BOAT},{k:'cam',g:'Båt',t:'Kamera',items:CAM},
   {k:'scol',g:'Pynt',t:'Draktfarge',items:SCOL},{k:'fcol',g:'Pynt',t:'Finnefarge',items:FCOL},{k:'bcol',g:'Pynt',t:'Bøyefarge',items:BCOL},{k:'wall',g:'Pynt',t:'Trofévegg',items:WALL}];
-var SHOPG=['Våpen','Utstyr','Trening','Båt','Pynt'],shopTab='Våpen';
-var G={kr:0,gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0,scol:0,fcol:0,bcol:0,wall:0,own:{}};
+var SHOPG=['Våpen','Utstyr','Trening','Båt','Rydding','Pynt'],shopTab='Våpen';
+var RYDD=[
+  {k:'rbag',n:'Løftebag 100 kg',p:900,max:8,d:'Festes på tunge ting og fylles med luft fra flaska. Du får løftebagene tilbake når lasten er levert.'},
+  {k:'rair',n:'Luftflaske, fylt',p:350,max:12,d:'Trykkluft til å fylle løftebagene. En flaske brukes opp per tur ned – ubrukte flasker får du tilbake.'},
+  {k:'rstrap',n:'Løftestropp',p:250,max:20,d:'Neongrønn rundstropp med stålring som kroken fra kranbilen festes i. Følger med lasten opp i hengeren.'},
+  {k:'rbb',n:'Bigbag',p:400,max:8,d:'Stor sekk du legger ut på bunnen og fyller med søppel. Kranen løfter hele sekken opp i hengeren.'}];
+var G={kr:0,gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0,scol:0,fcol:0,bcol:0,wall:0,rbag:0,rbb:0,rstrap:0,rair:0,own:{}};
 try{var gs=JSON.parse(localStorage.getItem('ettpust-gear')||'null');if(gs){for(var gk in G)if(typeof gs[gk]==='number')G[gk]=Math.max(0,Math.floor(gs[gk]));if(gs.own&&typeof gs.own==='object')for(var ok2 in gs.own)if(typeof gs.own[ok2]==='number')G.own[ok2]=gs.own[ok2]}}catch(_){}
 for(var si=0;si<SHOP.length;si++){if(SHOP[si].cons)continue;var sk=SHOP[si].k;G[sk]=Math.min(G[sk],SHOP[si].items.length-1);if(typeof G.own[sk]!=='number')G.own[sk]=(1<<(G[sk]+1))-1;G.own[sk]|=1|(1<<G[sk])}
 function owns(k,i){return !!(G.own[k]&(1<<i))}
@@ -1851,7 +1858,7 @@ var TESTGEAR={
   8:{gun:3,fin:3,suit:2,wt:1,lung:5,band:2,tip:2,comp:1,buoy:1,eq:2,relax:1},
   9:{gun:2,fin:3,suit:3,wt:2,lung:4,tip:2,tool:1,comp:1,mask:1,str:1},
   10:{gun:4,fin:3,suit:3,wt:4,lung:5,eq:2,relax:1,comp:1,lamp:2,sled:1,tip:2,mask:1},
-  11:{gun:1,fin:3,suit:2,wt:1,lung:3,mask:1,tool:1,comp:1,relax:1}};
+  11:{gun:1,fin:3,suit:2,wt:1,lung:3,mask:1,tool:1,comp:1,relax:1,rbag:6,rbb:3,rstrap:10,rair:10}};
 function applyTestGear(lv){testBak=JSON.stringify(G);var base={gun:0,fin:0,suit:0,wt:0,lung:0,lamp:0,sled:0,flash:0,band:0,tip:0,mask:0,comp:0,tool:0,str:0,relax:0,eq:0,food:0,buoy:0,boat:0,cam:0};for(var k in base)G[k]=base[k];var tg=TESTGEAR[lv]||{};for(var k2 in tg)G[k2]=tg[k2];testPB=Math.max(Math.round(10+LUNG[(TESTGEAR[lv]||{}).lung||0].b/1.5),LVNEED[lv]||10)}
 function endTestGear(){testPB=0;if(!testBak)return;var o=JSON.parse(testBak);testBak=null;for(var k in o)G[k]=o[k];lockUi()}
 function saveG(){if(testBak)return;try{localStorage.setItem('ettpust-gear',JSON.stringify(G))}catch(_){}}
@@ -1863,7 +1870,8 @@ function gearIcon(kind,tier){
   try{
     ctx=c.getContext('2d');noBeltDraw=false;
     var bg=ctx.createLinearGradient(0,0,0,92);bg.addColorStop(0,'#2a7f86');bg.addColorStop(1,'#14505a');ctx.fillStyle=bg;ctx.fillRect(0,0,184,92);
-    if(kind==='gun'){
+    if(/^r(bag|bb|strap|air)$/.test(kind)){var rmp={rbag:'bag',rbb:'bigbag',rstrap:'strap',rair:'bottle'};ctx.setTransform(3.2,0,0,3.2,0,0);ctx.lineCap='round';hDrawGear(rmp[kind],29,16)}
+    else if(kind==='gun'){
       curGear={gun:tier,fin:0,suit:3,wt:0};gunOnly=true;
       ctx.setTransform(2.5,0,0,2.5,0,0);ctx.translate(-8,19);ctx.lineCap='round';drawGun(0,5);gunOnly=false;
     }else if(kind==='fin'){
@@ -2021,6 +2029,9 @@ function renderShop(){
     }
     h+='</div>';
   }
+  if(shopTab==='Rydding'){h+='<div class="item"><div class="cat">Utstyr til ryddeaksjonen i Havna</div>';
+    RYDD.forEach(function(r){var n=G[r.k]||0,full=n>=r.max;h+='<div class="row"><img class="pic" alt="" src="'+gearIcon(r.k,0)+'"><div class="grow"><b>'+r.n+'</b><span>'+r.d+' Du har '+n+' (maks '+r.max+').</span></div><button class="buy" type="button" data-act="rbuy" data-k="'+r.k+'" data-i="0"'+(G.kr<r.p||full?' disabled':'')+'>'+(full?'Fullt':fmt(r.p)+' kr')+'</button></div>'});
+    h+='</div>'}
   $('shopList').innerHTML=h;
 }
 /* ---------- Havguden: butikkscene ---------- */
@@ -3927,7 +3938,7 @@ function beginPlay(){
   setTimeout(function(){if(state==='play')toast('Været i dag: '+wxText(true))},4200);
   if(LVDEEP[level]>eqLim())setTimeout(function(){if(state==='play')toast('Du er godkjent til '+apPB()+' m og kan bare utligne ned til '+eqLim()+' m. Her ligger fisken dypere – tren i apnétreningen','bad',6500)},11000);
   if(night){toast('Nattdykk: synk rolig ned. Fisken står stille i lyset, men pass på hvor lykta peker');return}
-  if(level===11){if(!testBak){H.save.days=(H.save.days||0)+1;hSave()}toast('Ryddeaksjon i havna, dag '+(H.save.days||1)+': '+fmt(H.save.kg)+' av 5 000 kg er ryddet. Du svømmer langs kaia. Småsøppel havner i nettet, middels ting bærer du opp og leverer til mannskapet, og tunge ting løfter du med løftebag og luftflaske som du ber om fra kaia – eller med kroken fra kranbilen','',9000);return}
+  if(level===11){if(!testBak){H.save.days=(H.save.days||0)+1;hSave()}if(!G.rbag&&!G.rstrap&&!G.rbb)setTimeout(function(){if(state==='play'&&level===11)toast('Du har ikke noe ryddeutstyr ennå. Småsøppel tar du i nettet – løftebager, stropper, luftflasker og bigbager kjøper du under Rydding i dykkerbutikken','bad',5000)},7500);toast('Ryddeaksjon i havna, dag '+(H.save.days||1)+': '+fmt(H.save.kg)+' av 5 000 kg er ryddet. Du svømmer langs kaia. Småsøppel havner i nettet, middels ting bærer du opp og leverer til mannskapet, og tunge ting løfter du med løftebag og luftflaske som du ber om fra kaia – eller med kroken fra kranbilen','',9000);return}
   if(level===10){toast('Vraket: den gamle fiskebåten «Havørn» ligger på 35–40 meter nedenfor skråningen. Svøm inn gjennom lukene og finn veien gjennom rommene – jo lenger inn, jo større fisk','',7000);return}
   if(level===9){toast('Alaska: 6 grader i vannet, og en sulten bjørn går langs land. Blir du liggende i overflaten, kaster den seg ut etter deg – pust raskt og dykk. Lever fisken i båten lenger ute, ellers tar bjørnen den fra flåten','',8000);return}
   if(level===8){towing=true;callDone=false;boatX=diver.x+ROPE;toast('New Zealand: båtmannen følger ekkoloddet og teller ned til båten er over grunna. Du henger 12 meter bak – beregn selv når du skal slippe','',7000);return}
@@ -4426,7 +4437,7 @@ function hBuild(){
   H.items=L.filter(function(it){return H.save.done.indexOf(it.id)<0}).map(function(it){var d=HT[it.t];it.rot=hSlope(it.x)+it.rot*.25;it.vr=0;it.kg=d.kg;it.wet=d.kg*d.wf;it.s={bil:200,jolle:125,henger:105,tdekk:72,lodd:46}[it.t]||Math.round(d.s*1.6);it.st='bottom';it.y=bottom(it.x)-d.s*.35;it.vy=0;it.strap=false;it.bags=[];it.stuck=d.kg>25?1:0;return it});
 }
 function hReset(){
-  H.log=[];H.net=0;H.netList=[];H.bags=6;H.bigbags=2;H.drag=null;H.bbN=0;H.tow=null;H.hand=null;H.gear=null;H.anim=null;H.fill=false;H.vent=false;H.lastFit=null;
+  H.log=[];H.net=0;H.netList=[];H.bags=G.rbag||0;H.bigbags=G.rbb||0;H.drag=null;H.bbN=0;H.tow=null;H.hand=null;H.gear=null;H.anim=null;H.fill=false;H.vent=false;H.lastFit=null;
   H.crew={x:diver.x+200,tx:diver.x+200,st:'idle',t:0,walk:0};K={x:diver.x+900,tx:diver.x+900,st:'park',out:1,wheel:0};TK={x:K.x-TOFF,wheel:0};
   C={st:'idle',r:-60,L:60,th:0,w:0,load:null,t:0,hx:0,hy:0};
   if(testBak)H.save={kg:0,done:[],days:0,fin:0};else hLoad();
@@ -4537,10 +4548,10 @@ function hMenuList(){
   var busy=H.crew.st!=='idle';
   if((H.hand&&H.hand.k==='item')||H.net>0)L.push({k:'deliver',t:'LEVER TIL KAIA'});
   if(!H.hand&&!H.gear&&!busy){
-    if(H.bags>0)L.push({k:'req:bag',t:'BE OM LØFTEBAG'});
-    L.push({k:'req:bottle',t:'BE OM LUFTFLASKE'});
-    L.push({k:'req:strap',t:'BE OM STROPP'});
-    if(H.bigbags>0)L.push({k:'req:bigbag',t:'BE OM BIGBAG'});
+    L.push(H.bags>0?{k:'req:bag',t:'BE OM LØFTEBAG ('+H.bags+')'}:{k:'need:bag',t:'INGEN LØFTEBAGER'});
+    L.push(G.rair>0?{k:'req:bottle',t:'BE OM LUFTFLASKE ('+G.rair+')'}:{k:'need:bottle',t:'INGEN LUFTFLASKER'});
+    L.push(G.rstrap>0?{k:'req:strap',t:'BE OM STROPP ('+G.rstrap+')'}:{k:'need:strap',t:'INGEN STROPPER'});
+    L.push(H.bigbags>0?{k:'req:bigbag',t:'BE OM BIGBAG ('+H.bigbags+')'}:{k:'need:bigbag',t:'INGEN BIGBAGER'});
     if(C.st==='idle'&&K.st==='park')L.push({k:'call',t:'KROK HIT'});
   }
   if(H.hand&&H.hand.k!=='item'&&H.hand.k!=='hook'&&!busy)L.push({k:'return',t:'LEVER TILBAKE UTSTYRET'});
@@ -4550,7 +4561,8 @@ var GEARTXT={bag:'en løftebag',bottle:'en luftflaske til løftebagene',strap:'e
 function hMenu(k){
   if(k==='heave'){var it=C.load;if(hUnderLoad(it)){toast('Stopp! Aldri vær under hengende last – svøm til siden først','bad',2600);return}C.st='lift';S.tick();toast('Signal gitt – kranen hiver','',1400)}
   else if(k==='deliver'){H.crew.tx=diver.x-10;H.crew.st='toRecv';S.tick();toast('Ryddemannskapet kommer for å ta imot','',1600)}
-  else if(k.indexOf('req:')===0){var w=k.slice(4);if(w==='bag')H.bags--;if(w==='bigbag')H.bigbags--;H.crew.tx=diver.x+18;H.crew.st='toLower';H.crew.what=w;S.tick();toast('Du ber om '+GEARTXT[w]+' – mannskapet firer den ned til deg','',1900)}
+  else if(k.indexOf('need:')===0){var nw={bag:'løftebager',bottle:'luftflasker',strap:'stropper',bigbag:'bigbager'}[k.slice(5)];S.bad();toast('Du har ingen '+nw+'. Kjøp mer under Rydding i dykkerbutikken','bad',2800)}
+  else if(k.indexOf('req:')===0){var w=k.slice(4);if(w==='bag')H.bags--;if(w==='bigbag'){H.bigbags--;G.rbb--}if(w==='strap')G.rstrap--;if(w==='bottle')G.rair--;saveG();H.crew.tx=diver.x+18;H.crew.st='toLower';H.crew.what=w;S.tick();toast('Du ber om '+GEARTXT[w]+' – mannskapet firer den ned til deg','',1900)}
   else if(k==='call'){K.tx=clamp(diver.x-40,520,W-200);K.st='pack';S.tick();toast('Kranbilen kjører bort til deg langs kaia','',1800)}
   else if(k==='return'){H.crew.tx=diver.x-10;H.crew.st='toTakeGear';S.tick()}
 }
@@ -4652,7 +4664,7 @@ function hUpdate(dt){
   var cr=H.crew;if(cr.st==='idle'&&Math.abs(diver.x-cr.x)>320)cr.tx=diver.x-Math.sign(diver.x-cr.x)*140;var dx=cr.tx-cr.x;if(Math.abs(dx)>3){cr.x+=Math.sign(dx)*Math.min(Math.abs(dx),(cr.st==='idle'?150:230)*dt);cr.walk+=dt*9}else{cr.x=cr.tx;
     if(cr.st==='toLower'){cr.st='lower';cr.t=0;H.gear={k:cr.what,x:cr.x+16,y:QY,st:'lower'}}
     else if(cr.st==='toRecv'){if(!under&&Math.abs(diver.x-cr.x)<90){cr.st='recv';cr.t=0;cr.load={net:H.net,list:H.netList,item:H.hand&&H.hand.k==='item'?H.hand.it:null};H.net=0;H.netList=[];if(cr.load.item){H.hand=null;cr.load.item.st='carry'}}else{cr.st='idle';cr.tx=cr.x}}
-    else if(cr.st==='toTakeGear'){if(H.hand&&!under&&Math.abs(diver.x-cr.x)<90){if(H.hand.k==='bag')H.bags++;if(H.hand.k==='bigbag')H.bigbags++;H.hand=null;cr.st='idle';S.tick();toast('Utstyret er levert tilbake','',1400)}else cr.st='idle'}}
+    else if(cr.st==='toTakeGear'){if(H.hand&&!under&&Math.abs(diver.x-cr.x)<90){if(H.hand.k==='bag')H.bags++;if(H.hand.k==='bigbag'){H.bigbags++;G.rbb++}if(H.hand.k==='strap')G.rstrap++;if(H.hand.k==='bottle'&&H.hand.air>=1400)G.rair++;saveG();H.hand=null;cr.st='idle';S.tick();toast('Utstyret er levert tilbake','',1400)}else cr.st='idle'}}
   if(cr.st==='lower'){cr.t+=dt;var g2=H.gear;g2.y=QY+(4-QY)*clamp(cr.t/1.2,0,1);if(cr.t>=1.2){g2.st='float';g2.y=4;cr.st='idle';cr.tx=cr.x;S.splash()}}
   if(cr.st==='recv'){cr.t+=dt;if(cr.t>=1.3){var ld=cr.load,kg=0;if(ld.item){kg+=ld.item.kg;hDeliver(ld.item)}ld.list.forEach(function(x){hDeliver(x,false)});if(ld.list.length)hPileAdd('sekk',30,null,false);kg+=ld.net;cr.load=null;cr.st='idle';S.chime();toast('Mannskapet tok imot '+fmt(kg)+' kg og bar det til containeren','good',2200)}}
   if(H.gear&&H.gear.st==='float'){H.gear.y=4+Math.sin(tClock*2)*2}
@@ -4964,6 +4976,7 @@ $('shopList').addEventListener('click',function(e){
   var tb=e.target&&e.target.closest?e.target.closest('.tab'):null;
   if(tb){shopTab=tb.getAttribute('data-tab');S.init();S.tick();renderShop();return}
   var bt=e.target&&e.target.closest?e.target.closest('.buy'):null;if(!bt||bt.disabled)return;
+  if(bt.getAttribute('data-act')==='rbuy'){var rk=bt.getAttribute('data-k'),rr=RYDD.filter(function(r){return r.k===rk})[0];if(!rr||G.kr<rr.p||(G[rk]||0)>=rr.max)return;G.kr-=rr.p;G[rk]=(G[rk]||0)+1;saveG();S.init();S.chime();renderShop();shopSay=['Lykke til med ryddinga!','Havna trenger deg!','Fint at noen tar ansvar!'][(Math.random()*3)|0];shopSayT=2;shopSkip=true;return}
   var k=bt.getAttribute('data-k'),j=+bt.getAttribute('data-i'),act=bt.getAttribute('data-act'),c=null;for(var i=0;i<SHOP.length;i++)if(SHOP[i].k===k)c=SHOP[i];
   if(!c||!c.items[j])return;
   if(c.cons){if(G.kr<c.items[0].p||G.food>=5)return;G.kr-=c.items[0].p;G.food++;saveG();S.init();S.chime();renderShop();shopSay='God mat og god søvn!';shopSayT=2;shopSkip=true;return}
