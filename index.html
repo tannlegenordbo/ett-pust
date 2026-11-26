@@ -146,6 +146,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -398,7 +400,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0i · går ut fra kaia</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0j · kroken i øyet</p>
   </div>
 </div>
 
@@ -4432,6 +4434,9 @@ function hFloatY(o){return o.s*.5+38}
 function hBox(it){var w=it.s*hW(it.t),h=it.s*hHgt(it.t),ty=/dekk/.test(it.t);return {w:w,h:h,top:ty?-h*.55:-h,bot:ty?h*.45:0}}
 function hRingL(it){if(it.t==='bigbag')return -(it.s*.62+16);var b=hBox(it);return b.top-Math.max(16,b.h*.55)}
 function hOffY(it){return -hRingL(it)+8}
+function hRingW(it){var r=it.rot||0,rl=hRingL(it);return {x:it.x-rl*Math.sin(r),y:it.y+rl*Math.cos(r)}}
+function hHangFrom(it,rx,ry){var r=it.rot||0,rl=hRingL(it);it.x=rx+rl*Math.sin(r);it.y=ry-rl*Math.cos(r)}
+function hSwingRot(it,dt,drive){it.vr=(it.vr||0)+(-11*Math.sin(it.rot||0)+(drive||0))*dt;it.vr*=1-Math.min(1,dt*1.6);it.rot=(it.rot||0)+it.vr*dt}
 function hDrawStrap(it,prog){
   var b=hBox(it),c=ctx,p=prog==null?1:prog,rl=hRingL(it);c.save();c.translate(it.x,it.y);c.rotate(it.rot||0);c.lineCap='round';
   [-1,1].forEach(function(sd,k){var bx=sd*b.w*.3,q=clamp(p*2-k*.5,0,1);if(q<=0)return;var y0=b.bot+2,y1=y0+(b.top-2-y0)*q;
@@ -4541,7 +4546,7 @@ function hMenu(k){
 }
 function hDrop(){
   var it=C.load;if(!it)return;var bx=it.x,by=it.y+it.s*.4;
-  if(Math.abs(bx-TK.x)<CW/2-10&&by<BED()+2+hPileTop(bx-TK.x,it.s)){C.st='drop';C.t=0;it.st='crane';H.camHold=true;H.camHoldMin=tClock+1.8;H.camHoldUntil=tClock+7;hDeliver(it,{x:bx-TK.x,y:by-BED(),vx:C.vx||0,vy:0});C.load=null;return}
+  if(Math.abs(bx-TK.x)<CW/2-10&&by<BED()+2+hPileTop(bx-TK.x,it.s)){C.st='drop';C.t=0;it.st='crane';H.camHold=true;H.camHoldMin=tClock+1.8;H.camHoldUntil=tClock+7;hDeliver(it,{x:bx-TK.x,y:by-BED(),vx:C.vx||0,vy:0,a:it.rot||0});C.load=null;return}
   if(by<6){toast('Lasten havnet på kaia ved siden av containeren. Kranføreren løfter den opp igjen','bad',2600);C.th=0;C.w=0;C.L=Math.max(60,C.L-40);return}
   it.st='rise';it.vy=60;it.vr=rnd(-2,2);it.y=Math.max(10,it.y);C.load=null;C.st='idle';S.splash();toast('Splash! Lasten falt i sjøen igjen','bad',2400);
 }
@@ -4553,7 +4558,7 @@ function hPileSave(){if(testBak)return;H.save.pile=H.pile.slice(-70).map(functio
 function hW(t){return t==='bil'?1:t==='sykkel'||t==='sparke'||t==='moped'?.95:t==='kjetting'?1:.9}
 function hHgt(t){return t==='bil'?.45:t==='dekk'||t==='ldekk'||t==='tdekk'?.5:t==='kjole'?1.3:t==='sparke'?.9:t==='jolle'?.32:t==='henger'?.15:t==='flaske'?.3:.75}
 function hPileAdd(t,s,drop,flip){
-  var b=hBody(t,s,flip,0,0,rnd(-.08,.08));
+  var b=hBody(t,s,flip,0,0,drop&&drop.a!=null?drop.a:rnd(-.08,.08));
   if(drop){b.x=drop.x;b.y=drop.y-b.hh;b.vx=clamp(drop.vx||0,-320,320);b.vy=drop.vy||0;b.w=clamp((C.w||0)*.8,-3,3)+rnd(-.4,.4)}else{b.x=rnd(-CW*.3,CW*.3);b.y=-CH-60-rnd(0,40);b.vx=rnd(-30,30);b.w=rnd(-1.2,1.2)}
   H.pile.push(b);
 }
@@ -4676,17 +4681,17 @@ function hUpdate(dt){
   else if(C.st==='wait'){C.hx+=(tipX()-C.hx)*Math.min(1,dt*.6);C.hy+=(Math.max(4,Math.min(C.hy,WIRE*M))-C.hy)*Math.min(1,dt*2)}
   else if(C.st==='held'){var hxw=diver.x+Math.cos(diver.ang)*20,hyw=Math.min(diver.y+8,WIRE*M);if(diver.y>WIRE*M+30&&tClock-(H.msgT||0)>3){H.msgT=tClock;toast('Kranwiren rekker bare '+WIRE+' meter ned','bad',1800)}
     if(Math.abs(hxw-K.x)>RMAX+40){H.hand=null;C.st='wait';C.hx=K.x+RMAX;C.hy=hyw;toast('Kranen rekker ikke lenger langs kaia – be den kjøre etter deg','bad',2400)}else{C.hx=hxw;C.hy=hyw;C.r+=(clamp(hxw-K.x,RMIN,RMAX)-C.r)*Math.min(1,dt*2)}}
-  else if(C.st==='hooked'){var ld1=C.load;C.hx=ld1.x;C.hy=ld1.y-hOffY(ld1);C.r+=(clamp(ld1.x-K.x,RMIN,RMAX)-C.r)*Math.min(1,dt*2)}
+  else if(C.st==='hooked'){var ld1=C.load,rw1=hRingW(ld1);C.hx=rw1.x;C.hy=rw1.y-8;ld1.vr=0;C.r+=(clamp(ld1.x-K.x,RMIN,RMAX)-C.r)*Math.min(1,dt*2)}
   else if(C.st==='lift'){var ld2=C.load;if(hUnderLoad(ld2)){if(tClock-(H.warnLoad||0)>2){H.warnLoad=tClock;toast('Kranen stopper: dykker under lasten!','bad',1600)}}
-    else{C.r+=(clamp(ld2.x-K.x,RMIN,RMAX)-C.r)*Math.min(1,dt*2);ld2.x+=(tipX()-ld2.x)*Math.min(1,dt*1.2);ld2.y-=95*dt;
+    else{C.r+=(clamp(ld2.x-K.x,RMIN,RMAX)-C.r)*Math.min(1,dt*2);var rw2=hRingW(ld2),rx2=rw2.x+(tipX()-rw2.x)*Math.min(1,dt*1.2),ry2=rw2.y-95*dt;hSwingRot(ld2,dt,-(rx2-rw2.x)/Math.max(dt,1e-3)*.02);hHangFrom(ld2,rx2,ry2);
       if(ld2.y<-4&&ld2.kg>CAPK){ld2.y=-4;C.st='hooked';S.bad();toast('Overlast! Kranen tåler '+fmt(CAPK)+' kg','bad',3000)}
-      else if(ld2.y<-30){C.st='swing';C.L=ld2.y-hOffY(ld2)-tipY();C.th=0;C.w=0;C.va=0;toast('Du styrer kranen: joysticken svinger og hiver. SLIPP LASTEN over containeren på lastebilen','',3800)}}
-    C.hx=ld2.x;C.hy=ld2.y-hOffY(ld2);ld2.rot=(ld2.rot||0)*(1-Math.min(1,dt*1.5))}
+      else if(ld2.y<-30){C.st='swing';C.L=hRingW(ld2).y-8-tipY();C.th=0;C.w=0;C.va=0;toast('Du styrer kranen: joysticken svinger og hiver. SLIPP LASTEN over containeren på lastebilen','',3800)}}
+    var rw3=hRingW(ld2);C.hx=rw3.x;C.hy=rw3.y-8}
   else if(C.st==='swing'){var ld3=C.load,inp=inputVec(),orr=C.r;C.r=clamp(C.r+inp.x*170*dt,RMIN,RMAX);var atip=(C.r-orr)/Math.max(dt,1e-3),acc=(atip-(C.va||0))/Math.max(dt,1e-3);C.va=atip;
     C.L=clamp(C.L+inp.y*120*dt,40,420);C.w+=(-900*Math.sin(C.th)-clamp(acc,-2000,2000)*Math.cos(C.th))/C.L*dt;C.w*=1-Math.min(1,dt*.35);C.th=clamp(C.th+C.w*dt,-1.2,1.2);
-    var px0=ld3.x;ld3.x=tipX()+C.L*Math.sin(C.th);ld3.y=tipY()+C.L*Math.cos(C.th)+hOffY(ld3);C.vx=(ld3.x-px0)/Math.max(dt,1e-3);
-    var gy=(Math.abs(ld3.x-TK.x)<CW/2?BED()+hPileTop(ld3.x-TK.x,ld3.s):QY)-ld3.s*.4;if(ld3.y>gy){ld3.y=gy;C.L=ld3.y-hOffY(ld3)-tipY();C.w*=-.3}
-    C.hx=ld3.x;C.hy=ld3.y-hOffY(ld3)}
+    var px0=ld3.x;hSwingRot(ld3,dt,-acc*.004*Math.cos(C.th));hHangFrom(ld3,tipX()+C.L*Math.sin(C.th),tipY()+C.L*Math.cos(C.th)+8);C.vx=(ld3.x-px0)/Math.max(dt,1e-3);
+    var gy=(Math.abs(ld3.x-TK.x)<CW/2?BED()+hPileTop(ld3.x-TK.x,ld3.s):QY)-ld3.s*.4;if(ld3.y>gy){var dy3=ld3.y-gy;ld3.y=gy;C.L-=dy3;C.w*=-.3}
+    var rw4=hRingW(ld3);C.hx=rw4.x;C.hy=rw4.y-8}
   else if(C.st==='drop'){C.t+=dt;if(C.t>1)C.st='idle'}
 }
 /* ---------- dykkerens armer under animasjonene ---------- */
@@ -4774,10 +4779,10 @@ function hDrawIntro(){
   var c=ctx;curGear=G;if(introT>5.05)drawDiver(diver.x,5+Math.sin(tClock*1.6)*1.5,0,tClock*2,.1,true);curGear=FULL;
   if(introT>5.75&&introT<6.4)drawDiver(buoy.x-95,5+Math.sin(tClock*1.6+1)*1.5,0,tClock*2,.1,true);
 }
-function hDrawGear(k,x,y){var c=ctx;if(k==='bag')hDrawBagShape(x,y,0,true);else if(k==='bottle')hDrawBottle(x,y,0,1500);else if(k==='strap'){c.strokeStyle='#ff8a1f';c.lineWidth=3;for(var q=0;q<3;q++){c.beginPath();c.ellipse(x,y,9-q*2,5-q,.3,0,6.283);c.stroke()}}else if(k==='bigbag'){c.fillStyle='#e9e4d6';c.fillRect(x-11,y-7,22,14);c.strokeStyle='#b9b19b';c.lineWidth=1;c.strokeRect(x-11,y-7,22,14);c.strokeStyle='#3a6fb0';c.lineWidth=2;c.beginPath();c.moveTo(x-8,y-7);c.lineTo(x-8,y-12);c.moveTo(x+8,y-7);c.lineTo(x+8,y-12);c.stroke()}}
+function hDrawGear(k,x,y){var c=ctx;if(k==='bag')hDrawBagShape(x,y,0,true);else if(k==='bottle')hDrawBottle(x,y,0,1500);else if(k==='strap'){c.strokeStyle='#39ff14';c.lineWidth=3;for(var q=0;q<3;q++){c.beginPath();c.ellipse(x,y,9-q*2,5-q,.3,0,6.283);c.stroke()}}else if(k==='bigbag'){c.fillStyle='#e9e4d6';c.fillRect(x-11,y-7,22,14);c.strokeStyle='#b9b19b';c.lineWidth=1;c.strokeRect(x-11,y-7,22,14);c.strokeStyle='#3a6fb0';c.lineWidth=2;c.beginPath();c.moveTo(x-8,y-7);c.lineTo(x-8,y-12);c.moveTo(x+8,y-7);c.lineTo(x+8,y-12);c.stroke()}}
 function hDrawBottle(x,y,a,air){var c=ctx;c.save();c.translate(x,y);c.rotate(a||0);c.fillStyle='#e9eef0';c.fillRect(-13,-4,22,8);c.fillStyle='#1d6fb0';c.fillRect(-13,-4,5,8);c.fillStyle='#333';c.fillRect(9,-2,5,4);c.fillStyle=air>300?'#7ed49a':'#ff6b6b';c.fillRect(-6,-2,12*clamp(air/1500,0,1),1.6);c.restore()}
 function hDrawItem(it){
-  var t=it.t,s=it.s,c=ctx;c.save();c.translate(it.x,it.y);c.rotate(it.st==='bottom'||it.st==='rise'||it.st==='drag'||it.st==='anim'||it.st==='pile'?it.rot||0:0);if(it.flip)c.scale(-1,1);
+  var t=it.t,s=it.s,c=ctx;c.save();c.translate(it.x,it.y);c.rotate(it.st==='bottom'||it.st==='rise'||it.st==='drag'||it.st==='anim'||it.st==='pile'||it.st==='hooked'?it.rot||0:0);if(it.flip)c.scale(-1,1);
   c.lineCap='round';c.lineJoin='round';
   if(t==='bigbag'){var bw2=s*.9,bh2=s*.62,fill=clamp((it.kg-15)/1000,0,1);
     (it.contents||[]).slice(-4).forEach(function(cn,k){c.save();c.translate(-bw2*.28+k*bw2*.18,-bh2*.82-fill*14);c.scale(.6,.6);var o={t:cn.t,s:cn.s,x:0,y:0,rot:0,flip:false,st:'pile',bags:[],strap:false};c.translate(-0,0);hDrawItem(o);c.restore()});
