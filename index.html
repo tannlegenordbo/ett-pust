@@ -144,6 +144,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -396,7 +398,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0h · neongrønne stropper</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0i · går ut fra kaia</p>
   </div>
 </div>
 
@@ -1248,7 +1250,7 @@ reset();
 /* ---------- input ---------- */
 var joy=null,keys={},sIn={x:0,y:0};
 cv.addEventListener('pointerdown',function(e){
-  if(state==='intro'){if(introT<2.9)introT=2.9;return}
+  if(state==='intro'){if(level===11){if(introT<4.3)introT=4.3}else if(introT<2.9)introT=2.9;return}
   if(state!=='play')return;
   joy={id:e.pointerId,ox:e.clientX,oy:e.clientY,x:e.clientX,y:e.clientY};
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
@@ -2722,7 +2724,13 @@ function scare(x,y,r){
 /* ---------- oppdatering ---------- */
 function update(dt){
   tClock+=dt;
-  if(state==='intro'){
+  if(state==='intro'&&level===11){
+    introT+=dt;if(introS<1){introS=1;S.motor(0)}
+    if(introS<2&&introT>5.05){introS=2;S.splash();for(var h1=0;h1<12;h1++)bubbles.push({x:diver.x+rnd(-14,14),y:rnd(8,40),r:rnd(1.5,5),v:rnd(40,80),ph:rnd(0,6)})}
+    if(introS<3&&introT>5.75){introS=3;S.splash();for(var h2=0;h2<12;h2++)bubbles.push({x:buoy.x-95+rnd(-14,14),y:rnd(8,40),r:rnd(1.5,5),v:rnd(40,80),ph:rnd(0,6)})}
+    if(introT>6.6)beginPlay();
+  }
+  else if(state==='intro'){
     introT+=dt;
     if(introS<1&&introT>2.2){introS=1;S.splash();for(var b1=0;b1<10;b1++)bubbles.push({x:buoy.x-95+rnd(-14,14),y:rnd(12,40),r:rnd(1.5,5),v:rnd(40,80),ph:rnd(0,6)})}
     if(introS<2&&introT>2.75){introS=2;S.splash();for(var b2=0;b2<10;b2++)bubbles.push({x:diver.x+rnd(-14,14),y:rnd(12,40),r:rnd(1.5,5),v:rnd(40,80),ph:rnd(0,6)})}
@@ -3056,9 +3064,12 @@ function update(dt){
   if(state==='bear'){ctx0=clamp(BEAR.x-vw*.45,0,Math.max(0,W-vw))}
   if(level===11&&state==='play'&&!under&&diver.y<12&&!(C.load&&(C.st==='swing'||C.st==='lift')))cty=Math.max(minY,-vh*.66);
   if(level===11&&state==='play'&&C.load&&(C.st==='swing'||C.st==='lift')){ctx0=clamp(C.load.x-vw*.5,-200,Math.max(0,W-vw));cty=C.load.y-vh*.5}
+  if(level===11&&state==='play'&&H.camHold){ctx0=clamp(TK.x-vw*.5,-200,Math.max(0,W-vw));cty=Math.max(minY,QY-50-vh*.5);
+    var calm=H.pile.every(function(b){return b.sleep});if((calm&&tClock>H.camHoldMin)||tClock>H.camHoldUntil){H.camHold=false;H.camSlowUntil=tClock+3.5}}
+  if(level===11&&state==='intro')cty=Math.max(minY,-vh*.68);
   if(level===8&&state==='play'&&(towing||pickupT>0)){cty=-vh*.4;ctx0=clamp(diver.x-vw*.22,0,Math.max(0,W-vw))}
   if(cam.snap){cam.x=ctx0;cam.y=cty;cam.snap=false}
-  else{var cr=Math.min(1,dt*2.6);cam.x+=(ctx0-cam.x)*cr;cam.y+=(cty-cam.y)*cr}
+  else{var cr=Math.min(1,dt*(level===11&&tClock<(H.camSlowUntil||0)?.7:2.6));cam.x+=(ctx0-cam.x)*cr;cam.y+=(cty-cam.y)*cr}
 }
 
 /* ---------- tegning ---------- */
@@ -3610,7 +3621,7 @@ function render(){
   if(level===9&&BOAT9>x0-200&&BOAT9<x1+200){var bb9=reduce?0:Math.sin(tClock*1.3)*2;drawBoatAt(BOAT9+60,-4+bb9);ctx.strokeStyle='rgba(200,200,190,.6)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(BOAT9+150,0);ctx.quadraticCurveTo(BOAT9+190,M*6,BOAT9+230,bottom(BOAT9+230));ctx.stroke();ctx.fillStyle='#e6f2ee';ctx.font='700 12px Figtree, sans-serif';ctx.textAlign='center';if(pend9.length)ctx.fillText('LEVER FISKEN HER',BOAT9+60,-58+bb9)}
   /* bøye, makker og line */
   var bob=reduce?0:Math.sin(tClock*1.6)*(1.5+WX.wind*.4);
-  if(state==='intro'&&introT<2.9)ctx.globalAlpha=0;
+  if(state==='intro'&&introT<(level===11?6.4:2.9))ctx.globalAlpha=0;
   ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(buoy.x,2+bob);
   ctx.quadraticCurveTo(buoy.x,diver.y*.6,diver.x-10,diver.y);if(!hooked)ctx.stroke();
   if(state==='blackout'&&boT>1.1)drawDiver(resc.x,resc.y,resc.ang,tClock*9,.8,resc.y<12?true:2);
@@ -3618,7 +3629,7 @@ function render(){
   else drawDiver(buoy.x-95,5+bob*.6,0,tClock*2,.1,true);
   drawBuoyShape(buoy.x,bob,G.buoy,G.bcol);
 
-  ctx.globalAlpha=1;if(state==='intro')drawIntro(bob);
+  ctx.globalAlpha=1;if(state==='intro'&&level!==11)drawIntro(bob);
   if(level===8&&state!=='intro'&&(towing||pickupT>0||Math.abs(boatX-diver.x)<1200)){
     var tbx=towing?diver.x+ROPE:pickupT>0?diver.x-40-480*(pickupT/2.5):boatX;
     drawBoatAt(tbx,-4+bob);
@@ -3704,7 +3715,7 @@ function render(){
     if(cA>0)ctx.restore();
   }
   DREACH=null;DOK=false;DFAR=false;
-  if(level===11)drawHarbourFront();
+  if(level===11){drawHarbourFront();if(state==='intro')hDrawIntro()}
   noBeltDraw=false;curGear=FULL;noWeaponDraw=false;
 
   ctx.strokeStyle='rgba(230,242,238,.8)';ctx.lineWidth=1.2;
@@ -4407,7 +4418,7 @@ function hBuild(){
 }
 function hReset(){
   H.log=[];H.net=0;H.netList=[];H.bags=6;H.bigbags=2;H.drag=null;H.bbN=0;H.tow=null;H.hand=null;H.gear=null;H.anim=null;H.fill=false;H.vent=false;H.lastFit=null;
-  H.crew={x:diver.x-60,tx:diver.x-60,st:'idle',t:0,walk:0};K={x:diver.x+360,tx:diver.x+360,st:'park',out:1,wheel:0};TK={x:K.x-TOFF,wheel:0};
+  H.crew={x:diver.x+200,tx:diver.x+200,st:'idle',t:0,walk:0};K={x:diver.x+900,tx:diver.x+900,st:'park',out:1,wheel:0};TK={x:K.x-TOFF,wheel:0};
   C={st:'idle',r:-60,L:60,th:0,w:0,load:null,t:0,hx:0,hy:0};
   if(testBak)H.save={kg:0,done:[],days:0,fin:0};else hLoad();
   hBuild();hPileLoad();noGun=true;
@@ -4530,7 +4541,7 @@ function hMenu(k){
 }
 function hDrop(){
   var it=C.load;if(!it)return;var bx=it.x,by=it.y+it.s*.4;
-  if(Math.abs(bx-TK.x)<CW/2-10&&by<BED()+2+hPileTop(bx-TK.x,it.s)){C.st='drop';C.t=0;it.st='crane';hDeliver(it,{x:bx-TK.x,y:by-BED(),vx:C.vx||0,vy:0});C.load=null;return}
+  if(Math.abs(bx-TK.x)<CW/2-10&&by<BED()+2+hPileTop(bx-TK.x,it.s)){C.st='drop';C.t=0;it.st='crane';H.camHold=true;H.camHoldMin=tClock+1.8;H.camHoldUntil=tClock+7;hDeliver(it,{x:bx-TK.x,y:by-BED(),vx:C.vx||0,vy:0});C.load=null;return}
   if(by<6){toast('Lasten havnet på kaia ved siden av containeren. Kranføreren løfter den opp igjen','bad',2600);C.th=0;C.w=0;C.L=Math.max(60,C.L-40);return}
   it.st='rise';it.vy=60;it.vr=rnd(-2,2);it.y=Math.max(10,it.y);C.load=null;C.st='idle';S.splash();toast('Splash! Lasten falt i sjøen igjen','bad',2400);
 }
@@ -4726,6 +4737,42 @@ function hDrawKneel(){
   var hw=item?(A&&A.k==='putin'?{x:item.x,y:item.y-item.s*.3}:{x:item.x-f*item.s*.4,y:item.y-item.s*.42}):{x:shX+f*30,y:shY+16};var hd0=Math.hypot(hw.x-shX,hw.y-shY);if(hd0>46){hw={x:shX+(hw.x-shX)*46/hd0,y:shY+(hw.y-shY)*46/hd0}}c.strokeStyle=AR;c.lineWidth=5.6;[0,1].forEach(function(k){var ex=(shX+hw.x)/2+f*2,ey=(shY+hw.y)/2+6;c.beginPath();c.moveTo(shX,shY+2);c.quadraticCurveTo(ex,ey,hw.x-k*f*4,hw.y+k*3);c.stroke()});
   c.fillStyle='#0b1214';c.beginPath();c.arc(hw.x,hw.y,3.4,0,6.283);c.fill();
   c.restore();
+}
+function hSuitCols(g){var su=g.suit,SU=D_SUITS[su],AR=D_ARMS[su],FA=D_FAR[su];if(g.scol&&su>0&&SCOL[g.scol]){SU=SCOL[g.scol].c[0];AR=SCOL[g.scol].c[1];FA=SCOL[g.scol].c[2]}return {SU:SU,AR:AR,FA:FA,fc:g.fcol&&FCOL[g.fcol]?FCOL[g.fcol].c[0]:g.fin===3?'#cf222c':g.fin===2?'#3b6ea5':'#182327'}}
+function hFin(x,y,a,len,col){var c=ctx;c.save();c.translate(x,y);c.rotate(a);c.fillStyle=col;c.beginPath();c.moveTo(-3,-4);c.lineTo(len,-3);c.lineTo(len+2,4);c.lineTo(-3,4);c.closePath();c.fill();c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=1;c.beginPath();c.moveTo(4,0);c.lineTo(len,0);c.stroke();c.fillStyle='#07090a';c.beginPath();c.ellipse(0,0,6,4,0,0,6.283);c.fill();c.restore()}
+function hHead(g,hx,hy,f){var c=ctx,ha=f>0?-.2:Math.PI+.2,hcs=Math.cos(ha),hsn=Math.sin(ha),hly=hcs<0?1:-1,ox=hx-(26.5*hcs-hly*hsn),oy=hy-(26.5*hsn+hly*hcs);
+  var oR=DREACH,oB=DBEND,oF=DFAR,oL=DLIMP,oG=curGear;DREACH=null;DBEND=0;DFAR=false;DLIMP=0;curGear=g;c.save();c.beginPath();c.arc(hx,hy,12.5,0,6.283);c.clip();drawDiver(ox,oy,ha,0,0,false,null);c.restore();DREACH=oR;DBEND=oB;DFAR=oF;DLIMP=oL;curGear=oG}
+function hWalker(g,ex,t){
+  var c=ctx,K2=hSuitCols(g),f=1,flen=g.fin>1?44:g.fin?28:0;if(t<0)return;
+  c.save();c.lineCap='round';c.lineJoin='round';
+  if(t<2.2){ /* går langs kaia med finnene i hånda */
+    var e=1-Math.pow(1-t/2.2,2),x=ex-260+260*e,ph=t*7,gy=QY-1,hipX=x,hipY=gy-30+Math.abs(Math.sin(ph))*-2;
+    [0,1].forEach(function(k){var sw=Math.sin(ph+k*Math.PI)*.45;c.strokeStyle=k?K2.FA:K2.SU;c.lineWidth=6.4;var kx=hipX+Math.sin(sw)*15,ky=hipY+Math.cos(sw)*15,fx=kx+Math.sin(sw*.6-.15)*15,fy=gy-2;c.beginPath();c.moveTo(hipX,hipY);c.lineTo(kx,ky);c.lineTo(fx,fy);c.stroke();c.fillStyle='#0b1214';c.fillRect(fx-3,fy-2,8,4)});
+    var shX=hipX+2,shY=hipY-30;c.strokeStyle=K2.SU;c.lineWidth=14;c.beginPath();c.moveTo(hipX,hipY);c.lineTo(shX,shY);c.stroke();if(g.wt>0){c.strokeStyle='#0c1213';c.lineWidth=4;c.beginPath();c.moveTo(hipX-6,hipY-2);c.lineTo(hipX+6,hipY-2);c.stroke()}
+    var hdx=shX+4,hdy=hipY+2;c.strokeStyle=K2.AR;c.lineWidth=5;c.beginPath();c.moveTo(shX,shY+3);c.lineTo(shX+3,shY+16);c.lineTo(hdx,hdy);c.stroke();
+    if(flen){hFin(hdx,hdy,1.45,flen*.9,K2.fc);hFin(hdx+3,hdy,1.62,flen*.9,K2.fc)}
+    var sw2=Math.sin(ph)*.5;c.beginPath();c.moveTo(shX,shY+3);c.lineTo(shX-Math.sin(sw2)*13,shY+16);c.stroke();
+    hHead(g,shX+2,shY-11,f);
+  }else{
+    var x2=ex,sitT=clamp((t-2.2)/.6,0,1),jt=clamp((t-4.4)/.65,0,1),hipX2=x2,hipY2=QY-3-(1-sitT)*24,rot=0,dx=0,dy=0;
+    if(jt>0){dx=jt*22;dy=jt*jt*(6-QY+16);rot=jt*1.2}
+    if(t>5.05)return c.restore();
+    c.translate(hipX2+dx,hipY2+dy);c.rotate(rot);
+    var finA=t>3.4,finB=t>4.0,reach=t>2.9&&t<4.3?Math.sin((t-2.9)*Math.PI/.7):0;
+    [1,0].forEach(function(k){var kx=18*sitT+k*2,ky=-k*2,fx=kx+4*(1-sitT),fy=ky+28*sitT+(1-sitT)*20;c.strokeStyle=k?K2.FA:K2.SU;c.lineWidth=6.4;c.beginPath();c.moveTo(0,0);c.lineTo(kx,ky);c.lineTo(fx,fy);c.stroke();
+      if(flen&&(k?finA:finB))hFin(fx,fy+2,1.35,flen,k?K2.fc:K2.fc);else{c.fillStyle='#0b1214';c.fillRect(fx-3,fy,7,4)}});
+    c.strokeStyle=K2.SU;c.lineWidth=14;c.beginPath();c.moveTo(0,0);c.lineTo(-4+reach*8,-30+reach*6);c.stroke();
+    var sx=-4+reach*8,sy=-30+reach*6;c.strokeStyle=K2.AR;c.lineWidth=5;
+    if(reach>0){c.beginPath();c.moveTo(sx,sy+3);c.lineTo(sx+10,sy+14);c.lineTo(18+4,24);c.stroke();if(t>2.9&&!finB&&flen)hFin(22,22,1.4,flen*.9,K2.fc)}
+    else{c.beginPath();c.moveTo(sx,sy+3);c.lineTo(sx+6,sy+16);c.lineTo(sx+14,sy+20);c.stroke();if(!finA&&flen)hFin(-14,2,1.45,flen*.9,K2.fc)}
+    hHead(g,sx+2,sy-11,f);
+  }
+  c.restore();
+}
+function hDrawIntro(){
+  hWalker(FULL,buoy.x-95,introT-.7);hWalker(G,diver.x-14,introT);
+  var c=ctx;curGear=G;if(introT>5.05)drawDiver(diver.x,5+Math.sin(tClock*1.6)*1.5,0,tClock*2,.1,true);curGear=FULL;
+  if(introT>5.75&&introT<6.4)drawDiver(buoy.x-95,5+Math.sin(tClock*1.6+1)*1.5,0,tClock*2,.1,true);
 }
 function hDrawGear(k,x,y){var c=ctx;if(k==='bag')hDrawBagShape(x,y,0,true);else if(k==='bottle')hDrawBottle(x,y,0,1500);else if(k==='strap'){c.strokeStyle='#ff8a1f';c.lineWidth=3;for(var q=0;q<3;q++){c.beginPath();c.ellipse(x,y,9-q*2,5-q,.3,0,6.283);c.stroke()}}else if(k==='bigbag'){c.fillStyle='#e9e4d6';c.fillRect(x-11,y-7,22,14);c.strokeStyle='#b9b19b';c.lineWidth=1;c.strokeRect(x-11,y-7,22,14);c.strokeStyle='#3a6fb0';c.lineWidth=2;c.beginPath();c.moveTo(x-8,y-7);c.lineTo(x-8,y-12);c.moveTo(x+8,y-7);c.lineTo(x+8,y-12);c.stroke()}}
 function hDrawBottle(x,y,a,air){var c=ctx;c.save();c.translate(x,y);c.rotate(a||0);c.fillStyle='#e9eef0';c.fillRect(-13,-4,22,8);c.fillStyle='#1d6fb0';c.fillRect(-13,-4,5,8);c.fillStyle='#333';c.fillRect(9,-2,5,4);c.fillStyle=air>300?'#7ed49a':'#ff6b6b';c.fillRect(-6,-2,12*clamp(air/1500,0,1),1.6);c.restore()}
