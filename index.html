@@ -150,6 +150,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Layout: fullskjerm canvas, smal HUD øverst, skyteknapp nede til høyre, kort som overlegg */
@@ -402,7 +404,7 @@ td.n,th.n{text-align:right}
     <button class="btn alt" id="crOther" type="button" hidden>Fortsett en annen karriere</button>
     <button class="btn alt" id="restart" type="button">Start karrieren på nytt</button>
     <button class="btn" id="updBtn" type="button" hidden>Ny versjon finnes – trykk for å oppdatere</button>
-    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0k · lengre kranwire</p>
+    <p class="small" id="ver" style="margin-top:14px;text-align:center;opacity:.55">Versjon 16.0l · hal opp beltet i havna</p>
   </div>
 </div>
 
@@ -1389,6 +1391,7 @@ function emergencyBelt(){
   if(!canBeltDrop())return;
   if(carry&&carry.mode==='hang'){beltOff=true;haul={f:carry,x:carry.x,y:carry.y,gun:true};carry.rot=0;carry.dir=1;carry.dead=true;carry=null;noGun=true;score-=10000;lying=false;S.tick();toast('Beltet er sluppet, −10 000. Ligg i overflaten og trykk HAL! raskt','bad');return}
   if(carry&&carry.mount){carry.mount=false;carry.pull=false}
+  if(level===11){if(H.hand&&H.hand.k==='item'){var hc=H.hand.it;hc.st='rise';hc.vy=20;hc.vr=rnd(-2.5,2.5)}if(C.st==='held'){C.st='wait'}H.hand=null;if(H.drag){H.drag.st='bottom';H.drag.vr=0;H.drag=null}H.kneel=false;diver.ang=0}
   if(carry){stuck=carry;carry=null;noGun=true}
   beltOff=true;haul={f:null,x:diver.x,y:Math.min(diver.y+6,bottom(diver.x)-10),gun:false};score-=3000;lying=false;crawlV=0;S.tick();
   try{if(navigator.vibrate)navigator.vibrate([60,40,60])}catch(_){}
@@ -4481,8 +4484,10 @@ function hAnim(k,d,o){H.anim={k:k,t:0,d:d,o:o||{}};S.tick()}
 /* ---------- hovedknapp under vann ---------- */
 function hIsBB(o){return o&&o.t==='bigbag'}
 function hBBNear(){var hp=hHand(),best=null;for(var i=0;i<H.items.length;i++){var o=H.items[i];if(o.t==='bigbag'&&o.st==='bottom'&&Math.hypot(o.x-hp.x,o.y-o.s*.3-hp.y)<o.s*.7+30)best=o}return best}
-function hActInfo(){
+function hActInfo(){var r0=hActInfo0();if(!r0&&haul&&state==='play')return {k:'haul',t:under?'OPP OG HAL':'HAL BELTET!'};return r0}
+function hActInfo0(){
   if(state!=='play'||H.anim)return null;
+  if(haul&&!under)return {k:'haul',t:'HAL BELTET!'};
   if(C.st==='swing')return {k:'drop',t:'SLIPP LASTEN'};
   var hd=H.hand,bb=hBBNear();
   if(H.tow)return {k:'untow',t:'SLIPP TAKET'};
@@ -4504,6 +4509,7 @@ function hActInfo(){
 }
 function hAct(){
   var a=hActInfo();if(!a)return;var it=a.it;
+  if(a.k==='haul'){if(under)toast('Opp til overflaten og hal i lina');else{haul.y-=26;lastHaul=tClock;haulN++;S.tick();try{if(navigator.vibrate)navigator.vibrate(12)}catch(_){}}return}
   if(a.k==='take')hAnim('pickup',.55,{it:it});
   else if(a.k==='dropitem'){var c=H.hand.it;H.hand=null;c.st='rise';c.vy=20;c.vr=rnd(-2.5,2.5);S.tick()}
   else if(a.k==='bag')hAnim('bag',1.5,{it:it});
